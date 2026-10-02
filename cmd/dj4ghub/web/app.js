@@ -1557,11 +1557,14 @@ document.querySelectorAll(".tab").forEach((tab) => {
 
 // Restore the page named in the URL after every script has registered its
 // tab handlers (phone.js loads after this file).
-window.addEventListener("load", () => {
-  const view = decodeURIComponent(location.hash.slice(1));
+function showViewFromHash() {
+  const view = decodeURIComponent(location.hash.slice(1)) || "overview";
   const tab = [...document.querySelectorAll(".tab")].find((item) => item.dataset.view === view);
-  if (tab && view !== "overview") tab.click();
-});
+  if (tab && !tab.classList.contains("active")) tab.click();
+}
+window.addEventListener("load", showViewFromHash);
+// Typing a #view address or using back/forward switches the page too.
+window.addEventListener("hashchange", showViewFromHash);
 
 // eSIM activation codes use the SGP.22 format
 // LPA:1$<SM-DP+ address>$<matching ID>[$<SM-DP+ OID>[$<confirmation code required>]].
