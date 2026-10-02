@@ -324,7 +324,9 @@ func (a *app) monitorCallHistory(ctx context.Context) {
 				a.audioMu.Unlock()
 				continue // A read failure is not evidence of hangup.
 			}
-			if err := h.observe(parseVoiceCalls(raw), confirmedHistoryIdentity(identity, after), time.Now()); err != nil {
+			calls := parseVoiceCalls(raw)
+			a.announceIncomingCalls(calls)
+			if err := h.observe(calls, confirmedHistoryIdentity(identity, after), time.Now()); err != nil {
 				log.Printf("communication history save failed: %v", err)
 			}
 			a.audioMu.Unlock()

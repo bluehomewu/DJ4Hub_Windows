@@ -69,6 +69,8 @@ func runCLI(args []string) int {
 		err = followLogs()
 	case "open":
 		err = openConsole()
+	case "phone":
+		err = openPhoneWindow()
 	case "activate":
 		err = activateDJINetwork(os.Stdout)
 	case "audio-check":
@@ -116,6 +118,7 @@ func printUsage(out io.Writer) {
   dj4ghub status         檢視執行狀態
   dj4ghub logs           檢視即時日誌（Ctrl+C 結束）
   dj4ghub open           開啟管理網頁
+  dj4ghub phone          開啟小型電話視窗
   dj4ghub activate       檢查模組網卡並連線 Windows 行動寬頻後結束
   dj4ghub serve [--demo] [--port COMx] [--listen 127.0.0.1:7575]
                          在前景執行服務（除錯用）
@@ -407,6 +410,19 @@ func openConsole() error {
 		return errors.New("DJ 4G Hub 未在執行；請先執行 dj4ghub start")
 	}
 	return openURL(state.URL)
+}
+
+// openPhoneWindow shows the compact phone window of the running service.
+func openPhoneWindow() error {
+	state := runningService()
+	if state == nil {
+		return errors.New("DJ 4G Hub 未在執行；請先執行 dj4ghub start")
+	}
+	if err := openCallWindow(strings.TrimRight(state.URL, "/") + "/?window=call#calls"); err != nil {
+		return err
+	}
+	time.Sleep(3 * time.Second) // let placeCallWindow finish before exiting
+	return nil
 }
 
 func openURL(target string) error {

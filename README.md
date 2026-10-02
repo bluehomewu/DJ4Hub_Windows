@@ -45,6 +45,7 @@ dj4ghub stop           停止背景服務
 dj4ghub status         檢視執行狀態
 dj4ghub logs           即時檢視日誌
 dj4ghub open           重新開啟管理網頁
+dj4ghub phone          開啟小型電話視窗
 dj4ghub activate       檢查模組網卡，必要時連線 Windows 行動寬頻後結束
 dj4ghub serve --port COM17
                        在前景執行並指定 AT 埠（除錯用）
@@ -73,6 +74,8 @@ dj4ghub serve --port COM17
 3. 第一次撥號時，網頁會請你同意初始化：程式會備份 USB 設定、以 QADBKEY 授權並**永久開啟模組 ADB**，然後重啟模組一次。Windows 11 會自動以內建 WinUSB 驅動綁定「ADB Interface」。
 4. 之後每次準備音訊時，程式會載入暫時性的核心驅動；Windows 會出現「麥克風 (AC Interface)」與「喇叭 (AC Interface)」。驅動在模組重啟後清除。
 5. 通話時，模組 → 電腦喇叭由瀏覽器播放；電腦麥克風 → 模組則由 DJ 4G Hub 服務以 WASAPI 直接傳送。原因是 Windows 上的 Chrome 無法輸出到模組 8 kHz 單聲道的「喇叭 (AC Interface)」，會悄悄改用預設喇叭。
+
+來電時，服務會在螢幕右下角開啟一個小型通話視窗（Chrome 或 Edge 的 App 視窗），可直接接聽、掛斷、靜音與按鍵。為了讓沒開著電話頁時也能用電腦接聽，服務預設會在背景維持模組音訊待機；這兩項都可以在電話頁的「背景待機」與「來電彈出視窗」關閉。背景待機只在模組已完成一次性 ADB 授權後才會啟動，不會自行改寫模組設定或重啟模組。
 
 注意事項：
 - 請戴耳機通話：麥克風這一段不經過瀏覽器，沒有回音消除。

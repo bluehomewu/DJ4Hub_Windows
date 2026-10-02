@@ -12,6 +12,11 @@ let moduleAudioLeaseBusy = false;
 let phoneCallActive = false;
 // False when the service reports module audio unavailable (e.g. on Windows).
 let moduleAudioSupported = true;
+// A service-owned standby session is shared; pages adopt its token but never stop it.
+let sharedAudioSession = false;
+const isCallWindow = document.documentElement.classList.contains('call-window');
+let callWindowHadCall = false;
+let callWindowCloseTimer = null;
 let moduleAudioPreparation = null;
 async function refreshCalls() {
   if (moduleAudioBusy) { $('#phone-status').textContent = '模組音訊正在初始化，等待 USB 重新連線…'; return; }
@@ -28,6 +33,7 @@ async function refreshCalls() {
       const elapsed = callStarted.has(c.id) ? ` · ${Math.floor((Date.now()-callStarted.get(c.id))/1000)}s` : '';
       return `${c.number || '未知號碼'} · ${states[c.state] || '未知狀態'}${elapsed}`;
     }).join(' / ') || '無語音通話';
+    renderCallCard(calls, states);
     $('#phone-dial').disabled = calls.length > 0;
     $('#phone-answer').disabled = !calls.some(c => c.state === 4 || c.state === 5);
     $('#phone-hangup').disabled = !calls.length;
@@ -39,6 +45,27 @@ async function refreshCalls() {
     previousCallsPresent = calls.length > 0;
   } catch (e) { $('#phone-status').textContent = moduleAudioBusy || /NO_DEVICE|NOT_FOUND/i.test(e.message) ? 'USB 正在重新連線，稍後自動恢復…' : `通話狀態不可用：${e.message}`; }
   finally { callPollBusy = false; }
+}
+function renderCallCard(calls, states) {
+  const card = $('#call-card');
+  if (!card) return;
+  const call = calls.find(c => c.state === 4 || c.state === 5) || calls[0];
+  if (!call) {
+    card.dataset.state = 'idle';
+    $('#call-card-kicker').textContent = '電話';
+    $('#call-card-number').textContent = callWindowHadCall ? '通話已結束' : '無語音通話';
+    $('#call-card-state').textContent = callWindowHadCall && isCallWindow ? '視窗即將關閉' : '等待來電';
+    if (isCallWindow && callWindowHadCall && !callWindowCloseTimer) callWindowCloseTimer = setTimeout(() => window.close(), 3000);
+    return;
+  }
+  callWindowHadCall = true;
+  if (callWindowCloseTimer) { clearTimeout(callWindowCloseTimer); callWindowCloseTimer = null; }
+  const ringing = call.state === 4 || call.state === 5;
+  card.dataset.state = ringing ? 'ringing' : 'active';
+  $('#call-card-kicker').textContent = ringing ? '來電' : (call.direction === 1 ? '來電通話' : '撥出通話');
+  $('#call-card-number').textContent = call.number || '未知號碼';
+  const elapsed = callStarted.has(call.id) ? ` · ${Math.floor((Date.now()-callStarted.get(call.id))/1000)} 秒` : '';
+  $('#call-card-state').textContent = `${states[call.state] || '未知狀態'}${elapsed}`;
 }
 async function phoneAction(action, extra = {}) {
   if (phoneActionBusy) return;
@@ -218,6 +245,7 @@ async function refreshModuleAudio() {
     const result = await api('/api/calls/audio');
     moduleAudioSupported = Boolean(result.configured);
     moduleAudioNativeUplink = Boolean(result.native_uplink);
+    adoptSharedAudioSession(result);
     const autoAudio = $('#phone-use-audio');
     autoAudio.disabled = !moduleAudioSupported;
     if (!moduleAudioSupported) autoAudio.checked = false;
@@ -226,6 +254,36 @@ async function refreshModuleAudio() {
     $('#audio-module-status').textContent = !result.configured ? (result.summary || '本機音訊依賴未就緒，請執行 dj4ghub audio-check。') : result.active ? '音訊待機就緒，不代表 IMS 已註冊或電信業者通話可用。掛斷後保持待機；關閉頁面或失去心跳後恢復 USB。' : '撥號時自動初始化音訊；首次允許後，進入電話頁面也會自動就緒。';
   } catch(e) { $('#audio-module-status').textContent = e.message; }
 }
+function adoptSharedAudioSession(status) {
+  if (!(status.active && status.owner === 'service' && status.token)) {
+    if (sharedAudioSession && !status.active) { sharedAudioSession = false; clearModuleAudioToken(); }
+    return false;
+  }
+  sharedAudioSession = true;
+  moduleAudioToken = status.token;
+  $('#audio-release').disabled = true;
+  $('#audio-release').hidden = true;
+  $('#audio-module-status').textContent = '背景待機中：模組音訊已就緒，來電可直接用電腦接聽。';
+  return true;
+}
+async function loadPhoneSettings() {
+  try {
+    const settings = await api('/api/settings/phone');
+    $('#phone-standby').checked = Boolean(settings.audio_standby);
+    $('#phone-call-window').checked = Boolean(settings.call_window);
+  } catch (_) { /* Settings stay at their last shown values. */ }
+}
+async function savePhoneSettings() {
+  const body = { audio_standby: $('#phone-standby').checked, call_window: $('#phone-call-window').checked };
+  try {
+    await api('/api/settings/phone', { method: 'PUT', headers: { 'X-DJ4Hub-Audio': '1' }, body: JSON.stringify(body) });
+    $('#audio-module-status').textContent = body.audio_standby ? '已開啟背景待機，模組音訊會在數秒到一分鐘內就緒。' : '已關閉背景待機。';
+    if (!body.audio_standby && sharedAudioSession) { sharedAudioSession = false; clearModuleAudioToken(); $('#audio-release').hidden = false; }
+  } catch (e) { $('#audio-module-status').textContent = e.message; await loadPhoneSettings(); }
+}
+$('#phone-standby').addEventListener('change', savePhoneSettings);
+$('#phone-call-window').addEventListener('change', savePhoneSettings);
+document.querySelector('[data-view="calls"]').addEventListener('click', loadPhoneSettings);
 async function releaseModuleAudio() {
   if (!moduleAudioToken || moduleAudioBusy) return;
   moduleAudioBusy = true;
@@ -255,6 +313,7 @@ async function prepareAutomaticAudio() {
   }
   const status = await api('/api/calls/audio');
   moduleAudioNativeUplink = Boolean(status.native_uplink);
+  if (adoptSharedAudioSession(status)) { await discoverPhoneAudio(); return; }
   if (!status.configured) throw new Error(status.summary || '本機音訊依賴未設定');
   if (status.active) throw new Error('音訊由另一個頁面使用，請在原頁面停止後重試');
   const current = await api('/api/calls');
@@ -297,7 +356,7 @@ document.querySelector('[data-view="calls"]').addEventListener('click', () => {
 void refreshModuleAudio();
 window.addEventListener('pagehide', () => {
   stopPhoneAudio();
-  if (moduleAudioToken) {
+  if (moduleAudioToken && !sharedAudioSession) {
     void fetch('/api/calls/audio/stop', {method:'POST',keepalive:true,headers:{'X-DJ4Hub-Audio':'1','X-DJ4Hub-Audio-Token':moduleAudioToken}}).catch(()=>{});
     clearModuleAudioToken();
   }

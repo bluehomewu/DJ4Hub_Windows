@@ -81,6 +81,11 @@ type app struct {
 	audioSession      *moduleAudioSession
 	uplinkMu          sync.Mutex
 	audioUplink       *audioUplink
+	settingsOnce      sync.Once
+	settings          *phoneSettingsStore
+	standbyBackoff    standbyBackoff
+	incomingCalls     incomingCallWatcher
+	callWindowURL     string
 	modem             *modem.Manager
 	esimMu            sync.RWMutex
 	esim              *esim.Manager
@@ -331,7 +336,10 @@ func serve(instance *app, listen string) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	instance.seedSMSFromHistory()
+	instance.callWindowURL = callWindowURL(listen)
 	defer instance.stopAudioUplink()
+	defer instance.stopServiceAudioSession("service stopping")
+	go instance.monitorAudioStandby(ctx)
 	go instance.monitorAudioUplink(ctx)
 	go instance.monitorCallHistory(ctx)
 	go instance.monitorHistoryBackup(ctx)
@@ -593,6 +601,8 @@ func (a *app) routes() http.Handler {
 	mux.HandleFunc("POST /api/calls/audio/lease", a.moduleAudioLease)
 	mux.HandleFunc("POST /api/calls/audio/stop", a.moduleAudioStop)
 	mux.HandleFunc("POST /api/calls/audio/uplink", a.moduleAudioUplink)
+	mux.HandleFunc("GET /api/settings/phone", a.getPhoneSettings)
+	mux.HandleFunc("PUT /api/settings/phone", a.putPhoneSettings)
 	mux.HandleFunc("POST /api/network/apn", a.saveAPN)
 	mux.HandleFunc("GET /api/network", a.networkDiagnostic)
 	mux.HandleFunc("GET /api/network/local", a.localNetworkConnection)
@@ -1561,6 +1571,7 @@ func (a *app) checkProxyRoute(w http.ResponseWriter, _ *http.Request) {
 func (a *app) setUSBNetMode(w http.ResponseWriter, r *http.Request) {
 	a.audioMu.Lock()
 	defer a.audioMu.Unlock()
+	a.stopServiceAudioSessionLocked("module USB change requested")
 	if a.audioSession != nil && time.Since(a.audioSession.lastLease) < 50*time.Second {
 		writeError(w, http.StatusConflict, "請先停止模組音訊並恢復 USB，再切換網路模式")
 		return
@@ -1591,6 +1602,7 @@ func (a *app) setUSBNetMode(w http.ResponseWriter, r *http.Request) {
 func (a *app) rebootModule(w http.ResponseWriter, _ *http.Request) {
 	a.audioMu.Lock()
 	defer a.audioMu.Unlock()
+	a.stopServiceAudioSessionLocked("module USB change requested")
 	if a.audioSession != nil && time.Since(a.audioSession.lastLease) < 50*time.Second {
 		writeError(w, http.StatusConflict, "請先停止模組音訊並恢復 USB，再重啟模組")
 		return

@@ -12,6 +12,11 @@
       const theme = localStorage.getItem("dj4ghub-theme") || localStorage.getItem("djonehub-theme") || localStorage.getItem("vohive-theme");
       if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
     } catch (_) {}
+    // ?window=call is the compact window the service opens for incoming calls.
+    if (new URLSearchParams(location.search).get("window") === "call") {
+      document.documentElement.classList.add("call-window");
+      document.title = "DJ 4G Hub · 通話";
+    }
   </script>
   <link rel="stylesheet" href="/style.css">
 </head>
@@ -321,6 +326,11 @@
       </section>
       <section id="calls" class="view">
         <div class="view-intro"><div><span class="section-kicker">PHONE</span><h2>電話</h2><p>透過 SIM 撥打電話，使用數字鍵盤操作語音選單。</p></div></div>
+        <div id="call-card" class="call-card" data-state="idle">
+          <span id="call-card-kicker" class="call-card-kicker">電話</span>
+          <strong id="call-card-number">無語音通話</strong>
+          <small id="call-card-state">等待來電</small>
+        </div>
         <div class="settings-section"><p id="phone-status" role="status">尚未讀取通話狀態</p><div class="control-panel"><input id="phone-number" type="tel" placeholder="電話號碼" aria-label="電話號碼"><button id="phone-dial">撥打</button><button id="phone-answer" class="secondary">接聽</button><button id="phone-hangup" class="danger">掛斷</button></div><div id="phone-keypad" class="phone-keypad"></div><p id="phone-feedback" role="status"></p></div>
         <div class="settings-section audio-settings">
           <div class="section-heading"><div><h2>通話音訊</h2><p>選擇電腦與模組的音訊裝置，建議配戴耳機。</p></div><button id="audio-discover" class="secondary" type="button">查詢音訊裝置</button></div>
@@ -330,6 +340,16 @@
               <input id="phone-use-audio" class="audio-auto-switch" type="checkbox" role="switch" aria-label="自動通話音訊" aria-describedby="audio-auto-description" checked>
             </label>
             <button id="audio-release" class="secondary audio-release-action" type="button" disabled>停止待機</button>
+          </div>
+          <div class="audio-auto-row phone-settings-row">
+            <label class="audio-auto-setting" for="phone-standby">
+              <span class="audio-auto-copy"><span class="audio-auto-title">背景待機</span><span class="audio-auto-description">不開電話頁也保持模組音訊就緒，來電可直接用電腦接聽</span></span>
+              <input id="phone-standby" class="audio-auto-switch" type="checkbox" role="switch" aria-label="背景待機">
+            </label>
+            <label class="audio-auto-setting" for="phone-call-window">
+              <span class="audio-auto-copy"><span class="audio-auto-title">來電彈出視窗</span><span class="audio-auto-description">有來電時開啟小型通話視窗</span></span>
+              <input id="phone-call-window" class="audio-auto-switch" type="checkbox" role="switch" aria-label="來電彈出視窗">
+            </label>
           </div>
           <p id="audio-module-status" role="status">正在檢查本機實驗音訊支援…</p>
           <div class="audio-device-groups">

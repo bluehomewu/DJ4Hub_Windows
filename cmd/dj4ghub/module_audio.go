@@ -43,8 +43,14 @@ type moduleAudioSession struct {
 	boot      string
 	dir       string
 	adb       string
+	owner     string
 	lastLease time.Time
 }
+
+const (
+	audioOwnerPage    = "page"
+	audioOwnerService = "service"
+)
 
 type moduleAudioReply struct {
 	Configured bool   `json:"configured"`
@@ -54,6 +60,9 @@ type moduleAudioReply struct {
 	// NativeUplink tells the page that the service, not the browser, sends
 	// computer microphone audio to the module.
 	NativeUplink bool `json:"native_uplink"`
+	// Owner is "service" for background standby; such a session is shared
+	// with any local page and must not be stopped when a page closes.
+	Owner string `json:"owner,omitempty"`
 }
 
 // Resolve locally supplied files only. Never download drivers or enable device ADB.
@@ -220,6 +229,11 @@ func (a *app) moduleAudioStatus(w http.ResponseWriter, r *http.Request) {
 	a.audioMu.Lock()
 	defer a.audioMu.Unlock()
 	active := a.audioSession != nil && time.Since(a.audioSession.lastLease) < 50*time.Second
+	reply := moduleAudioReply{Active: active, NativeUplink: true}
+	if active && a.audioSession.owner == audioOwnerService {
+		// Background standby is shared with every local page of this origin.
+		reply.Owner, reply.Token = audioOwnerService, a.audioSession.token
+	}
 	_, _, err := moduleAudioRuntime()
 	summary := "本機音訊依賴已驗證，可在撥號前準備模組音訊。"
 	if err != nil {
@@ -228,7 +242,20 @@ func (a *app) moduleAudioStatus(w http.ResponseWriter, r *http.Request) {
 	if a.demo {
 		summary = "示範模式不操作真實音訊硬體"
 	}
-	writeJSON(w, 200, moduleAudioReply{Configured: err == nil && !a.demo, Active: active, Summary: summary, NativeUplink: true})
+	reply.Configured, reply.Summary = err == nil && !a.demo, summary
+	writeJSON(w, 200, reply)
+}
+
+// audioPrepareError carries the HTTP status that matches a failure.
+type audioPrepareError struct {
+	status  int
+	message string
+}
+
+func (e *audioPrepareError) Error() string { return e.message }
+
+func prepareFailure(status int, message string) error {
+	return &audioPrepareError{status: status, message: message}
 }
 
 func (a *app) moduleAudioPrepare(w http.ResponseWriter, r *http.Request) {
@@ -236,76 +263,81 @@ func (a *app) moduleAudioPrepare(w http.ResponseWriter, r *http.Request) {
 		writeError(w, 403, "音訊控制僅允許本機同源存取")
 		return
 	}
-	dir, adb, runtimeErr := moduleAudioRuntime()
-	if runtimeErr != nil || a.demo {
-		message := "示範模式不操作真實音訊硬體"
-		if runtimeErr != nil {
-			message = runtimeErr.Error()
-		}
-		writeError(w, 409, message)
-		return
-	}
 	a.audioMu.Lock()
 	defer a.audioMu.Unlock()
-	if a.audioSession != nil && time.Since(a.audioSession.lastLease) < 50*time.Second {
-		writeError(w, 409, "已有音訊工作階段，請先停止或等待自動恢復")
+	ctx, cancel := context.WithTimeout(r.Context(), 180*time.Second)
+	defer cancel()
+	s, err := a.prepareModuleAudioLocked(ctx, r.Header.Get("X-DJ4Hub-Initialize") == "1", audioOwnerPage)
+	if err != nil {
+		status := 502
+		var prepareErr *audioPrepareError
+		if errors.As(err, &prepareErr) {
+			status = prepareErr.status
+		}
+		writeError(w, status, err.Error())
 		return
+	}
+	writeJSON(w, 200, moduleAudioReply{Configured: true, Active: true, Token: s.token, Owner: s.owner, Summary: "模組音訊已準備；請選擇電腦裝置後連線音訊。關閉頁面後自動恢復，驅動在模組重啟後清除。"})
+}
+
+// prepareModuleAudioLocked loads the module audio runtime and installs the
+// session. initialize allows the one-time ADB authorization, which may
+// reboot the module; background standby never passes it. The caller holds
+// audioMu.
+func (a *app) prepareModuleAudioLocked(ctx context.Context, initialize bool, owner string) (*moduleAudioSession, error) {
+	dir, adb, runtimeErr := moduleAudioRuntime()
+	if runtimeErr != nil || a.demo {
+		if runtimeErr != nil {
+			return nil, prepareFailure(409, runtimeErr.Error())
+		}
+		return nil, prepareFailure(409, "示範模式不操作真實音訊硬體")
+	}
+	if a.audioSession != nil && time.Since(a.audioSession.lastLease) < 50*time.Second {
+		return nil, prepareFailure(409, "已有音訊工作階段，請先停止或等待自動恢復")
 	}
 	raw, err := a.phoneCommand("AT+CLCC")
 	if err != nil || len(parseVoiceCalls(raw)) != 0 {
-		writeError(w, 409, "請在無通話時準備模組音訊")
-		return
+		return nil, prepareFailure(409, "請在無通話時準備模組音訊")
 	}
 	raw, err = a.phoneCommand("ATI")
 	if err != nil || !strings.Contains(raw, "QDC507GLEFM21") {
-		writeError(w, 409, "目前僅驗證了 QDC507GLEFM21 韌體")
-		return
+		return nil, prepareFailure(409, "目前僅驗證了 QDC507GLEFM21 韌體")
 	}
 	files, err := audioRuntimeFiles(dir)
 	if err != nil {
-		writeError(w, 409, err.Error())
-		return
+		return nil, prepareFailure(409, err.Error())
 	}
 	token := make([]byte, 16)
 	if _, err = rand.Read(token); err != nil {
-		writeError(w, 500, "無法建立音訊工作階段")
-		return
+		return nil, prepareFailure(500, "無法建立音訊工作階段")
 	}
-	s := &moduleAudioSession{token: hex.EncodeToString(token), adb: adb}
+	s := &moduleAudioSession{token: hex.EncodeToString(token), adb: adb, owner: owner}
 	s.dir = "/tmp/dj4hub-audio-" + s.token
-	ctx, cancel := context.WithTimeout(r.Context(), 180*time.Second)
-	defer cancel()
-	if r.Header.Get("X-DJ4Hub-Initialize") == "1" {
-		location, locationErr := audioUSBLocation(ctx)
-		if locationErr != nil {
-			writeError(w, 409, locationErr.Error())
-			return
-		}
-		s.usb = adbIdentityForLocation(location)
+	location, locationErr := audioUSBLocation(ctx)
+	if locationErr != nil {
+		return nil, prepareFailure(409, locationErr.Error())
+	}
+	s.usb = adbIdentityForLocation(location)
+	if initialize {
 		identity, identityErr := audioIdentity(a.phoneCommand)
 		if identityErr != nil {
-			writeError(w, 409, "無法讀取穩定裝置身分，未初始化 ADB")
-			return
+			return nil, prepareFailure(409, "無法讀取穩定裝置身分，未初始化 ADB")
 		}
 		base, pathErr := os.UserConfigDir()
 		if pathErr != nil {
-			writeError(w, 500, "無法定位設定備份目錄")
-			return
+			return nil, prepareFailure(500, "無法定位設定備份目錄")
 		}
 		_, initErr := initializeAudioADB(ctx, a.phoneCommand, filepath.Join(base, "DJ4Hub", "device-backups"), identity)
 		if initErr != nil {
-			writeError(w, 409, initErr.Error())
-			return
+			return nil, prepareFailure(409, initErr.Error())
 		}
 		if currentLocation, e := audioUSBLocation(ctx); e != nil || currentLocation != location {
-			writeError(w, 409, "USB 位置發生變化，請重新準備；未載入驅動")
-			return
+			return nil, prepareFailure(409, "USB 位置發生變化，請重新準備；未載入驅動")
 		}
 		if _, targetErr := s.target(ctx); targetErr != nil {
 			// Some legacy builds need the current challenge resubmitted after reboot.
 			if authErr := authorizeAudioADB(a.phoneCommand, identity); authErr != nil {
-				writeError(w, 409, authErr.Error())
-				return
+				return nil, prepareFailure(409, authErr.Error())
 			}
 			for i := 0; i < 8; i++ {
 				if _, targetErr = s.target(ctx); targetErr == nil {
@@ -313,33 +345,29 @@ func (a *app) moduleAudioPrepare(w http.ResponseWriter, r *http.Request) {
 				}
 				select {
 				case <-ctx.Done():
-					writeError(w, 409, "等待 ADB 逾時")
-					return
+					return nil, prepareFailure(409, "等待 ADB 逾時")
 				case <-time.After(time.Second):
 				}
 			}
 			if targetErr != nil {
-				writeError(w, 409, "ADB 設定已啟用，但連線不可用；可能有其他 ADB 服務佔用模組（例如執行過 adb devices，可執行 adb kill-server），或請重新插拔。不會自動終止其他程式")
-				return
+				return nil, prepareFailure(409, "ADB 設定已啟用，但連線不可用；可能有其他 ADB 服務佔用模組（例如執行過 adb devices，可執行 adb kill-server），或請重新插拔。不會自動終止其他程式")
 			}
 		}
 		if current, e := audioIdentity(a.phoneCommand); e != nil || current != identity {
-			writeError(w, 409, "裝置身分變化，未載入驅動")
-			return
+			return nil, prepareFailure(409, "裝置身分變化，未載入驅動")
 		}
 	}
-	err = s.prepare(ctx, files)
-	if err != nil {
+	if err = s.prepare(ctx, files); err != nil {
 		log.Printf("module audio prepare failed: %v", err)
 		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 10*time.Second)
 		_, _ = s.shell(cleanupCtx, "test ! -d "+audioQuote(s.dir)+" || touch "+audioQuote(s.dir+"/stop"))
 		cleanupCancel()
-		writeError(w, 502, "音訊準備失敗："+err.Error()+"；已請求停止，若裝置未恢復請重新插拔模組")
-		return
+		return nil, prepareFailure(502, "音訊準備失敗："+err.Error()+"；已請求停止，若裝置未恢復請重新插拔模組")
 	}
 	s.lastLease = time.Now()
 	a.audioSession = s
-	writeJSON(w, 200, moduleAudioReply{Configured: true, Active: true, Token: s.token, Summary: "模組音訊已準備；請選擇電腦裝置後連線音訊。關閉頁面後自動恢復，驅動在模組重啟後清除。"})
+	log.Printf("module audio: session prepared for %s", owner)
+	return s, nil
 }
 
 func (s *moduleAudioSession) prepare(ctx context.Context, files map[string][]byte) error {
@@ -374,6 +402,30 @@ func (s *moduleAudioSession) prepare(ctx context.Context, files map[string][]byt
 	}
 	// Finished sessions keep about 1 MB of drivers in the module's RAM-backed
 	// /tmp until reboot; remove them so repeated calls cannot exhaust it.
+	// prepare only runs when the service holds no live session, so any
+	// session still running on the module is an orphan, for example from a
+	// service that was restarted. Ask it to stop and wait for its cleanup.
+	orphans := `n=0; for d in /tmp/dj4hub-audio-*; do test -f "$d/state" || continue; case "$(cat "$d/state")" in preparing|ready) touch "$d/stop"; n=$((n+1));; esac; done; echo $n`
+	if count, err := s.shell(ctx, orphans); err == nil && count != "0" && count != "" {
+		log.Printf("module audio: stopping %s orphaned session(s)", count)
+		// Stopping restores the USB functions, so adb drops briefly while the
+		// module re-enumerates; poll from here and tolerate those failures.
+		busy := `for d in /tmp/dj4hub-audio-*; do test -f "$d/state" || continue; case "$(cat "$d/state")" in preparing|ready|stopping) echo busy; exit 0;; esac; done; echo idle`
+		deadline := time.Now().Add(60 * time.Second)
+		for {
+			if state, err := s.shell(ctx, busy); err == nil && state == "idle" {
+				break
+			}
+			if time.Now().After(deadline) {
+				return errors.New("模組上仍有未結束的音訊工作階段，請稍後再試")
+			}
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(2 * time.Second):
+			}
+		}
+	}
 	cleanup := `for d in /tmp/dj4hub-audio-*; do test -d "$d" || continue; test "$(cat "$d/state" 2>/dev/null)" = closed && rm -rf "$d"; done; true`
 	if _, err = s.shell(ctx, cleanup); err != nil {
 		return err
