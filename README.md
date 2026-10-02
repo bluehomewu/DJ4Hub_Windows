@@ -13,13 +13,13 @@
 
 ## 與 macOS 版的差異
 
-| 專案 | macOS（上游） | Windows（本專案） |
+| 項目 | macOS（上游） | Windows（本專案） |
 | --- | --- | --- |
 | AT 通道 | libusb 直接佔用 USB bulk 介面 | Quectel 驅動提供的「AT Port」COM 埠 |
 | 行動上網 | 切到 `usbnet=1`（ECM）才有網卡 | `usbnet=0` 搭配 Quectel NDIS／MBIM 驅動即為 Windows「行動電話」介面，可同時收發簡訊與上網 |
 | 網卡處理 | `networksetup` 啟用服務、重新 DHCP | 以 netsh 連線行動寬頻；網卡被停用時經 UAC 啟用 |
 | 連網活動 | `nettop`，含每條連線流量 | TCP 連線表，列出應用與目標；Windows 不提供單條連線流量 |
-| 啟動器 | shell 指令碼 | `dj4ghub.exe` 內建子指令，雙擊即可啟動 |
+| 啟動器 | Shell 腳本 | `dj4ghub.exe` 內建子指令，雙擊即可啟動 |
 | 原生 App | SwiftUI App | 不提供，改用網頁 |
 | 實驗通話音訊 | ADB 載入驅動，比對 adb 的 USB 位置 | 同一套流程；Windows adb 不提供 USB 位置，改以 PnP 位置核對唯一模組並鎖定 adb 序號 |
 
@@ -36,7 +36,7 @@
 
 ## 使用
 
-從 Release 或自行建置取得 `DJ-4G-Hub-<版本>-windows-amd64.zip`，解壓後雙擊 `dj4ghub.exe`，瀏覽器會開啟 `http://127.0.0.1:7575`。
+從 Release 或自行建置取得 `DJ-4G-Hub-<版本>-windows-amd64.zip`，解壓縮後雙擊 `dj4ghub.exe`，瀏覽器會開啟 `http://127.0.0.1:7575`。
 
 ```text
 dj4ghub start          背景啟動並開啟管理網頁（雙擊 exe 等同此指令）
@@ -88,7 +88,7 @@ dj4ghub serve --port COM17
 %APPDATA%\DJ 4G Hub\profile-notes.json             eSIM Profile 備註
 ```
 
-簡訊輪詢會先把模組 ME 儲存區的簡訊寫入本機紀錄，成功後再清除模組上的副本（沿用上游行為）。發布 Issue、截圖或日誌前，請遮蔽電話號碼、驗證碼、EID、ICCID、IMSI 等個人資訊。
+簡訊輪詢會把模組上的簡訊寫入本機紀錄，並預設保留模組上的原始簡訊；若希望存檔後自動清除模組 ME 儲存區，請以 `dj4ghub start --sms-cleanup` 啟動。發布 Issue、截圖或日誌前，請遮蔽電話號碼、驗證碼、EID、ICCID、IMSI 等個人資訊。
 
 ## 從原始碼建置
 
@@ -119,7 +119,7 @@ go test -tags hardware -run Hardware -v ./cmd/dj4ghub
 
 本專案移植自 [WongLoki/DJ4Hub](https://github.com/WongLoki/DJ4Hub)（commit `3914cd6`），其程式碼又演進自 [ZenGeekLabs/DJOneHub](https://github.com/ZenGeekLabs/DJOneHub) 與 [iniwex5/vohive](https://github.com/iniwex5/vohive)。
 
-根目錄程式碼遵循 [PolyForm Noncommercial License 1.0.0](LICENSE)，**不得作商業用途**。必須保留的上游宣告：
+根目錄程式碼遵循 [PolyForm Noncommercial License 1.0.0](LICENSE)，**不得作商業用途**。必須保留的上游聲明：
 
 ```text
 Required Notice: Copyright iniwex5 (https://github.com/iniwex5/vohive)

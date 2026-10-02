@@ -35,7 +35,7 @@ func (s *scriptedTransport) WriteMessage(b []byte) error {
 		return nil
 	}
 	// MBIMEx 版本協商(CID_VERSION)是裝置初始化交握的一部分,會在 OPEN 之後發出。
-	// 僅指令碼化特定 CID 的 reply 不會應答它;這裡預設以"支援 MBIMEx 2.0"回應,
+	// 僅腳本化特定 CID 的 reply 不會應答它;這裡預設以"支援 MBIMEx 2.0"回應,
 	// 使所有 fake 都能快速通過初始化,而不必每個 reply 都顯式處理該 CID。
 	if out, ok := defaultVersionAnswer(cp); ok {
 		s.toRead <- out

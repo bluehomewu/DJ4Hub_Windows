@@ -43,6 +43,8 @@ dj4ghub serve --port COM17
 %APPDATA%\DJ 4G Hub\profile-notes.json            eSIM Profile 備註
 ```
 
+簡訊會寫入本機紀錄，並預設保留在模組上；若希望存檔後自動清除模組上的簡訊，請改用 `dj4ghub start --sms-cleanup`。
+
 ## 已知限制
 
 - 電腦通話音訊為實驗功能，需要 adb 與 3 個第三方檔案（`dj4ghub audio-install DIR`），第一次使用會永久開啟模組 ADB 並重啟一次；詳見原始碼 README。未準備時仍可撥號、接聽、掛斷，但電腦端沒有聲音。

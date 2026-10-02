@@ -18,7 +18,7 @@ DJI Cellular/
 │   ├── modem/                    # 資料機探索、AT 指令與狀態解析
 │   └── simaid/                   # SIM 應用 AID 探索
 ├── pkg/                          # MBIM、簡訊 PDU 編解碼、日誌
-├── packaging/                    # 發行包內的說明與授權宣告
+├── packaging/                    # 發行包內的說明與授權聲明
 ├── scripts/
 │   ├── build-windows.ps1         # 測試、建置並打包 zip
 │   └── phone-audio.test.cjs
@@ -60,4 +60,4 @@ pwsh -File scripts/build-windows.ps1
 
 ## 模組與來源
 
-Go module 路徑仍為 `github.com/WongLoki/DJ4Hub`，以便與上游比對。從 DJOneHub、VoHive 與第三方模組演進而來的程式碼保留其原始授權與宣告，詳見 `LICENSE` 與 `THIRD_PARTY_NOTICES.md`。
+Go module 路徑仍為 `github.com/WongLoki/DJ4Hub`，以便與上游比對。從 DJOneHub、VoHive 與第三方模組演進而來的程式碼保留其原始授權與聲明，詳見 `LICENSE` 與 `THIRD_PARTY_NOTICES.md`。
