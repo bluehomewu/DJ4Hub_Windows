@@ -645,7 +645,7 @@ func (a *app) health(w http.ResponseWriter, _ *http.Request) {
 	usbDevice := a.currentUSBDevice()
 	esimManager, _ := a.currentESIMManager()
 	writeJSON(w, http.StatusOK, map[string]any{
-		"ok": true, "port": a.port, "esim_available": a.demo || esimManager != nil, "demo": a.demo,
+		"ok": true, "version": appVersion, "port": a.port, "esim_available": a.demo || esimManager != nil, "demo": a.demo,
 		"usb_device": usbDevice, "discovery_error": a.discoveryError,
 	})
 }

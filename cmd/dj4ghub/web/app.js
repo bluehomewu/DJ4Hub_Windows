@@ -1822,6 +1822,9 @@ $("#usbnet-mode-3").addEventListener("click", () => setUSBNetMode(3));
 $("#reboot-module").addEventListener("click", rebootModule);
 
 $("#cellular-refresh").addEventListener("click", () => loadCellular(true));
+api("/api/health").then((health) => {
+  if (health.version) $("#app-version").textContent = `版本 ${health.version}`;
+}).catch(() => {});
 $("#sim-pin-form").addEventListener("submit", (event) => {
   event.preventDefault();
   void unlockSIMPIN();
