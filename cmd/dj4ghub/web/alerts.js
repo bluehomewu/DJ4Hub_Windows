@@ -1,14 +1,39 @@
 (() => {
-  let audio, enabled = false, initialized = false, busy = false;
+  // Alert sounds are on unless the user turned them off.
+  const storageKey = 'dj4hub-alert-sound';
+  let audio, enabled = readPreference(), initialized = false, busy = false;
   const sms = new Set(), calls = new Set();
   const buttons = document.querySelectorAll('[data-enable-alerts]');
-  buttons.forEach(button => button.addEventListener('click', async () => {
+  function readPreference() {
+    try { return localStorage.getItem(storageKey) !== 'off'; } catch { return true; }
+  }
+  function savePreference() {
+    try { localStorage.setItem(storageKey, enabled ? 'on' : 'off'); } catch { /* Preference is per session only. */ }
+  }
+  function renderButtons() {
+    const waiting = enabled && (!audio || audio.state !== 'running');
+    buttons.forEach(b => {
+      b.textContent = !enabled ? '開啟來電／簡訊提示音' : (waiting ? '提示音已開啟（點一下頁面即可發聲）' : '關閉來電／簡訊提示音');
+    });
+  }
+  // Browsers only start audio after a user gesture, so unlock on the first one.
+  async function unlockAudio() {
+    if (!enabled) return;
     try {
       if (!audio) audio = new AudioContext();
-      await audio.resume(); enabled = !enabled;
-      buttons.forEach(b => b.textContent = enabled ? '關閉來電／簡訊提示音' : '開啟來電／簡訊提示音');
-    } catch { button.textContent = '瀏覽器未允許聲音，請重試'; }
+      if (audio.state !== 'running') await audio.resume();
+    } catch { /* Retried on the next gesture. */ }
+    renderButtons();
+  }
+  ['pointerdown', 'keydown'].forEach(type => document.addEventListener(type, () => { void unlockAudio(); }, { capture: true }));
+  buttons.forEach(button => button.addEventListener('click', async () => {
+    enabled = !enabled;
+    savePreference();
+    if (enabled) await unlockAudio();
+    renderButtons();
   }));
+  renderButtons();
+  void unlockAudio();
   function beep(call) {
     if (!enabled || !audio || audio.state !== 'running') return;
     const oscillator = audio.createOscillator(), gain = audio.createGain();
