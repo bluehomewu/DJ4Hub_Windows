@@ -9,7 +9,7 @@ function harness() {
   const requests = [];
   const context = {
     moduleAudioBusy: false, callPollBusy: false, phoneActionBusy: false,
-    previousCallsPresent: true, callStarted: new Map(), moduleAudioToken: 'session', moduleAudioSupported: true,
+    previousCallsPresent: true, callStarted: new Map(), moduleAudioToken: 'session', moduleAudioSupported: true, phoneCallActive: false, updateKeypadMode: () => {},
     document: {querySelectorAll: () => []},
     $: id => { if (!elements.has(id)) elements.set(id, {checked: true}); return elements.get(id); },
     stopPhoneAudio: () => requests.push('stop-media'),
@@ -61,6 +61,15 @@ test('dial still works when the service reports no module audio', async () => {
   assert.equal(requests[0], 'dial');
   assert.ok(!requests.includes('ensure'));
   assert.match(elements.get('#phone-feedback').textContent, /未連接電腦音訊/);
+});
+test('keypad sends DTMF only while a call is connected', async () => {
+  const {context} = harness();
+  context.api = async () => ({calls: [{id: 1, state: 0, number: '0900000000'}]});
+  await context.refreshCalls();
+  assert.equal(context.phoneCallActive, true);
+  context.api = async () => ({calls: []});
+  await context.refreshCalls();
+  assert.equal(context.phoneCallActive, false);
 });
 test('USB preparation suppresses misleading call poll failure', async () => {
   const {context, requests, elements} = harness();

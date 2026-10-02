@@ -8,6 +8,8 @@ let previousCallsPresent = false;
 let moduleAudioToken = sessionStorage.getItem('dj4hub-module-audio-token') || '';
 let moduleAudioBusy = false;
 let moduleAudioLeaseBusy = false;
+// While a call is connected the keypad sends DTMF; otherwise it types the number.
+let phoneCallActive = false;
 // False when the service reports module audio unavailable (e.g. on Windows).
 let moduleAudioSupported = true;
 let moduleAudioPreparation = null;
@@ -29,7 +31,8 @@ async function refreshCalls() {
     $('#phone-dial').disabled = calls.length > 0;
     $('#phone-answer').disabled = !calls.some(c => c.state === 4 || c.state === 5);
     $('#phone-hangup').disabled = !calls.length;
-    document.querySelectorAll('#phone-keypad button').forEach(b => b.disabled = !calls.some(c => c.state === 0));
+    phoneCallActive = calls.some(c => c.state === 0);
+    updateKeypadMode();
     if (!calls.length && previousCallsPresent) {
       stopPhoneAudio();
     }
@@ -62,9 +65,27 @@ $('#phone-dial').onclick = () => phoneAction('dial',{number:$('#phone-number').v
 $('#phone-answer').onclick = () => phoneAction('answer');
 $('#phone-hangup').onclick = () => phoneAction('hangup');
 for (const digit of '123456789*0#') {
-  const button = document.createElement('button'); button.type='button'; button.className='secondary'; button.textContent=digit; button.disabled=true;
-  button.onclick=()=>phoneAction('dtmf',{digit}); $('#phone-keypad').append(button);
+  const button = document.createElement('button'); button.type='button'; button.className='secondary'; button.textContent=digit;
+  button.onclick=()=>{
+    if (phoneCallActive) { void phoneAction('dtmf',{digit}); return; }
+    const input = $('#phone-number');
+    input.value += digit;
+    input.focus();
+  };
+  $('#phone-keypad').append(button);
 }
+{
+  const erase = document.createElement('button'); erase.type='button'; erase.className='secondary phone-keypad-erase'; erase.id='phone-keypad-erase';
+  erase.textContent='⌫'; erase.title='刪除最後一位'; erase.setAttribute('aria-label','刪除最後一位');
+  erase.onclick=()=>{ const input=$('#phone-number'); input.value=input.value.slice(0,-1); input.focus(); };
+  $('#phone-keypad').append(erase);
+}
+function updateKeypadMode() {
+  $('#phone-keypad').dataset.mode = phoneCallActive ? 'dtmf' : 'dial';
+  $('#phone-keypad').title = phoneCallActive ? '通話中：按鍵會送出語音選單按鍵音' : '輸入電話號碼';
+  $('#phone-keypad-erase').disabled = phoneCallActive;
+}
+updateKeypadMode();
 document.querySelector('[data-view="calls"]').addEventListener('click',refreshCalls);
 setInterval(()=> { if ($('#calls').classList.contains('active') || callStarted.size) void refreshCalls(); },2000);
 $('#apn-preset').onchange = e => { if (e.target.value) $('#apn-value').value=e.target.value; };

@@ -597,6 +597,7 @@ body.modal-open { overflow: hidden; }
   .status-grid strong { font-size: max(var(--font-min), calc(14px * var(--font-scale))); }
 }
 .phone-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 320px; margin: 24px 0; }
+.phone-keypad .phone-keypad-erase { grid-column: 3; }
 .phone-keypad button { min-height: 54px; font-size: max(var(--font-min), calc(22px * var(--font-scale))); }
 .audio-auto-row { display: flex; align-items: center; gap: 18px; margin: 20px 0 10px; padding: 16px 18px; background: var(--surface); border-radius: var(--radius-md); }
 .audio-auto-setting { display: flex; flex: 1; min-width: 0; align-items: center; justify-content: space-between; gap: 24px; margin: 0; cursor: pointer; }
