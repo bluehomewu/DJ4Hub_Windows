@@ -8,6 +8,8 @@ let previousCallsPresent = false;
 let moduleAudioToken = sessionStorage.getItem('dj4hub-module-audio-token') || '';
 let moduleAudioBusy = false;
 let moduleAudioLeaseBusy = false;
+// False when the service reports module audio unavailable (e.g. on Windows).
+let moduleAudioSupported = true;
 let moduleAudioPreparation = null;
 async function refreshCalls() {
   if (moduleAudioBusy) { $('#phone-status').textContent = '模組音訊正在初始化，等待 USB 重新連線…'; return; }
@@ -39,13 +41,16 @@ async function phoneAction(action, extra = {}) {
   if (phoneActionBusy) return;
   phoneActionBusy = true;
   try {
-    if ((action === 'dial' || action === 'answer') && $('#phone-use-audio').checked) {
-      if (action === 'dial' && !/^\+?[0-9]{1,20}$/.test(extra.number || '')) throw new Error('請輸入有效電話號碼');
+    if (action === 'dial' && !/^\+?[0-9]{1,20}$/.test(extra.number || '')) throw new Error('請輸入有效電話號碼');
+    const withAudio = (action === 'dial' || action === 'answer') && moduleAudioSupported && $('#phone-use-audio').checked;
+    if (withAudio) {
       await ensureModuleAudio();
       await connectPhoneAudio();
     }
     await api('/api/calls', {method:'POST',body:JSON.stringify({action,...extra})});
-    $('#phone-feedback').textContent = '操作已提交';
+    $('#phone-feedback').textContent = (action === 'dial' || action === 'answer') && !withAudio
+      ? '操作已提交（未連接電腦音訊：電腦端聽不到也無法說話）'
+      : '操作已提交';
     if (action === 'hangup') {
       stopPhoneAudio();
     }
@@ -158,6 +163,10 @@ function clearModuleAudioToken() {
 async function refreshModuleAudio() {
   try {
     const result = await api('/api/calls/audio');
+    moduleAudioSupported = Boolean(result.configured);
+    const autoAudio = $('#phone-use-audio');
+    autoAudio.disabled = !moduleAudioSupported;
+    if (!moduleAudioSupported) autoAudio.checked = false;
     $('#audio-release').disabled = !moduleAudioToken || moduleAudioBusy;
     if (!result.active && moduleAudioToken) clearModuleAudioToken();
     $('#audio-module-status').textContent = !result.configured ? (result.summary || '本機音訊依賴未就緒，請執行 dj4ghub audio-check。') : result.active ? '音訊待機就緒，不代表 IMS 已註冊或電信業者通話可用。掛斷後保持待機；關閉頁面或失去心跳後恢復 USB。' : '撥號時自動初始化音訊；首次允許後，進入電話頁面也會自動就緒。';

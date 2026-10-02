@@ -9,7 +9,7 @@ function harness() {
   const requests = [];
   const context = {
     moduleAudioBusy: false, callPollBusy: false, phoneActionBusy: false,
-    previousCallsPresent: true, callStarted: new Map(), moduleAudioToken: 'session',
+    previousCallsPresent: true, callStarted: new Map(), moduleAudioToken: 'session', moduleAudioSupported: true,
     document: {querySelectorAll: () => []},
     $: id => { if (!elements.has(id)) elements.set(id, {checked: true}); return elements.get(id); },
     stopPhoneAudio: () => requests.push('stop-media'),
@@ -53,6 +53,14 @@ test('explicit control-only mode works without audio dependencies', async () => 
   await context.phoneAction('answer');
   assert.equal(requests[0], 'answer');
   assert.ok(!requests.includes('ensure'));
+});
+test('dial still works when the service reports no module audio', async () => {
+  const {context, requests, elements} = harness();
+  context.moduleAudioSupported = false;
+  await context.phoneAction('dial', {number: '0912345678'});
+  assert.equal(requests[0], 'dial');
+  assert.ok(!requests.includes('ensure'));
+  assert.match(elements.get('#phone-feedback').textContent, /未連接電腦音訊/);
 });
 test('USB preparation suppresses misleading call poll failure', async () => {
   const {context, requests, elements} = harness();
