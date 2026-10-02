@@ -63,7 +63,7 @@ func moduleAudioPaths() (string, string, error) {
 	}
 	adb := os.Getenv("DJ4GHUB_ADB_PATH")
 	if adb == "" {
-		adb = filepath.Join(dir, "platform-tools", "adb")
+		adb = filepath.Join(dir, "platform-tools", adbExecutableName)
 		if _, err := os.Stat(adb); os.IsNotExist(err) {
 			adb, _ = exec.LookPath("adb")
 		}
@@ -72,9 +72,6 @@ func moduleAudioPaths() (string, string, error) {
 }
 
 func moduleAudioRuntime() (string, string, error) {
-	if runtime.GOOS != "darwin" {
-		return "", "", errors.New("實驗模組音訊暫不支援 Windows；通話控制仍可使用")
-	}
 	dir, adb, err := moduleAudioPaths()
 	if err != nil {
 		return "", "", err
@@ -83,7 +80,7 @@ func moduleAudioRuntime() (string, string, error) {
 		return "", "", fmt.Errorf("%w；使用 dj4ghub audio-install 匯入本機執行檔案", err)
 	}
 	info, err := os.Stat(adb)
-	if err != nil || !info.Mode().IsRegular() || info.Mode().Perm()&0111 == 0 {
+	if err != nil || !info.Mode().IsRegular() || (runtime.GOOS != "windows" && info.Mode().Perm()&0111 == 0) {
 		return "", "", errors.New("未找到可執行 adb；請安裝官方 Android Platform Tools，並加入 PATH 或設定 DJ4GHUB_ADB_PATH")
 	}
 	return dir, adb, nil
@@ -130,6 +127,9 @@ func moduleAudioTarget(list string, expectedUSB string) (string, string, error) 
 			if strings.HasPrefix(field, "transport_id:") {
 				transport = strings.TrimPrefix(field, "transport_id:")
 			}
+		}
+		if usb == "" && device && len(fields) > 0 {
+			usb = adbSerialIdentity(fields[0])
 		}
 		if device && usb != "" && transport != "" {
 			targets = append(targets, [2]string{usb, transport})
@@ -265,7 +265,7 @@ func (a *app) moduleAudioPrepare(w http.ResponseWriter, r *http.Request) {
 			writeError(w, 409, locationErr.Error())
 			return
 		}
-		s.usb = location
+		s.usb = adbIdentityForLocation(location)
 		identity, identityErr := audioIdentity(a.phoneCommand)
 		if identityErr != nil {
 			writeError(w, 409, "無法讀取穩定裝置身份，未初始化 ADB")
@@ -303,7 +303,7 @@ func (a *app) moduleAudioPrepare(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			if targetErr != nil {
-				writeError(w, 409, "ADB 配置已啟用，但連線不可用；請檢查其他 ADB 服務佔用或重新插拔，不會自動終止其他程式")
+				writeError(w, 409, "ADB 配置已啟用，但連線不可用；可能有其他 ADB 服務佔用模組（例如執行過 adb devices，可執行 adb kill-server），或請重新插拔。不會自動終止其他程式")
 				return
 			}
 		}

@@ -14,13 +14,6 @@ import (
 	"time"
 )
 
-// audioUSBLocation pins ADB to the one connected module. macOS adb reports a
-// USB location for that; Windows adb does not, so the experimental audio
-// path stays unavailable on Windows rather than guessing a target.
-func audioUSBLocation(context.Context) (string, error) {
-	return "", errors.New("實驗模組音訊暫不支援 Windows")
-}
-
 var (
 	audioUSBPattern       = regexp.MustCompile(`(?im)^\+QCFG: "usbcfg",(0x[0-9a-f]+),(0x[0-9a-f]+),([01]),([01]),([01]),([01]),([01]),([01]),([01])\s*$`)
 	audioIMEIPattern      = regexp.MustCompile(`(?m)^\s*([0-9]{15})\s*$`)

@@ -13,7 +13,7 @@ Quectel USB drivers are not included. Obtain and install them from Quectel or yo
 ## Optional experimental module audio
 
 The audio control code can use locally supplied QDC507 kernel modules and the
-MaVo PCM bridge. This path is currently unavailable on Windows. These
+MaVo PCM bridge. These
 third-party binaries and Android Platform Tools are not included in this
 package. See `docs/QDC507_AUDIO_RESEARCH.md` for provenance, hashes and tested
 scope.

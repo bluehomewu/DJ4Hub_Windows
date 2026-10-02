@@ -40,6 +40,7 @@ DJI Cellular/
 | `launcher_windows.go`、`control.go` | `start/stop/status/logs/open` 子命令、背景服務與帶權杖的本機關閉端點 |
 | `activate_windows.go` | 一次性確認模組網卡已連線 |
 | `filelock_windows.go` | 以 `LockFileEx` 確保只有一個服務持有通訊紀錄 |
+| `audio_adb_windows.go` | 實驗通話音訊：以 PnP 位置確認唯一模組，以 adb 序號鎖定目標（Windows adb 不提供 USB 位置） |
 
 ## 驗證
 
@@ -55,7 +56,7 @@ pwsh -File scripts/build-windows.ps1
 - 移除 SwiftUI 原生 App、libusb、`ioreg`／`networksetup`／`nettop` 等 macOS 專用程式碼與 GitHub Actions。
 - 改用官方 `golang.org/x/sys` 模組；上游裁剪過的 `third_party/x-sys` 不含 Windows 套件。
 - `internal/modem` 中以 `fuser` 強制結束佔用串列埠行程的 Linux 邏輯不會編進 Windows 版本。
-- 實驗性模組音訊暫不支援 Windows（Windows 版 adb 不提供用來鎖定目標的 USB 位置）。
+- 實驗性模組音訊沿用上游流程；Windows 上以 PnP 位置與 adb 序號取代 macOS 的 USB 位置比對。
 
 ## 模組與來源
 

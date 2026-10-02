@@ -25,3 +25,5 @@ history-backup.json
 
 # Frontend dependencies are not used by the native DJ 4G Hub page
 node_modules/
+
+/dj4ghub.exe

@@ -20,7 +20,8 @@
 | 網卡處理 | `networksetup` 啟用服務、重新 DHCP | 以 netsh 連線行動寬頻；網卡被停用時經 UAC 啟用 |
 | 聯網活動 | `nettop`，含每條連線流量 | TCP 連線表，列出應用與目標；Windows 不提供單條連線流量 |
 | 啟動器 | shell 指令碼 | `dj4ghub.exe` 內建子命令，雙擊即可啟動 |
-| 原生 App／實驗音訊 | SwiftUI App、ADB 音訊 | 不提供；通話控制（撥號、接聽、掛斷、按鍵）仍可用 |
+| 原生 App | SwiftUI App | 不提供，改用網頁 |
+| 實驗通話音訊 | ADB 載入驅動，比對 adb 的 USB 位置 | 同一套流程；Windows adb 不提供 USB 位置，改以 PnP 位置核對唯一模組並鎖定 adb 序號 |
 
 ## 需求
 
@@ -59,6 +60,25 @@ dj4ghub serve --port COM17
 
 切換模式會讓 USB 重新列舉，頁面短暫斷線屬正常現象。不要在 eSIM Profile 寫入過程中拔除模組或切換模式。
 
+## 通話與電腦音訊（實驗）
+
+模組本身沒有喇叭和麥克風。要在電腦上通話，需要讓模組臨時多出一張 USB 音效卡；這沿用上游的實驗流程，已在 Windows 11 + QDC507GLEFM21 上驗證到「音效卡出現、心跳中斷後自動恢復」。
+
+1. 安裝 [Android Platform Tools](https://developer.android.com/tools/releases/platform-tools)，讓 `adb.exe` 位於 PATH（或設定 `DJ4GHUB_ADB_PATH`）。
+2. 取得 3 個固定版本的執行檔案（來源：[MaVo 固定 commit](https://github.com/moluncn/mavo/tree/0443dfdaf8aec086fd76ba2ee9152fd908114524/Resources/ModuleVoice)，雜湊見 [音訊研究紀錄](docs/QDC507_AUDIO_RESEARCH.md)），放進同一個資料夾後執行：
+   ```powershell
+   dj4ghub audio-install C:\path\to\ModuleVoice
+   dj4ghub audio-check
+   ```
+3. 第一次撥號時，網頁會請你同意初始化：程式會備份 USB 設定、以 QADBKEY 授權並**永久開啟模組 ADB**，然後重啟模組一次。Windows 11 會自動以內建 WinUSB 驅動綁定「ADB Interface」。
+4. 之後每次準備音訊時，程式會載入暫時性的核心驅動；Windows 會出現「麥克風 (AC Interface)」與「喇叭 (AC Interface)」。驅動在模組重啟後清除。
+
+注意事項：
+- 執行時請不要讓其他 adb 服務佔用模組；若執行過 `adb devices`，請先 `adb kill-server`。
+- 模組音效卡出現時，Windows 可能自動把它設為預設播放／錄音裝置，請到「設定 → 系統 → 音效」改回原本的裝置。
+- 撥號需要 SIM 支援 VoLTE，且模組 `AT+QCFG="ims"` 為 `1,1`（已啟用且已註冊）。
+- 長時間通話、休眠恢復與上網並行尚未完成驗收。
+
 ## 本機資料
 
 ```text
@@ -90,7 +110,7 @@ go test -tags hardware -run Hardware -v ./cmd/dj4ghub
 
 ## 目前限制
 
-- 實驗性模組通話音訊（ADB 載入驅動）不支援 Windows。
+- 通話音訊仍屬實驗功能，需要上述第三方檔案與一次性的 ADB 授權。
 - 通訊紀錄雲端備份的設定介面原本在 macOS App 中，Windows 版尚未提供。
 - 執行檔未簽章，首次執行時 SmartScreen 可能提示。
 - 不同 SIM、eUICC、電信業者、漫遊環境與模組韌體可能有差異。

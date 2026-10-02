@@ -121,6 +121,24 @@ func TestModuleAudioTarget(t *testing.T) {
 	}
 }
 
+// Windows adb prints no usb: location, so USB devices are pinned by serial.
+func TestModuleAudioTargetBySerialOnWindows(t *testing.T) {
+	valid := "List of devices attached\nb7c1d2e3 device product:sdxprairie model:QDC507 device:sdx transport_id:3\n"
+	identity, transport, err := moduleAudioTarget(valid, "")
+	if err != nil || identity != "serial:b7c1d2e3" || transport != "3" {
+		t.Fatalf("unexpected target %s %s %v", identity, transport, err)
+	}
+	if _, _, err := moduleAudioTarget(valid, "serial:other"); err == nil {
+		t.Fatal("changed device accepted")
+	}
+	if _, _, err := moduleAudioTarget(valid+"phone123 device transport_id:4\n", ""); err == nil {
+		t.Fatal("multiple devices accepted")
+	}
+	if _, _, err := moduleAudioTarget("192.168.1.5:5555 device transport_id:9\n", ""); err == nil {
+		t.Fatal("network target accepted")
+	}
+}
+
 func TestModuleAudioLocalBoundary(t *testing.T) {
 	for _, test := range []struct {
 		name    string
