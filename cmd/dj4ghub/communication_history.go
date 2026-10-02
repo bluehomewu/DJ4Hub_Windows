@@ -185,6 +185,24 @@ func (a *app) appendHistory(record historyRecord) error {
 	return h.save()
 }
 
+// seedSMSFromHistory restores the inbox from archived messages so messages
+// already moved off the module stay visible after a restart.
+func (a *app) seedSMSFromHistory() {
+	h := a.historyStore()
+	if h == nil {
+		return
+	}
+	h.mu.Lock()
+	var messages []receivedSMS
+	for _, record := range h.records {
+		if record.Kind == "sms" && record.Direction == "incoming" {
+			messages = append(messages, receivedSMS{Sender: record.Number, Content: record.Content, Timestamp: record.Started})
+		}
+	}
+	h.mu.Unlock()
+	a.mergeSMS(messages)
+}
+
 func (a *app) archiveReceivedSMS(messages []receivedSMS, identity string) error {
 	for _, msg := range messages {
 		card := ""

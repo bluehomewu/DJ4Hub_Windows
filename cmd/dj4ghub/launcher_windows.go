@@ -110,7 +110,7 @@ func printUsage(out io.Writer) {
 	fmt.Fprintf(out, `DJ 4G Hub for Windows %s
 
 用法：
-  dj4ghub start [--demo] [--port COMx] [--no-open]
+  dj4ghub start [--demo] [--port COMx] [--no-open] [--sms-cleanup]
                          在背景啟動並開啟管理網頁（直接雙擊 exe 等同 start）
   dj4ghub stop           停止背景服務
   dj4ghub status         檢視執行狀態
@@ -233,6 +233,7 @@ func startService(args []string) error {
 	port := flags.String("port", "", "AT COM port")
 	listen := flags.String("listen", defaultListenAddress, "HTTP listen address")
 	noOpen := flags.Bool("no-open", false, "do not open the browser")
+	smsCleanup := flags.Bool("sms-cleanup", false, "delete module SMS after archiving")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -267,6 +268,9 @@ func startService(args []string) error {
 	serveArgs := []string{"serve", "--listen", *listen}
 	if *demo {
 		serveArgs = append(serveArgs, "--demo")
+	}
+	if *smsCleanup {
+		serveArgs = append(serveArgs, "--sms-cleanup")
 	}
 	if strings.TrimSpace(*port) != "" {
 		serveArgs = append(serveArgs, "--port", *port)

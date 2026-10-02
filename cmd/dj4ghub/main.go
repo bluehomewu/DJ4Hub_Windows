@@ -222,9 +222,11 @@ func runServer(args []string) error {
 	var port string
 	var listen string
 	var demo bool
+	var smsCleanup bool
 	flags.StringVar(&port, "port", "", "AT COM port such as COM17; auto-detected when omitted")
 	flags.StringVar(&listen, "listen", defaultListenAddress, "HTTP listen address")
 	flags.BoolVar(&demo, "demo", false, "run the web UI with simulated modem data")
+	flags.BoolVar(&smsCleanup, "sms-cleanup", false, "delete module (ME) SMS after they are archived locally")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -244,7 +246,7 @@ func runServer(args []string) error {
 		port:             "未發現 AT 串列埠",
 		usbDevice:        usbDevice,
 		smsPollInterval:  8 * time.Second,
-		smsAutoCleanupME: true,
+		smsAutoCleanupME: smsCleanup,
 		smsReassembler:   smscodec.NewReassembler(),
 	}
 	if usbDevice != nil {
@@ -326,6 +328,7 @@ func serve(instance *app, listen string) error {
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	instance.seedSMSFromHistory()
 	go instance.monitorCallHistory(ctx)
 	go instance.monitorHistoryBackup(ctx)
 
@@ -392,13 +395,13 @@ func (a *app) mergeSMS(messages []receivedSMS) (newCount int, total int) {
 	defer a.smsMu.Unlock()
 	seen := make(map[string]bool, len(a.sms)+len(messages))
 	for _, item := range a.sms {
-		seen[smsCacheKey(item)] = true
+		seen[smsInboxKey(item)] = true
 	}
 	for _, item := range messages {
 		if item.Code == "" {
 			item.Code = extractSMSCode(item.Content)
 		}
-		key := smsCacheKey(item)
+		key := smsInboxKey(item)
 		if seen[key] {
 			continue
 		}
@@ -415,6 +418,13 @@ func (a *app) mergeSMS(messages []receivedSMS) (newCount int, total int) {
 	return newCount, len(a.sms)
 }
 
+// smsInboxKey deduplicates the inbox. Times are compared in UTC because
+// messages restored from SQLite may carry a different zone than the PDU.
+func smsInboxKey(item receivedSMS) string {
+	return item.Sender + "\x00" + item.Content + "\x00" + item.Timestamp.UTC().Format(time.RFC3339Nano)
+}
+
+// smsCacheKey feeds archived message IDs and must stay stable.
 func smsCacheKey(item receivedSMS) string {
 	return item.Sender + "\x00" + item.Content + "\x00" + item.Timestamp.Format(time.RFC3339Nano)
 }
