@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"sync"
 	"time"
 	"unsafe"
@@ -44,6 +43,10 @@ func openCallWindow(url string) error {
 	if browser == "" {
 		return errNoBrowser
 	}
+	existing := make(map[uintptr]bool)
+	for _, hwnd := range findWindowsByExactTitle(callWindowTitle) {
+		existing[hwnd] = true
+	}
 	command := exec.Command(browser, "--app="+url, "--window-size=420,720")
 	if err := command.Start(); err != nil {
 		return err
@@ -51,16 +54,24 @@ func openCallWindow(url string) error {
 	_ = command.Process.Release()
 	// A running Chrome ignores --window-size for new app windows, so size and
 	// place the window once it appears.
-	go placeCallWindow()
+	go placeCallWindow(existing)
 	return nil
 }
 
-// placeCallWindow resizes the newest call window to a messaging-app size in
-// the bottom-right corner of the primary work area.
-func placeCallWindow() {
+// placeCallWindow resizes the call window that appeared after launch to a
+// messaging-app size in the bottom-right corner of the work area. Only an
+// exact title match counts: an ordinary browser window showing the same
+// page is titled "... - Google Chrome" and must never be touched.
+func placeCallWindow(existing map[uintptr]bool) {
 	for range 40 {
 		time.Sleep(250 * time.Millisecond)
-		hwnd := findWindowByTitle(callWindowTitle)
+		var hwnd uintptr
+		for _, candidate := range findWindowsByExactTitle(callWindowTitle) {
+			if !existing[candidate] {
+				hwnd = candidate
+				break
+			}
+		}
 		if hwnd == 0 {
 			continue
 		}
@@ -89,27 +100,28 @@ func placeCallWindow() {
 var (
 	windowSearchMu    sync.Mutex
 	windowSearchTitle string
-	windowSearchFound uintptr
+	windowSearchFound []uintptr
 	windowSearch      = windows.NewCallback(func(hwnd, _ uintptr) uintptr {
 		if visible, _, _ := procIsWindowVisible.Call(hwnd); visible == 0 {
 			return 1
 		}
 		buf := make([]uint16, 256)
 		n, _, _ := procGetWindowTextW.Call(hwnd, uintptr(unsafe.Pointer(&buf[0])), uintptr(len(buf)))
-		if n > 0 && strings.HasPrefix(windows.UTF16ToString(buf[:n]), windowSearchTitle) {
-			windowSearchFound = hwnd
-			return 0
+		if n > 0 && windows.UTF16ToString(buf[:n]) == windowSearchTitle {
+			windowSearchFound = append(windowSearchFound, hwnd)
 		}
 		return 1
 	})
 )
 
-func findWindowByTitle(title string) uintptr {
+// findWindowsByExactTitle lists visible top-level windows titled exactly
+// title.
+func findWindowsByExactTitle(title string) []uintptr {
 	windowSearchMu.Lock()
 	defer windowSearchMu.Unlock()
-	windowSearchTitle, windowSearchFound = title, 0
+	windowSearchTitle, windowSearchFound = title, nil
 	procEnumWindows.Call(windowSearch, 0)
-	return windowSearchFound
+	return append([]uintptr(nil), windowSearchFound...)
 }
 
 func findAppBrowser() string {
