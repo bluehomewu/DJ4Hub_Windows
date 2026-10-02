@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"net/url"
@@ -21,7 +22,8 @@ import (
 )
 
 const (
-	moduleAudioPort = "5039"
+	moduleAudioPort         = "5039"
+	moduleAudioReadyTimeout = 90 * time.Second
 )
 
 var (
@@ -268,7 +270,7 @@ func (a *app) moduleAudioPrepare(w http.ResponseWriter, r *http.Request) {
 	}
 	s := &moduleAudioSession{token: hex.EncodeToString(token), adb: adb}
 	s.dir = "/tmp/dj4hub-audio-" + s.token
-	ctx, cancel := context.WithTimeout(r.Context(), 120*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 180*time.Second)
 	defer cancel()
 	if r.Header.Get("X-DJ4Hub-Initialize") == "1" {
 		location, locationErr := audioUSBLocation(ctx)
@@ -325,6 +327,7 @@ func (a *app) moduleAudioPrepare(w http.ResponseWriter, r *http.Request) {
 	}
 	err = s.prepare(ctx, files)
 	if err != nil {
+		log.Printf("module audio prepare failed: %v", err)
 		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 10*time.Second)
 		_, _ = s.shell(cleanupCtx, "test ! -d "+audioQuote(s.dir)+" || touch "+audioQuote(s.dir+"/stop"))
 		cleanupCancel()
@@ -366,6 +369,12 @@ func (s *moduleAudioSession) prepare(ctx context.Context, files map[string][]byt
 	}); err != nil {
 		return err
 	}
+	// Finished sessions keep about 1 MB of drivers in the module's RAM-backed
+	// /tmp until reboot; remove them so repeated calls cannot exhaust it.
+	cleanup := `for d in /tmp/dj4hub-audio-*; do test -d "$d" || continue; test "$(cat "$d/state" 2>/dev/null)" = closed && rm -rf "$d"; done; true`
+	if _, err = s.shell(ctx, cleanup); err != nil {
+		return err
+	}
 	if _, err = s.shell(ctx, "mkdir -m 700 "+audioQuote(s.dir)); err != nil {
 		return err
 	}
@@ -395,11 +404,24 @@ func (s *moduleAudioSession) prepare(ctx context.Context, files map[string][]byt
 	launch := "chmod 700 " + audioQuote(s.dir+"/mavo-pcm-bridge.armv7") + "; cut -d . -f 1 /proc/uptime > " + audioQuote(s.dir+"/lease") + "; setsid sh " + audioQuote(s.dir+"/session.sh") + " " + audioQuote(s.dir) + " </dev/null >" + audioQuote(s.dir+"/session.log") + " 2>&1 & sleep 1"
 	// Re-enumeration may drop this reply. Readiness is determined by device readback.
 	_, _ = s.shell(ctx, launch)
-	for i := 0; i < 20; i++ {
+	// Adding the audio function re-enumerates the whole composite device. On
+	// Windows, adb is unreachable until the driver stack binds again, which
+	// can take well over 20 seconds, so wait on elapsed time, not attempts.
+	started := time.Now()
+	deadline := started.Add(moduleAudioReadyTimeout)
+	lastState := ""
+	for time.Now().Before(deadline) {
 		state, readErr := s.shell(ctx, "cat "+audioQuote(s.dir+"/state"))
+		if readErr == nil && state != lastState {
+			log.Printf("module audio: session state %q after %s", state, time.Since(started).Round(time.Second))
+			lastState = state
+		}
 		if readErr == nil && state == "ready" {
 			_, err = s.shell(ctx, "grep -q '^state: RUNNING' /proc/asound/card0/pcm4p/sub0/status && grep -q '^state: RUNNING' /proc/asound/card0/pcm4c/sub0/status && test \"$(cat /sys/class/android_usb/f_audio/audio_enable)\" = 1 && cut -d . -f 1 /proc/uptime > "+audioQuote(s.dir+"/lease"))
-			return err
+			if err == nil {
+				log.Printf("module audio: ready after %s", time.Since(started).Round(time.Second))
+				return nil
+			}
 		}
 		if state == "closed" || state == "reboot_required" {
 			failure, _ := s.shell(ctx, "cat "+audioQuote(s.dir+"/failure"))
@@ -414,6 +436,7 @@ func (s *moduleAudioSession) prepare(ctx context.Context, files map[string][]byt
 		case <-time.After(time.Second):
 		}
 	}
+	log.Printf("module audio: USB audio not ready after %s (last state %q)", moduleAudioReadyTimeout, lastState)
 	return errors.New("等待 USB 音訊介面逾時")
 }
 
