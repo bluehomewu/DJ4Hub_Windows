@@ -112,6 +112,9 @@ let audioDiscoveryBusy = false;
 function isModemAudio(device) {
   return /quectel|baiwang|qdc507|eg25|\b[as]c? interface\b|\bas interface\b/i.test(device.label || '');
 }
+function isAudioAlias(device) {
+  return device.deviceId === 'default' || device.deviceId === 'communications';
+}
 function updateAudioAvailability() {
   $('#audio-connect').disabled = typeof HTMLMediaElement.prototype.setSinkId !== 'function';
 }
@@ -132,7 +135,9 @@ async function discoverPhoneAudio(){
     for(const [id,kind] of [['audio-mic','audioinput'],['audio-modem-in','audioinput'],['audio-speaker','audiooutput'],['audio-modem-out','audiooutput']]){
       const select=$('#'+id), previous=select.value;select.replaceChildren(new Option('請選擇裝置',''));
       const moduleField = id.startsWith('audio-modem');
-      const choices = devices.filter(d => d.kind === kind && (moduleField ? isModemAudio(d) : !isModemAudio(d)));
+      // 'default' and 'communications' are Chrome aliases; Windows may point them at
+      // the module when its sound card appears, which would list the module twice.
+      const choices = devices.filter(d => d.kind === kind && (moduleField ? isModemAudio(d) && !isAudioAlias(d) : !isModemAudio(d)));
       choices.forEach(d=>select.add(new Option(d.label||d.deviceId,d.deviceId)));
       select.disabled = choices.length === 0;
       if (!choices.length) select.options[0].textContent = moduleField ? '未偵測到模組音效卡' : '未偵測到裝置';
