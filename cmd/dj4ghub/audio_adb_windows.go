@@ -20,11 +20,32 @@ func adbSerialIdentity(serial string) string {
 	return "serial:" + serial
 }
 
-// adbIdentityForLocation returns the adb identity to expect for a USB
-// location. Windows cannot relate the two, so the first single matching
-// device pins the session instead.
-func adbIdentityForLocation(string) string {
+// adbIdentityForLocation returns the adb identity of the module at a PnP
+// location. Windows adb prints no USB location, but it prints the USB serial
+// number, which is the last segment of the PnP instance ID. Windows invents
+// that segment (containing "&") when the device has no serial, and adb then
+// shows "?". Pinning by serial keeps other adb devices, such as a phone or
+// tablet, out of the audio session without sending them any command.
+func adbIdentityForLocation(location string) string {
+	nodes, err := enumerateDJIPnPDevices()
+	if err != nil {
+		return ""
+	}
+	for _, node := range nodes {
+		if _, isInterface := pnpInterfaceNumber(node.InstanceID); isInterface || node.Location != location {
+			continue
+		}
+		return adbSerialIdentity(usbSerialFromInstanceID(node.InstanceID))
+	}
 	return ""
+}
+
+func usbSerialFromInstanceID(instanceID string) string {
+	serial := instanceID[strings.LastIndex(instanceID, `\`)+1:]
+	if strings.Contains(serial, "&") {
+		return "?"
+	}
+	return serial
 }
 
 // audioUSBLocation returns the PnP location of the only connected module,

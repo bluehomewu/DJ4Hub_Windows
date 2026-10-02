@@ -132,7 +132,22 @@ func TestModuleAudioTargetBySerialOnWindows(t *testing.T) {
 		t.Fatal("changed device accepted")
 	}
 	if _, _, err := moduleAudioTarget(valid+"phone123 device transport_id:4\n", ""); err == nil {
-		t.Fatal("multiple devices accepted")
+		t.Fatal("multiple devices accepted without a pinned identity")
+	}
+	// The module has no USB serial, so adb lists it as "?", next to a tablet.
+	both := "?                      device transport_id:2\nHA1RAMC4               device product:lineage_TB125FU model:Lenovo_TB125FU device:TB125FU transport_id:1\n"
+	identity, transport, err = moduleAudioTarget(both, "serial:?")
+	if err != nil || identity != "serial:?" || transport != "2" {
+		t.Fatalf("pinned module among devices = %s %s %v", identity, transport, err)
+	}
+	if _, _, err := moduleAudioTarget(both+"? device transport_id:5\n", "serial:?"); err == nil {
+		t.Fatal("ambiguous pinned identity accepted")
+	}
+	if got := usbSerialFromInstanceID(`USB\VID_2CA3&PID_4006\9&18F8D694&0&2`); got != "?" {
+		t.Fatalf("serial for generated instance = %q", got)
+	}
+	if got := usbSerialFromInstanceID(`USB\VID_18D1&PID_4EE7\HA1RAMC4`); got != "HA1RAMC4" {
+		t.Fatalf("serial = %q", got)
 	}
 	if _, _, err := moduleAudioTarget("192.168.1.5:5555 device transport_id:9\n", ""); err == nil {
 		t.Fatal("network target accepted")

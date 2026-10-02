@@ -135,8 +135,19 @@ func moduleAudioTarget(list string, expectedUSB string) (string, string, error) 
 			targets = append(targets, [2]string{usb, transport})
 		}
 	}
-	if len(targets) != 1 || (expectedUSB != "" && targets[0][0] != expectedUSB) {
-		return "", "", errors.New("請只連線一個已授權 ADB 的模組；裝置發生變化時不會自動切換目標")
+	if expectedUSB != "" {
+		// A pinned identity may coexist with other adb devices; it must
+		// still match exactly one of them.
+		var matched [][2]string
+		for _, target := range targets {
+			if target[0] == expectedUSB {
+				matched = append(matched, target)
+			}
+		}
+		targets = matched
+	}
+	if len(targets) != 1 {
+		return "", "", errors.New("找不到唯一的模組 ADB 裝置；裝置發生變化時不會自動切換目標")
 	}
 	return targets[0][0], targets[0][1], nil
 }
