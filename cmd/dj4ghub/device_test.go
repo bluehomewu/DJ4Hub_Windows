@@ -30,8 +30,8 @@ func TestBuildUSBDeviceStatusPicksATPortAndAdapter(t *testing.T) {
 		t.Fatalf("interfaces = %+v", device.Interfaces)
 	}
 	ports := atPortCandidates(device.Interfaces)
-	if len(ports) != 2 || ports[0] != "COM17" || ports[1] != "COM20" {
-		t.Fatalf("AT candidates = %q; DM and NMEA ports must never be probed", ports)
+	if len(ports) != 1 || ports[0] != "COM17" {
+		t.Fatalf("AT candidates = %q; DM, NMEA and modem ports must never be probed", ports)
 	}
 	if ids := device.networkAdapterIDs(); len(ids) != 1 || ids[0] != "{DD33297B-510D-411A-AC11-9C82778E9353}" {
 		t.Fatalf("adapter IDs = %q", ids)

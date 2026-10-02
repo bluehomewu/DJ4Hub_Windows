@@ -97,7 +97,8 @@ func pnpDisplayName(device pnpDevice) string {
 
 // atPortScore ranks serial ports exposed by the module. Quectel drivers name
 // the command interface "AT Port"; diagnostic and GNSS ports must never be
-// probed with AT traffic.
+// probed with AT traffic, and the modem port belongs to Windows dial-up, so
+// it is skipped too (it is briefly the only port during re-enumeration).
 func atPortScore(name string) int {
 	upper := strings.ToUpper(name)
 	switch {
@@ -108,7 +109,7 @@ func atPortScore(name string) int {
 	case strings.Contains(upper, "AT PORT"):
 		return 100
 	case strings.Contains(upper, "MODEM"):
-		return 40
+		return -1
 	default:
 		return 10
 	}
