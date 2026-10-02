@@ -46,7 +46,7 @@ type QMISource interface {
 	}, error)
 	WMSDeleteMessagesByTag(ctx context.Context, storageType uint8, tag qmi.MessageTagType, mode qmi.MessageMode) error
 
-	// UIM 鑑權相關 (與 eUICC 共用)
+	// UIM 驗證相關 (與 eUICC 共用)
 	OpenEUICCLogicalChannel(ctx context.Context, slot byte, aid []byte) (byte, error)
 	CloseEUICCLogicalChannel(ctx context.Context, slot byte, channel byte) error
 	TransmitEUICCAPDU(ctx context.Context, slot byte, channel byte, command []byte) ([]byte, error)
@@ -64,7 +64,7 @@ type QMISource interface {
 	// 取得 SIM/eSIM profile 原生後設資料
 	GetSIMMetadata(ctx context.Context) (*qmi.SIMMetadata, error)
 
-	// 取得簡訊中心號碼（由底層 QMI 庫實現）
+	// 取得簡訊中心號碼（由底層 QMI 庫實作）
 	GetSMSC(ctx context.Context) (string, error)
 
 	// 取得裝置狀態快照（由 NAS Indication 事件驅動更新，零 IPC）
@@ -164,7 +164,7 @@ func NewQMIBackend(controlPath string, source QMISource) (*QMIBackend, error) {
 	}, nil
 }
 
-// Mode 返回後端模式標識
+// Mode 回傳後端模式識別碼
 func (q *QMIBackend) Mode() string { return "qmi" }
 
 // Close QMIBackend 現在不再持有獨立的 Client，因此 Close 無需主動關閉資源
@@ -174,7 +174,7 @@ func (q *QMIBackend) Close() error {
 }
 
 // ============================================================================
-// DeviceInfoProvider 實現
+// DeviceInfoProvider 實作
 // ============================================================================
 
 func (q *QMIBackend) GetIMEI(ctx context.Context) (string, error) {
@@ -381,7 +381,7 @@ func (q *QMIBackend) GetServingSystem(ctx context.Context) (*ServingSystem, erro
 			// if suspicious {
 			// 	reason = "suspicious"
 			// }
-			// logger.Debug("QMI serving snapshot 回源校驗",
+			// logger.Debug("QMI serving snapshot 回源驗證",
 			// 	"reason", reason,
 			// 	"reg_state", serving.RegistrationState.String(),
 			// 	"mcc", serving.MCC,
@@ -793,7 +793,7 @@ func (q *QMIBackend) NASRegisterIndications(ctx context.Context) error {
 }
 
 // GetSMSC 讀取簡訊中心號碼（SMSC）。
-// 具體解析邏輯在 quectel-qmi-go 庫內實現。
+// 具體解析邏輯在 quectel-qmi-go 庫內實作。
 func (q *QMIBackend) GetSMSC(ctx context.Context) (string, error) {
 	if ctx == nil {
 		ctx = context.Background()
@@ -802,7 +802,7 @@ func (q *QMIBackend) GetSMSC(ctx context.Context) (string, error) {
 }
 
 // ============================================================================
-// SMSProvider 實現
+// SMSProvider 實作
 // ============================================================================
 
 func (q *QMIBackend) SendSMS(ctx context.Context, to, body string) error {
@@ -891,7 +891,7 @@ func (q *QMIBackend) DeleteAllSMS(ctx context.Context) error {
 }
 
 // ============================================================================
-// OperatingModeController 實現
+// OperatingModeController 實作
 // ============================================================================
 
 func (q *QMIBackend) SetOperatingMode(ctx context.Context, mode OperatingMode) error {
@@ -954,7 +954,7 @@ func (q *QMIBackend) EnsureSIMProvisioned(ctx context.Context, opts manager.Ensu
 }
 
 // ============================================================================
-// SIMAuthProvider 實現
+// SIMAuthProvider 實作
 // ============================================================================
 
 func (q *QMIBackend) OpenLogicalChannel(ctx context.Context, aid string) (int, error) {
@@ -995,7 +995,7 @@ func (q *QMIBackend) ResolveSIMAuthAID(ctx context.Context, app string, fallback
 	}
 	aidHex := strings.ToUpper(hex.EncodeToString(aid))
 	if !strings.HasPrefix(aidHex, expectedPrefix) {
-		return "", "sim_auth_aid_not_ready", fmt.Errorf("%w: QMI %s AID 不匹配: %s", ErrSIMAuthAIDNotReady, strings.ToUpper(strings.TrimSpace(app)), aidHex)
+		return "", "sim_auth_aid_not_ready", fmt.Errorf("%w: QMI %s AID 不符: %s", ErrSIMAuthAIDNotReady, strings.ToUpper(strings.TrimSpace(app)), aidHex)
 	}
 	if len(aidHex) <= len(expectedPrefix) {
 		return "", "sim_auth_aid_not_ready", fmt.Errorf("%w: QMI %s AID 不是 full AID: %s", ErrSIMAuthAIDNotReady, strings.ToUpper(strings.TrimSpace(app)), aidHex)

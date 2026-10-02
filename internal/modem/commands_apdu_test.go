@@ -520,7 +520,7 @@ func TestManagerTransmitBasicAPDUDoesNotRetryParseFailure(t *testing.T) {
 
 	_, err := m.TransmitBasicAPDU("00A40400")
 	close(stop)
-	if err == nil || !strings.Contains(err.Error(), "解析 CSIM 響應失敗") {
+	if err == nil || !strings.Contains(err.Error(), "解析 CSIM 回應失敗") {
 		t.Fatalf("TransmitBasicAPDU() error = %v, want parse failure", err)
 	}
 	got := drainCommands(commands)

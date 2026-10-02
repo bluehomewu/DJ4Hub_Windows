@@ -37,7 +37,7 @@ func (b *MBIMBackend) TransmitAPDU(ctx context.Context, channelID int, command s
 // ResolveSIMAuthAID 把短字首(USIM/ISIM ADF AID 前 7 位元組)解析成完整 AID:這張卡
 // 在 MBIM 下不接受用短 AID 開邏輯通道(UICC_OPEN_CHANNEL status=0x87430002
 // SelectFailed),必須先拿到完整 AID。
-// 現在使用底層的 QMI over MBIM 隧道技術，直接取得真實 USIM/ISIM 列表。
+// 現在使用底層的 QMI over MBIM 隧道技術，直接取得真實 USIM/ISIM 清單。
 func (b *MBIMBackend) ResolveSIMAuthAID(ctx context.Context, app string, fallbackAID string) (string, string, error) {
 	aid, source, err := b.source.ResolveLogicalChannelAID(app, fallbackAID)
 	if err != nil {

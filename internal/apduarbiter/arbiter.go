@@ -44,14 +44,14 @@ const (
 const transportPriorityAging = 500 * time.Millisecond
 
 type Options struct {
-	// MaxLeaseHold 是單條 APDU transport lease 的無進展 watchdog 超時。
+	// MaxLeaseHold 是單條 APDU transport lease 的無進展 watchdog 逾時。
 	// 持有方應在長耗時單條 APDU 前後呼叫 Touch；logical channel 生命週期不應再持有該 lease。
 	MaxLeaseHold time.Duration
 	// MaxSessions 是 legacy 相容欄位，僅服務舊 AcquireSession 介面。
 	// 新生產路徑應使用 AcquireTransport，預設單裝置同一時刻只允許一個 active transport APDU。
 	MaxSessions int
-	// MaxQMITransports 限制 QMI logical-channel transport 併發數量。
-	// 只有顯式使用 TransportScopeQMIChannel 的 QMI channel APDU 會使用該併發視窗。
+	// MaxQMITransports 限制 QMI logical-channel transport 並行數量。
+	// 只有顯式使用 TransportScopeQMIChannel 的 QMI channel APDU 會使用該並行視窗。
 	MaxQMITransports int
 }
 

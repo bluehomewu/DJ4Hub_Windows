@@ -27,7 +27,7 @@ import (
 	sgp22 "github.com/damonto/euicc-go/v2"
 )
 
-// 支援的 ISD-R AID 列表
+// 支援的 ISD-R AID 清單
 var AIDs = [][]byte{
 	// eSTK.me Max 專用 SE0/SE1 AID
 	{0xA0, 0x65, 0x73, 0x74, 0x6B, 0x6D, 0x65, 0xFF, 0xFF, 0x49, 0x53, 0x44, 0x2D, 0x52, 0x20, 0x30}, // eSTK.me SE0
@@ -165,7 +165,7 @@ func hasReusableChipProductInfo(info *EUICCChipInfo) bool {
 	// 僅 SkuName / SerialNumber 來自 eSTK.me Product AID 查詢（或 SkuName 由 predictSkuName 推斷），
 	// 可作為"已取得產品資訊"的判據。
 	// Firmware 不能作為判據：當 eSTK.me Product AID 查詢失敗時（如邏輯通道資源耗盡），
-	// info.Firmware 會被標準 EUICCInfo2 的韌體版本兜底填充。若據此判定快取可複用，
+	// info.Firmware 會被標準 EUICCInfo2 的韌體版本後備填充。若據此判定快取可複用，
 	// 會永久跳過 parseESTKmeInfo，導致 SkuName/SerialNumber 永遠查詢不到。
 	return strings.TrimSpace(info.SkuName) != "" ||
 		strings.TrimSpace(info.SerialNumber) != ""
@@ -211,7 +211,7 @@ type EUICCInfo struct {
 	FreeNvram              string    `json:"free_nvram"`             // 可用 NV 儲存（格式化）
 	Firmware               string    `json:"firmware,omitempty"`     // 提取自 EUICCInfo2 / EUICCInfo1
 	Manufacturer           string    `json:"manufacturer,omitempty"` // 晶片製造商（基於 EID 和 PKI 資料查詢）
-	Certificates           []string  `json:"certificates,omitempty"` // 支援的證書籤發機構列表
+	Certificates           []string  `json:"certificates,omitempty"` // 支援的證書籤發機構清單
 	InfoSource             string    `json:"info_source,omitempty"`  // euicc_info2 / euicc_info1
 	InfoVersion            string    `json:"info_version,omitempty"` // 1 / 2
 	InfoError              string    `json:"info_error,omitempty"`   // 標準資訊讀取失敗時的診斷資訊
@@ -241,7 +241,7 @@ type ProfileItem struct {
 	ClassText           string `json:"class_text,omitempty"`
 }
 
-// EUICCProfiles 按 eUICC 分組的 profile 列表
+// EUICCProfiles 按 eUICC 分組的 profile 清單
 type EUICCProfiles struct {
 	EID      string        `json:"eid"`
 	AIDHex   string        `json:"aid_hex"`
@@ -250,18 +250,18 @@ type EUICCProfiles struct {
 
 // EUICCChipInfo eUICC 晶片/卡的硬體資訊
 type EUICCChipInfo struct {
-	EIDs         []EUICCInfo `json:"eids"`                    // 所有 EID 列表（含各自可用空間）
+	EIDs         []EUICCInfo `json:"eids"`                    // 所有 EID 清單（含各自可用空間）
 	SkuName      string      `json:"sku_name,omitempty"`      // 產品名稱（如 "ESTKme Max"）
-	SerialNumber string      `json:"serial_number,omitempty"` // 序列號（如 "T3VAMD0"）
+	SerialNumber string      `json:"serial_number,omitempty"` // 序號（如 "T3VAMD0"）
 	Firmware     string      `json:"firmware,omitempty"`      // 韌體版本
 }
 
-// eSTK.me Product AID，用於查詢裝置名稱、序列號和韌體版本
+// eSTK.me Product AID，用於查詢裝置名稱、序號和韌體版本
 var estkmeProductAID = []byte{0xA0, 0x65, 0x73, 0x74, 0x6B, 0x6D, 0x65, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x6D, 0x67, 0x74}
 
 // Manager eSIM profile 管理器（支援多 eUICC）
 type Manager struct {
-	// modem 是基於 AT 命令的通道工廠（Modem 模式用），PC/SC 模式下為 nil
+	// modem 是基於 AT 指令的通道工廠（Modem 模式用），PC/SC 模式下為 nil
 	modem         *modem.Manager
 	backend       backendpkg.DeviceBackend
 	deviceID      string
@@ -269,21 +269,21 @@ type Manager struct {
 	controlDevice string
 	imeiProvider  func(ctx context.Context) (string, error)
 
-	// channelFactory 是通道工廠函式，不同模式下注入不同實現
-	// Modem 模式：基於 AT 命令
-	// PC/SC 模式：基於 scard.Card APDU 透傳
+	// channelFactory 是通道工廠函式，不同模式下注入不同實作
+	// Modem 模式：基於 AT 指令
+	// PC/SC 模式：基於 scard.Card APDU 直通傳送
 	channelFactory          func(aid []byte) (*lpa.Client, error)
 	smartCardChannelFactory func() (driver.SmartCardChannel, error)
 	closeClient             func(client *lpa.Client) error
 
-	// clearChannels 是在首輪 AID 掃描前清理逐輯通道的回撥（可選）
+	// clearChannels 是在首輪 AID 掃描前清理逐輯通道的回呼（可選）
 	clearChannels func()
 
 	cacheMu                     sync.RWMutex   // 保護 chipInfoCache、overviewCache 與 discoveredEUICCs 等快照狀態
 	opMu                        sync.Mutex     // eSIM 硬體操作互斥（同時只允許一個寫操作）
 	opDone                      chan struct{}  // 寫操作完成通知（替代 TryLock+Sleep 輪詢）
 	chipInfoCache               *EUICCChipInfo // 晶片資訊快取（硬體資訊基本不變）
-	overviewCache               *EsimOverview  // eSIM 總覽快取（跟隨 Manager / Worker 例項）
+	overviewCache               *EsimOverview  // eSIM 總覽快取（跟隨 Manager / Worker 實例）
 	overviewLastErr             error
 	overviewReloading           bool
 	overviewGeneration          uint64
@@ -293,11 +293,11 @@ type Manager struct {
 	discoveredEUICCs            []EUICCInfo
 	sf                          *singleflight.Group
 
-	onBeforeSwitch       func(SwitchOperation, string) uint64              // 切卡前執行的回撥，返回本次 switch token
-	onAfterSwitch        func(SwitchOperation, uint64)                     // 切卡後網路就緒後執行的回撥
-	onSwitchFailed       func(SwitchOperation, uint64, error)              // 切卡失敗後執行的回撥
-	onSwitchDegraded     func(SwitchOperation, uint64, SwitchPhase, error) // 切卡已接受但後處理降級回撥
-	onSwitchPhase        func(SwitchOperation, uint64, SwitchPhase)        // 切卡內部階段變更回撥
+	onBeforeSwitch       func(SwitchOperation, string) uint64              // 切卡前執行的回呼，回傳本次 switch token
+	onAfterSwitch        func(SwitchOperation, uint64)                     // 切卡後網路就緒後執行的回呼
+	onSwitchFailed       func(SwitchOperation, uint64, error)              // 切卡失敗後執行的回呼
+	onSwitchDegraded     func(SwitchOperation, uint64, SwitchPhase, error) // 切卡已接受但後處理降級回呼
+	onSwitchPhase        func(SwitchOperation, uint64, SwitchPhase)        // 切卡內部階段變更回呼
 	switchSignal         chan string
 	switchUseRefreshTrue bool
 
@@ -307,7 +307,7 @@ type Manager struct {
 
 	// downloadCtx 是目前正在進行的下載操作的 context。
 	// 如果不為 nil，由 smartCardChannelFactory 新建的 QMIChannel 會自動繼承該 context，
-	// 從而允許 BPP 安裝階段的長時延遲得到正確處理而不被預設超時中斷。
+	// 從而允許 BPP 安裝階段的長時延遲得到正確處理而不被預設逾時中斷。
 	downloadCtx atomic.Pointer[context.Context]
 }
 
@@ -400,7 +400,7 @@ var basicProfileTags = []bertlv.Tag{
 
 func listBasicProfiles(client *lpa.Client) ([]*sgp22.ProfileInfo, error) {
 	if client == nil || client.APDU == nil {
-		return nil, fmt.Errorf("未配置 eUICC APDU 通道")
+		return nil, fmt.Errorf("未設定 eUICC APDU 通道")
 	}
 	response, err := sgp22.InvokeAPDU(client.APDU, &sgp22.ProfileInfoListRequest{
 		Tags: basicProfileTags,
@@ -498,7 +498,7 @@ func NewManager(opts ManagerOptions) (*Manager, error) {
 		}
 	case transportQMI, transportMBIM:
 		// MBIM 與 QMI 共用泛化 APDU 通道（QMIChannel）：QMI 走 QMI UIM transport，
-		// MBIM 走 MBIMEx UICC transport（均實現 QMIAPDUTransport）。
+		// MBIM 走 MBIMEx UICC transport（均實作 QMIAPDUTransport）。
 		if opts.Backend == nil {
 			return nil, fmt.Errorf("%s 傳輸需要 device backend", transport)
 		}
@@ -512,7 +512,7 @@ func NewManager(opts ManagerOptions) (*Manager, error) {
 		mgr.smartCardChannelFactory = func() (driver.SmartCardChannel, error) {
 			ch := NewQMIChannel(opts.QMITransport, 1)
 			// 如果目前處於下載中，將下載的 ctx 注入給新建的通道，
-			// 使底層 APDU 傳輸能夠直接繼承該 ctx 的超時/取消語義。
+			// 使底層 APDU 傳輸能夠直接繼承該 ctx 的逾時/取消語義。
 			if p := mgr.downloadCtx.Load(); p != nil {
 				ch.SetContext(*p)
 			}
@@ -541,7 +541,7 @@ func NewManager(opts ManagerOptions) (*Manager, error) {
 
 func (m *Manager) newSmartCardChannel() (driver.SmartCardChannel, error) {
 	if m.smartCardChannelFactory == nil {
-		return nil, fmt.Errorf("未配置 APDU 通道工廠")
+		return nil, fmt.Errorf("未設定 APDU 通道工廠")
 	}
 	return m.smartCardChannelFactory()
 }
@@ -563,7 +563,7 @@ func (m *Manager) getEffectiveAIDPlan() aidScanPlan {
 	return aidScanPlan{Policy: aidScanPolicyFullStatic, AIDs: cloneAIDList(AIDs)}
 }
 
-// getEffectiveAIDs 返回應被遍歷的 AID 列表
+// getEffectiveAIDs 回傳應被遍歷的 AID 清單
 func (m *Manager) getEffectiveAIDs() [][]byte {
 	return m.getEffectiveAIDPlan().CloneAIDs()
 }
@@ -806,14 +806,14 @@ func (m *Manager) logWriteOperationHold(operation string, started time.Time) {
 		"hold_ms", hold.Milliseconds())
 }
 
-// forEachEUICC 遍歷所有可用的 eUICC，對每個唯一 EID 呼叫回撥函式。
+// forEachEUICC 遍歷所有可用的 eUICC，對每個唯一 EID 呼叫回呼函式。
 // 每次從靜態候選 AID 重新掃描；命中可用 AID 後停止，eSTK Max 的 SE0/SE1 例外。
-// 回撥引數: client=已開啟的 LPA 客戶端, aid=目前 AID, eidStr=目前 EID 字串
+// 回呼引數: client=已開啟的 LPA 用戶端, aid=目前 AID, eidStr=目前 EID 字串
 func (m *Manager) forEachEUICC(fn func(client *lpa.Client, aid []byte, eidStr string) error) error {
-	// 讀請求在寫操作進行中採用排隊等待策略，超時才返回 busy。
+	// 讀請求在寫操作進行中採用排隊等待策略，逾時才回傳 busy。
 	writeWaitStarted := time.Now()
 	if err := m.waitForNoWriteOperation(); err != nil {
-		logger.Warn("eSIM 讀操作等待寫鎖超時",
+		logger.Warn("eSIM 讀操作等待寫鎖逾時",
 			"device", m.deviceID,
 			"wait_ms", time.Since(writeWaitStarted).Milliseconds())
 		return err
@@ -823,10 +823,10 @@ func (m *Manager) forEachEUICC(fn func(client *lpa.Client, aid []byte, eidStr st
 			"device", m.deviceID,
 			"wait_ms", waited.Milliseconds())
 	}
-	// 裝置級 APDU 仲裁：等待其它 SIM 鑑權會話釋放，避免衝突。
+	// 裝置級 APDU 仲裁：等待其它 SIM 驗證工作階段釋放，避免衝突。
 	apduWaitStarted := time.Now()
 	if err := m.waitForAPDUIdleForRead(); err != nil {
-		logger.Warn("eSIM 讀操作等待 APDU 仲裁空閒超時",
+		logger.Warn("eSIM 讀操作等待 APDU 仲裁空閒逾時",
 			"device", m.deviceID,
 			"wait_ms", time.Since(apduWaitStarted).Milliseconds())
 		return ErrOperationInProgress
@@ -863,7 +863,7 @@ func (m *Manager) forEachEUICC(fn func(client *lpa.Client, aid []byte, eidStr st
 }
 
 func (m *Manager) waitForNoWriteOperation() error {
-	// 快路徑：鎖空閒則直接返回
+	// 快路徑：鎖空閒則直接回傳
 	if m.opMu.TryLock() {
 		m.opMu.Unlock()
 		return nil
@@ -960,23 +960,23 @@ func (m *Manager) waitForAPDUIdleForRead() error {
 	return nil
 }
 
-// doForEachEUICC 執行一輪 AID 遍歷，返回是否發現了至少一個 eUICC。
-// runEUICCCallback 呼叫 forEachEUICC 的每-AID 回撥，並把回撥內部的 panic 轉換為普通
-// error。回撥最終會觸達第三方 BER-TLV 解碼庫（如 euicc-go），面對個別卡片返回的
+// doForEachEUICC 執行一輪 AID 遍歷，回傳是否發現了至少一個 eUICC。
+// runEUICCCallback 呼叫 forEachEUICC 的每-AID 回呼，並把回呼內部的 panic 轉換為普通
+// error。回呼最終會觸達第三方 BER-TLV 解碼庫（如 euicc-go），面對個別卡片回傳的
 // 非標準/缺欄位 profile 資料時該庫可能直接 panic（已知問題：缺少 profile state
 // TLV 時 nil 解引用）。一旦 panic 逃出這裡，會一路冒泡到 gin 的 Recovery 中介軟體，
-// 導致整個 eSIM 總覽請求返回毫無資訊量的 500，前端進而把已經探測到的 eUICC 誤判為
+// 導致整個 eSIM 總覽請求回傳毫無資訊量的 500，前端進而把已經探測到的 eUICC 誤判為
 // "未偵測到"。這裡 recover 後按普通錯誤處理，使其複用既有的 per-AID 容錯路徑。
 func (m *Manager) runEUICCCallback(aidHex, eidStr string, client *lpa.Client, aid []byte, fn func(client *lpa.Client, aid []byte, eidStr string) error) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			logger.Warn("eUICC 回撥 panic 已恢復",
+			logger.Warn("eUICC 回呼 panic 已恢復",
 				"device", m.deviceID,
 				"AID", aidHex,
 				"EID", eidStr,
 				"panic", r,
 				"stack", string(debug.Stack()))
-			err = fmt.Errorf("eUICC 回撥處理失敗 (AID=%s): %v", aidHex, r)
+			err = fmt.Errorf("eUICC 回呼處理失敗 (AID=%s): %v", aidHex, r)
 		}
 	}()
 	return fn(client, aid, eidStr)
@@ -1063,7 +1063,7 @@ func (m *Manager) doForEachEUICC(aids [][]byte, fn func(client *lpa.Client, aid 
 	return true, nil
 }
 
-// GetEIDs 取得所有 eUICC 的 EID 列表
+// GetEIDs 取得所有 eUICC 的 EID 清單
 func (m *Manager) GetEIDs() ([]EUICCInfo, error) {
 	v, err, _ := m.sf.Do("GetEIDs", func() (interface{}, error) {
 		logger.Info("讀取 eUICC EID",
@@ -1101,10 +1101,10 @@ func (m *Manager) GetEID() (string, error) {
 	return eids[0].EID, nil
 }
 
-// GetEUICCChipInfo 取得 eUICC 晶片的硬體資訊（優先返回快取）
-// 包含：所有 EID（含各自可用空間）、產品名稱、序列號、韌體版本
+// GetEUICCChipInfo 取得 eUICC 晶片的硬體資訊（優先回傳快取）
+// 包含：所有 EID（含各自可用空間）、產品名稱、序號、韌體版本
 func (m *Manager) GetEUICCChipInfo(forceRefresh bool) (*EUICCChipInfo, error) {
-	// 優先返回快取（硬體資訊不會變，只有可用空間會變）
+	// 優先回傳快取（硬體資訊不會變，只有可用空間會變）
 	if !forceRefresh {
 		m.cacheMu.RLock()
 		cached := m.chipInfoCache
@@ -1116,12 +1116,12 @@ func (m *Manager) GetEUICCChipInfo(forceRefresh bool) (*EUICCChipInfo, error) {
 
 	v, err, _ := m.sf.Do("GetEUICCChipInfo", func() (interface{}, error) {
 		info := &EUICCChipInfo{}
-		// fnMu 保護併發 fn 對 info.EIDs 的寫操作
+		// fnMu 保護並行 fn 對 info.EIDs 的寫操作
 		var fnMu sync.Mutex
 
 		if err := m.forEachEUICC(func(client *lpa.Client, aid []byte, eidStr string) error {
 			euiccInfo := buildDiscoveredEUICCInfo(aid, eidStr)
-			// 在同一 channel 中查詢 EUICCInfo2——APDU 讀，per-channel 併發安全
+			// 在同一 channel 中查詢 EUICCInfo2——APDU 讀，per-channel 並行安全
 			m.parseEUICCInfo2ForEID(client, &euiccInfo)
 
 			fnMu.Lock()
@@ -1139,8 +1139,8 @@ func (m *Manager) GetEUICCChipInfo(forceRefresh bool) (*EUICCChipInfo, error) {
 		}
 		sortEUICCInfosStable(info.EIDs)
 
-		// 透過 eSTK.me Product AID 取得硬體標識（SkuName/SerialNumber/Firmware）
-		// 最佳化：硬體標識不隨使用變化，若已有快取則直接複用，跳過 6 次 APDU 開銷
+		// 透過 eSTK.me Product AID 取得硬體識別碼（SkuName/SerialNumber/Firmware）
+		// 最佳化：硬體識別碼不隨使用變化，若已有快取則直接複用，跳過 6 次 APDU 開銷
 		m.cacheMu.RLock()
 		cachedChip := m.chipInfoCache
 		m.cacheMu.RUnlock()
@@ -1156,7 +1156,7 @@ func (m *Manager) GetEUICCChipInfo(forceRefresh bool) (*EUICCChipInfo, error) {
 			m.parseESTKmeInfo(info)
 		}
 
-		// 如果 eSTK.me 專有指令未返回韌體版本，則回退使用從標準 EUICCInfo2 中提取到的韌體版本
+		// 如果 eSTK.me 專有指令未回傳韌體版本，則回退使用從標準 EUICCInfo2 中提取到的韌體版本
 		if info.Firmware == "" && len(info.EIDs) > 0 {
 			info.Firmware = info.EIDs[0].Firmware
 		}
@@ -1185,7 +1185,7 @@ func (m *Manager) GetEUICCChipInfo(forceRefresh bool) (*EUICCChipInfo, error) {
 // EsimOverview 合併的 eSIM 總覽資訊（晶片資訊 + 按 eUICC 分組的 profiles）
 type EsimOverview struct {
 	ChipInfo *EUICCChipInfo  `json:"chip_info"` // 晶片硬體資訊
-	Profiles []EUICCProfiles `json:"profiles"`  // 按 eUICC 分組的 profile 列表
+	Profiles []EUICCProfiles `json:"profiles"`  // 按 eUICC 分組的 profile 清單
 }
 
 // parseEUICCInfo2ForEID 從標準 eUICC 資訊介面解析單個 eUICC 的可用空間、韌體版本、製造商和證書資訊。
@@ -1194,7 +1194,7 @@ func (m *Manager) parseEUICCInfo2ForEID(client *lpa.Client, euicc *EUICCInfo) {
 	m.enrichEUICCInfo(client, euicc)
 }
 
-// parseESTKmeInfo 透過 eSTK.me Product AID 取得裝置名稱、序列號和韌體版本
+// parseESTKmeInfo 透過 eSTK.me Product AID 取得裝置名稱、序號和韌體版本
 func (m *Manager) parseESTKmeInfo(info *EUICCChipInfo) {
 	ch, err := m.newSmartCardChannel()
 	if err != nil {
@@ -1224,7 +1224,7 @@ func (m *Manager) parseESTKmeInfo(info *EUICCChipInfo) {
 	}
 	defer ch.CloseLogicalChannel(channelNum) //nolint:errcheck
 
-	// APDU 命令格式：CLA=00 INS=00 P1=xx P2=00 Le=00
+	// APDU 指令格式：CLA=00 INS=00 P1=xx P2=00 Le=00
 	// P1=0x03 -> skuName, P1=0x00 -> serialNumber, P1=0x01 -> bootloader, P1=0x02 -> firmware
 	readField := func(p1 byte) string {
 		cmd := []byte{0x00, 0x00, p1, 0x00, 0x00}
@@ -1714,7 +1714,7 @@ func (m *Manager) GetEsimOverview() (*EsimOverview, error) {
 	return m.loadOverview()
 }
 
-// GetProfiles 取得所有 eUICC 按分組的 profile 列表
+// GetProfiles 取得所有 eUICC 按分組的 profile 清單
 func (m *Manager) GetProfiles() ([]EUICCProfiles, error) {
 	overview, err := m.loadOverview()
 	if err != nil {
@@ -1994,7 +1994,7 @@ func (m *Manager) drainSwitchSignals() {
 }
 
 // isExpectedCardResetSignal 判斷 err 是否為切卡（refresh=true）觸發的預期 eUICC 內部 RESET 訊號，
-// 而非真正的失敗。QMI 與 MBIM 各自有自己的協議層訊號（見 ErrQMIUIMCardReset / ErrMBIMUICCInvalidChannel
+// 而非真正的失敗。QMI 與 MBIM 各自有自己的協定層訊號（見 ErrQMIUIMCardReset / ErrMBIMUICCInvalidChannel
 // 的註釋），統一在此處判定，使 finalizeEnableProfileResult 與 DisableProfile 不必關心具體 transport。
 func isExpectedCardResetSignal(err error) bool {
 	return errors.Is(err, ErrQMIUIMCardReset) || errors.Is(err, ErrMBIMUICCInvalidChannel)
@@ -2005,7 +2005,7 @@ func (m *Manager) finalizeEnableProfileResult(targetICCID string, enableErr erro
 		return nil
 	}
 	if isExpectedCardResetSignal(enableErr) {
-		logger.Info("EnableProfile 觸發了 eUICC 內部 RESET（預期訊號），按切卡命令已提交處理",
+		logger.Info("EnableProfile 觸發了 eUICC 內部 RESET（預期訊號），按切卡指令已提交處理",
 			"device", m.deviceID,
 			"target", targetICCID)
 		return nil
@@ -2106,7 +2106,7 @@ func (m *Manager) SwitchProfileWithResult(ctx context.Context, targetICCID strin
 		"target", targetICCID,
 		"AID", fmt.Sprintf("%X", targetAID))
 
-	// 觸發切卡前的回撥，便於上層暫停會佔用 SIM 通道的操作。
+	// 觸發切卡前的回呼，便於上層暫停會佔用 SIM 通道的操作。
 	if m.onBeforeSwitch != nil {
 		switchToken = m.onBeforeSwitch(operation, targetICCID)
 		switchStarted = true
@@ -2133,11 +2133,11 @@ func (m *Manager) SwitchProfileWithResult(ctx context.Context, targetICCID strin
 		return result, fmt.Errorf("等待切卡 APDU barrier 失敗: %w", err)
 	}
 
-	// refresh flag 由配置控制；refresh=true 可能立即觸發 UIM refresh/slot indication，
+	// refresh flag 由設定控制；refresh=true 可能立即觸發 UIM refresh/slot indication，
 	// 必須在發 APDU 前抑制自動 overview reload。
 	m.beginSwitchOverviewSuppression()
 
-	// 4. 啟用目標 profile（refresh=true 會自動禁用目前活躍的 profile）。
+	// 4. 啟用目標 profile（refresh=true 會自動禁用目前使用中的 profile）。
 	// refresh=true 時 UIM card reset（QMI: ErrQMIUIMCardReset / MBIM: ErrMBIMUICCInvalidChannel）
 	// 是預期訊號，後續 finalize 已處理，見 isExpectedCardResetSignal。
 	// CatBusy (result=5) 是瞬態錯誤：飛航模式切換等操作會導致卡片 CAT 忙碌，
@@ -2150,7 +2150,7 @@ func (m *Manager) SwitchProfileWithResult(ctx context.Context, targetICCID strin
 			break
 		}
 		if attempt < maxCatBusyRetries {
-			logger.Warn("EnableProfile 返回 CatBusy，卡片 CAT 忙碌中，等待後重試",
+			logger.Warn("EnableProfile 回傳 CatBusy，卡片 CAT 忙碌中，等待後重試",
 				"device", m.deviceID,
 				"target", targetICCID,
 				"attempt", fmt.Sprintf("%d/%d", attempt+1, maxCatBusyRetries))
@@ -2181,7 +2181,7 @@ func (m *Manager) SwitchProfileWithResult(ctx context.Context, targetICCID strin
 	logger.Info("eSIM profile 切換指令已提交，後處理將非同步繼續",
 		"device", m.deviceID, "target", targetICCID, "cache_patched", patched, "degraded_reason", result.DegradedReason)
 
-	// 6. 切卡後回撥改為 Ready + Delay 門控，避免與 eSIM 重讀或 SIM 鑑權衝突。
+	// 6. 切卡後回呼改為 Ready + Delay 門控，避免與 eSIM 重讀或 SIM 驗證衝突。
 	go m.runPostSwitchRecovery(operation, switchToken, targetICCID)
 	result.PostSwitchAsync = true
 	result.RecoveryPending = true
@@ -2340,14 +2340,14 @@ func (m *Manager) finishPostSwitchHook(operation SwitchOperation, token uint64, 
 	}
 }
 
-// DownloadProgressEvent 是進度回撥的事件結構
+// DownloadProgressEvent 是進度回呼的事件結構
 type DownloadProgressEvent struct {
-	Step string // 階段標識，如 "preflight"、"auth_client"、"auth_server"、"install"、"notify"、"done"
+	Step string // 階段識別碼，如 "preflight"、"auth_client"、"auth_server"、"install"、"notify"、"done"
 	Msg  string // 中文描述
 	Pct  int    // 進度百分比 0-100
 }
 
-// DownloadProgressFn 是進度回撥函式型別
+// DownloadProgressFn 是進度回呼函式型別
 type DownloadProgressFn func(event DownloadProgressEvent)
 
 type SpaceDeltaDirection string
@@ -2539,7 +2539,7 @@ func downloadNotificationResult(observed bool, retrieveErr error, handleErr erro
 
 func downloadFinalizeRecoveredResult() DownloadProfileResult {
 	return DownloadProfileResult{
-		Warning:     "Profile 已安裝，下載會話收尾返回異常；安裝通知已傳送，已按成功處理",
+		Warning:     "Profile 已安裝，下載工作階段收尾回傳異常；安裝通知已傳送，已按成功處理",
 		WarningCode: "download_installed_finalize_error_recovered",
 	}
 }
@@ -2550,13 +2550,13 @@ func safeListNotification(client *lpa.Client, filters ...sgp22.NotificationEvent
 	}
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Errorf("解析通知列表響應失敗: %v", r)
+			err = fmt.Errorf("解析通知清單回應失敗: %v", r)
 			notifications = nil
 		}
 	}()
 	notifications, err = client.ListNotification(filters...)
 	if err != nil {
-		return nil, wrapNotificationParseError("解析通知列表響應失敗", err)
+		return nil, wrapNotificationParseError("解析通知清單回應失敗", err)
 	}
 	return notifications, nil
 }
@@ -2567,13 +2567,13 @@ func safeRetrieveNotificationList(client *lpa.Client, seq sgp22.SequenceNumber) 
 	}
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Errorf("解析待傳送通知響應失敗: %v", r)
+			err = fmt.Errorf("解析待傳送通知回應失敗: %v", r)
 			pendingNotifications = nil
 		}
 	}()
 	pendingNotifications, err = client.RetrieveNotificationList(seq)
 	if err != nil {
-		return nil, wrapNotificationParseError("解析待傳送通知響應失敗", err)
+		return nil, wrapNotificationParseError("解析待傳送通知回應失敗", err)
 	}
 	return pendingNotifications, nil
 }
@@ -2737,7 +2737,7 @@ func (m *Manager) autoCleanLoadedNotifications(client *lpa.Client, notifications
 			continue
 		}
 		if len(pendingNotifications) == 0 {
-			logger.Warn("eSIM 載入通知自動清理跳過，卡片未返回待傳送通知",
+			logger.Warn("eSIM 載入通知自動清理跳過，卡片未回傳待傳送通知",
 				"device", m.deviceID,
 				"AID", aidHex,
 				"sequence", seq,
@@ -2781,7 +2781,7 @@ func (m *Manager) autoCleanLoadedNotifications(client *lpa.Client, notifications
 			continue
 		}
 		if !handledAny {
-			logger.Warn("eSIM 載入通知自動清理跳過，卡片返回空待傳送通知",
+			logger.Warn("eSIM 載入通知自動清理跳過，卡片回傳空待傳送通知",
 				"device", m.deviceID,
 				"AID", aidHex,
 				"sequence", seq,
@@ -2836,7 +2836,7 @@ func (m *Manager) listNotificationItemsWithCleanup(client *lpa.Client, aidHex st
 	if len(cleaned) > 0 {
 		refreshed, refreshErr := safeListNotification(client)
 		if refreshErr != nil {
-			logger.Warn("eSIM 載入通知自動清理後重新整理列表失敗，使用本地過濾結果",
+			logger.Warn("eSIM 載入通知自動清理後重新整理清單失敗，使用本地過濾結果",
 				"device", m.deviceID,
 				"AID", aidHex,
 				"err", refreshErr)
@@ -2912,7 +2912,7 @@ func (m *Manager) listNotificationsForCurrentCard() ([]NotificationItem, error) 
 		return []NotificationItem{}, nil
 	}
 	if lastErr != nil {
-		return nil, NewNotificationError(NotificationErrorInternal, fmt.Sprintf("取得通知列表失敗: %v", lastErr), lastErr)
+		return nil, NewNotificationError(NotificationErrorInternal, fmt.Sprintf("取得通知清單失敗: %v", lastErr), lastErr)
 	}
 	return []NotificationItem{}, nil
 }
@@ -2943,7 +2943,7 @@ func (m *Manager) ListNotifications(aidHex string) ([]NotificationItem, error) {
 		err = closeErr
 	}
 	if err != nil {
-		return nil, NewNotificationError(NotificationErrorInternal, fmt.Sprintf("取得通知列表失敗: %v", err), err)
+		return nil, NewNotificationError(NotificationErrorInternal, fmt.Sprintf("取得通知清單失敗: %v", err), err)
 	}
 	return items, nil
 }
@@ -2996,7 +2996,7 @@ func (m *Manager) RetryNotification(sequenceNumber int64, aidHex string) error {
 // aidHex 為目標 AID（hex 字串），為空則使用第一個可用 AID
 // smdp 為 SM-DP+ 伺服器位址，matchingID 和 confirmationCode 可選
 // downloadIMEI 為可選的前端指定 IMEI；為空時使用裝置真實 IMEI
-// progressFn 為可選進度回撥，為 nil 時靜默執行
+// progressFn 為可選進度回呼，為 nil 時靜默執行
 func (m *Manager) DownloadProfile(ctx context.Context, aidHex, smdp, matchingID, confirmationCode, downloadIMEI string, progressFn DownloadProgressFn) (DownloadProfileResult, error) {
 	report := func(step, msg string, pct int) {
 		if progressFn != nil {
@@ -3097,7 +3097,7 @@ func (m *Manager) DownloadProfile(ctx context.Context, aidHex, smdp, matchingID,
 		OnProgress: func(stage lpa.DownloadStage) {
 			switch stage {
 			case lpa.DownloadStageAuthenticateClient:
-				report("auth_client", "正在向 SM-DP+ 進行客戶端身份認證...", 30)
+				report("auth_client", "正在向 SM-DP+ 進行用戶端身分認證...", 30)
 			case lpa.DownloadStageAuthenticateServer:
 				report("auth_server", "正在向 SM-DP+ 請求 Profile 資料包...", 60)
 			case lpa.DownloadStageInstall:
@@ -3201,7 +3201,7 @@ func validateDownloadIMEI(imei string) (string, error) {
 		}
 	}
 	if imei[14] != imeiLuhnCheckDigit(imei[:14]) {
-		return "", fmt.Errorf("無效的 IMEI：校驗位不正確")
+		return "", fmt.Errorf("無效的 IMEI：驗證位不正確")
 	}
 	return imei, nil
 }
@@ -3357,7 +3357,7 @@ func (m *Manager) DeleteProfile(targetICCID string, aidHex string) (DeleteProfil
 			"sequence", seq)
 		return retryWithBackoff(3, 300*time.Millisecond,
 			func(attempt int, wait time.Duration, err error) {
-				logger.Warn("取得通知列表失敗，稍後重試",
+				logger.Warn("取得通知清單失敗，稍後重試",
 					"device", m.deviceID,
 					"sequence", seq,
 					"attempt", fmt.Sprintf("%d/%d", attempt, 3),
@@ -3505,7 +3505,7 @@ func (m *Manager) sendDownloadInstallNotification(client *lpa.Client, lastSeq sg
 			"sequence", seq)
 		return retryWithBackoff(3, 300*time.Millisecond,
 			func(attempt int, wait time.Duration, err error) {
-				logger.Warn("取得下載通知列表失敗",
+				logger.Warn("取得下載通知清單失敗",
 					"device", m.deviceID,
 					"sequence", seq,
 					"attempt", fmt.Sprintf("%d/%d", attempt, 3),

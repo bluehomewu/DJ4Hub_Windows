@@ -43,7 +43,7 @@ func (m *Manager) enrichEUICCInfo(reader euiccInfoReader, euicc *EUICCInfo) {
 		euicc.DefaultSMDPAddress = addresses.DefaultSMDPAddress
 		euicc.RootSMDSAddress = addresses.RootSMDSAddress
 	} else if err != nil {
-		logger.Debug("取得 eUICC 配置位址失敗",
+		logger.Debug("取得 eUICC 設定位址失敗",
 			"device", m.deviceID,
 			"EID", euicc.EID,
 			"err", err)

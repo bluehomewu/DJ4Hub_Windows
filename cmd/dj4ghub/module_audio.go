@@ -188,7 +188,7 @@ func audioRuntimeFiles(dir string) (map[string][]byte, error) {
 		}
 		sum := sha256.Sum256(data)
 		if hex.EncodeToString(sum[:]) != expected {
-			return nil, fmt.Errorf("音訊執行檔案校驗失敗：%s", name)
+			return nil, fmt.Errorf("音訊執行檔案驗證失敗：%s", name)
 		}
 		files[name] = data
 	}
@@ -205,7 +205,7 @@ func (a *app) moduleAudioStatus(w http.ResponseWriter, r *http.Request) {
 	defer a.audioMu.Unlock()
 	active := a.audioSession != nil && time.Since(a.audioSession.lastLease) < 50*time.Second
 	_, _, err := moduleAudioRuntime()
-	summary := "本機音訊依賴已校驗，可在撥號前準備模組音訊。"
+	summary := "本機音訊依賴已驗證，可在撥號前準備模組音訊。"
 	if err != nil {
 		summary = err.Error()
 	}
@@ -232,7 +232,7 @@ func (a *app) moduleAudioPrepare(w http.ResponseWriter, r *http.Request) {
 	a.audioMu.Lock()
 	defer a.audioMu.Unlock()
 	if a.audioSession != nil && time.Since(a.audioSession.lastLease) < 50*time.Second {
-		writeError(w, 409, "已有音訊會話，請先停止或等待自動恢復")
+		writeError(w, 409, "已有音訊工作階段，請先停止或等待自動恢復")
 		return
 	}
 	raw, err := a.phoneCommand("AT+CLCC")
@@ -252,7 +252,7 @@ func (a *app) moduleAudioPrepare(w http.ResponseWriter, r *http.Request) {
 	}
 	token := make([]byte, 16)
 	if _, err = rand.Read(token); err != nil {
-		writeError(w, 500, "無法建立音訊會話")
+		writeError(w, 500, "無法建立音訊工作階段")
 		return
 	}
 	s := &moduleAudioSession{token: hex.EncodeToString(token), adb: adb}
@@ -268,12 +268,12 @@ func (a *app) moduleAudioPrepare(w http.ResponseWriter, r *http.Request) {
 		s.usb = adbIdentityForLocation(location)
 		identity, identityErr := audioIdentity(a.phoneCommand)
 		if identityErr != nil {
-			writeError(w, 409, "無法讀取穩定裝置身份，未初始化 ADB")
+			writeError(w, 409, "無法讀取穩定裝置身分，未初始化 ADB")
 			return
 		}
 		base, pathErr := os.UserConfigDir()
 		if pathErr != nil {
-			writeError(w, 500, "無法定位配置備份目錄")
+			writeError(w, 500, "無法定位設定備份目錄")
 			return
 		}
 		_, initErr := initializeAudioADB(ctx, a.phoneCommand, filepath.Join(base, "DJ4Hub", "device-backups"), identity)
@@ -297,18 +297,18 @@ func (a *app) moduleAudioPrepare(w http.ResponseWriter, r *http.Request) {
 				}
 				select {
 				case <-ctx.Done():
-					writeError(w, 409, "等待 ADB 超時")
+					writeError(w, 409, "等待 ADB 逾時")
 					return
 				case <-time.After(time.Second):
 				}
 			}
 			if targetErr != nil {
-				writeError(w, 409, "ADB 配置已啟用，但連線不可用；可能有其他 ADB 服務佔用模組（例如執行過 adb devices，可執行 adb kill-server），或請重新插拔。不會自動終止其他程式")
+				writeError(w, 409, "ADB 設定已啟用，但連線不可用；可能有其他 ADB 服務佔用模組（例如執行過 adb devices，可執行 adb kill-server），或請重新插拔。不會自動終止其他程式")
 				return
 			}
 		}
 		if current, e := audioIdentity(a.phoneCommand); e != nil || current != identity {
-			writeError(w, 409, "裝置身份變化，未載入驅動")
+			writeError(w, 409, "裝置身分變化，未載入驅動")
 			return
 		}
 	}
@@ -329,15 +329,15 @@ func (s *moduleAudioSession) prepare(ctx context.Context, files map[string][]byt
 	preflight := `test "$(uname -r)" = 3.18.44 && test "$(cat /sys/class/android_usb/android0/idVendor)" = 2ca3 && test "$(cat /sys/class/android_usb/android0/idProduct)" = 4006 && cat /proc/sys/kernel/random/boot_id`
 	boot, err := s.shell(ctx, preflight)
 	if err != nil || !moduleAudioBootPattern.MatchString(boot) {
-		return errors.New("裝置身份、核心、USB 配置或 ADB 權限不符合已驗證條件")
+		return errors.New("裝置身分、核心、USB 設定或 ADB 權限不符合已驗證條件")
 	}
 	s.boot = boot
 	functions, err := s.shell(ctx, "cat /sys/class/android_usb/android0/functions")
 	if err != nil {
-		return fmt.Errorf("無法讀取裝置 USB 功能配置：%w", err)
+		return fmt.Errorf("無法讀取裝置 USB 功能設定：%w", err)
 	}
 	if !supportedAudioFunctions(functions) {
-		return fmt.Errorf("目前 USB 功能配置不支援音訊初始化：%q；僅支援 RMNET 或 ECM 組合及其 USB 語音介面", functions)
+		return fmt.Errorf("目前 USB 功能設定不支援音訊初始化：%q；僅支援 RMNET 或 ECM 組合及其 USB 語音介面", functions)
 	}
 	if err := ensureAudioRoot(ctx, func() (string, error) { return s.shell(ctx, "id -u") }, func() error {
 		transport, err := s.target(ctx)
@@ -378,7 +378,7 @@ func (s *moduleAudioSession) prepare(ctx context.Context, files map[string][]byt
 	}
 	for name, expected := range moduleAudioHashes {
 		if _, err = s.shell(ctx, "test \"$(sha256sum "+audioQuote(s.dir+"/"+name)+" | cut -d ' ' -f 1)\" = "+audioQuote(expected)); err != nil {
-			return errors.New("裝置端音訊檔案校驗失敗")
+			return errors.New("裝置端音訊檔案驗證失敗")
 		}
 	}
 	launch := "chmod 700 " + audioQuote(s.dir+"/mavo-pcm-bridge.armv7") + "; cut -d . -f 1 /proc/uptime > " + audioQuote(s.dir+"/lease") + "; setsid sh " + audioQuote(s.dir+"/session.sh") + " " + audioQuote(s.dir) + " </dev/null >" + audioQuote(s.dir+"/session.log") + " 2>&1 & sleep 1"
@@ -403,7 +403,7 @@ func (s *moduleAudioSession) prepare(ctx context.Context, files map[string][]byt
 		case <-time.After(time.Second):
 		}
 	}
-	return errors.New("等待 USB 音訊介面超時")
+	return errors.New("等待 USB 音訊介面逾時")
 }
 
 func supportedAudioFunctions(functions string) bool {
@@ -428,7 +428,7 @@ func (a *app) moduleAudioUpdate(w http.ResponseWriter, r *http.Request, stop boo
 	defer a.audioMu.Unlock()
 	s := a.audioSession
 	if s == nil || r.Header.Get("X-DJ4Hub-Audio-Token") != s.token {
-		writeError(w, 409, "音訊會話已結束，請重新準備")
+		writeError(w, 409, "音訊工作階段已結束，請重新準備")
 		return
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 35*time.Second)
@@ -440,7 +440,7 @@ func (a *app) moduleAudioUpdate(w http.ResponseWriter, r *http.Request, stop boo
 	}
 	_, err := s.shell(r.Context(), command)
 	if err != nil {
-		writeError(w, 502, "無法聯絡音訊會話；心跳停止後模組將嘗試自動恢復，必要時重新插拔")
+		writeError(w, 502, "無法聯絡音訊工作階段；心跳停止後模組將嘗試自動恢復，必要時重新插拔")
 		return
 	}
 	if stop {
@@ -448,7 +448,7 @@ func (a *app) moduleAudioUpdate(w http.ResponseWriter, r *http.Request, stop boo
 			state, _ := s.shell(r.Context(), "cat "+audioQuote(s.dir+"/state"))
 			if state == "closed" {
 				a.audioSession = nil
-				writeJSON(w, 200, moduleAudioReply{Configured: true, Summary: "模組音訊已停止，USB 配置已恢復；臨時驅動在重啟後清除"})
+				writeJSON(w, 200, moduleAudioReply{Configured: true, Summary: "模組音訊已停止，USB 設定已恢復；臨時驅動在重啟後清除"})
 				return
 			}
 			if state == "reboot_required" {

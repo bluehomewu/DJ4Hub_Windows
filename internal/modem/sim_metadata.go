@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// 各種 SIM 卡基本資料檔案 (EF) 的檔案 ID 常量
+// 各種 SIM 卡基本資料檔案 (EF) 的檔案 ID 常數
 const (
 	efIMSI = 0x6F07 // IMSI
 	efAD   = 0x6FAD // Administrative Data, byte 4 carries MNC length
@@ -26,12 +26,12 @@ const (
 
 // SIMMetadata 封裝瞭解析出來的 SIM 卡後設資料，用於電信業者特徵識別。
 type SIMMetadata struct {
-	NativeMCC       string           // SIM 卡內建的移動國家程式碼
-	NativeMNC       string           // SIM 卡內建的行動網路程式碼
-	GID1            string           // 組識別符號 1 的十六進位制字串
-	GID2            string           // 組識別符號 2 的十六進位制字串
-	PNN             []PNNRecord      // PLMN 名字記錄列表
-	OPL             []OPLRecord      // 電信業者 PLMN 與小區 LAC 關聯記錄列表
+	NativeMCC       string           // SIM 卡內建的行動國家代碼
+	NativeMNC       string           // SIM 卡內建的行動網路代碼
+	GID1            string           // 組識別符號 1 的十六進位字串
+	GID2            string           // 組識別符號 2 的十六進位字串
+	PNN             []PNNRecord      // PLMN 名字記錄清單
+	OPL             []OPLRecord      // 電信業者 PLMN 與基地台 LAC 關聯記錄清單
 	SIMServiceTable *SIMServiceTable // 包含該卡片使能的增值服務表
 }
 
@@ -54,7 +54,7 @@ func HomeMCCMNCFromIMSIAndEFAD(imsi string, efAD []byte) (mcc, mnc string, mncLe
 	}
 	if resolvedLen, ok := MNCLengthFromEFAD(efAD); ok {
 		if len(imsi) < 3+resolvedLen {
-			return "", "", 0, "", fmt.Errorf("IMSI 與 EF-AD MNC 長度不匹配")
+			return "", "", 0, "", fmt.Errorf("IMSI 與 EF-AD MNC 長度不符")
 		}
 		return imsi[:3], imsi[3 : 3+resolvedLen], resolvedLen, PLMNSourceIMSI_EFAD, nil
 	}
@@ -100,7 +100,7 @@ func trimSIMPadding(data []byte) []byte {
 	return data[:end]
 }
 
-// simRawHex 將資料去除填充並轉換為大寫十六進位制字串
+// simRawHex 將資料去除填充並轉換為大寫十六進位字串
 func simRawHex(data []byte) string {
 	data = trimSIMPadding(data)
 	if len(data) == 0 {
@@ -150,7 +150,7 @@ func trimPNNTLVRecord(data []byte) []byte {
 	return data[:length]
 }
 
-// pnnTLVLength 探測 PNN 中 TLV 欄位的物理總長度
+// pnnTLVLength 探測 PNN 中 TLV 欄位的實際總長度
 func pnnTLVLength(data []byte) int {
 	data = trimSIMPadding(data)
 	end := 0
@@ -190,7 +190,7 @@ func DecodeOPLRecord(record int, data []byte) (OPLRecord, bool) {
 	return out, out.PLMN != "" || out.RawHex != ""
 }
 
-// NativeMCCMNCFromOPLRecords 從已解碼的 OPL 列表中提取第一條有效的電信業者 HPLMN (MCC + MNC)
+// NativeMCCMNCFromOPLRecords 從已解碼的 OPL 清單中提取第一條有效的電信業者 HPLMN (MCC + MNC)
 func NativeMCCMNCFromOPLRecords(records []OPLRecord) (mcc string, mnc string, ok bool) {
 	for _, rec := range records {
 		plmn := strings.TrimSpace(rec.PLMN)
@@ -308,7 +308,7 @@ func decodePackedGSM7(data []byte, spareBits int) (string, error) {
 	return decoded, nil
 }
 
-// decodeOPLPLMN 將 OPL 記錄中儲存的前 3 位元組的 BCD 格式 PLMN 轉換為 "46000" 或 "46001" 等十進位制字串（若第3個半位元組為F即表示5位格式的卡片）
+// decodeOPLPLMN 將 OPL 記錄中儲存的前 3 位元組的 BCD 格式 PLMN 轉換為 "46000" 或 "46001" 等十進位字串（若第3個半位元組為F即表示5位格式的卡片）
 func decodeOPLPLMN(data []byte) string {
 	if len(data) < 3 {
 		return ""

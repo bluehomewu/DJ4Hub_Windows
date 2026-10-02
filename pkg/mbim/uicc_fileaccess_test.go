@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-// buildUICCAppListInfoForTest 按 libmbim MS UICC Application List 的應答佈局構造 InfoBuffer:
+// buildUICCAppListInfoForTest 按 libmbim MS UICC Application List 的應答結構構造 InfoBuffer:
 // [Version][ApplicationCount][ActiveApplicationIndex][ApplicationListSizeBytes]
 // [N × (structOffset, structSize)] [struct blobs...]
 // 每個 MbimUiccApplication 結構(固定 32 位元組):
@@ -51,8 +51,8 @@ func TestUICCReadBinaryEncodesQueryAndParsesResponse(t *testing.T) {
 			if le.Uint32(w[36:]) != CIDUICCReadBinary {
 				t.Fatalf("CID = %d, want ReadBinary %d", le.Uint32(w[36:]), CIDUICCReadBinary)
 			}
-			// 校驗請求裡的 AppId(offset,size)與 ReadSize 欄位。
-			info := w[48:] // 命令 InfoBuffer 從 header(48) 之後開始(單 fragment)
+			// 驗證請求裡的 AppId(offset,size)與 ReadSize 欄位。
+			info := w[48:] // 指令 InfoBuffer 從 header(48) 之後開始(單 fragment)
 			aidOff := le.Uint32(info[4:])
 			aidSize := le.Uint32(info[8:])
 			if int(aidSize) != len(aid) {

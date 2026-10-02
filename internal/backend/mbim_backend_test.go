@@ -139,7 +139,7 @@ func TestMBIMBackendGetNativeMCCMNCUsesMCCTableWhenNoHomeProviderNoEFAD(t *testi
 	}
 }
 
-// HomeProvider 不可用時,退回 IMSI(取 2 位 MNC),保證不 panic、有兜底。
+// HomeProvider 不可用時,退回 IMSI(取 2 位 MNC),保證不 panic、有後備。
 func TestMBIMBackendGetNativeMCCMNCFallsBackToIMSI(t *testing.T) {
 	src := &fakeMBIMSource{
 		sub:             mbim.SubscriberReady{IMSI: "460001234567890"},
@@ -244,7 +244,7 @@ func (f *fakeMBIMSource) ResolveAppAID(_ context.Context, prefix []byte) ([]byte
 	if f.aidFn != nil {
 		return f.aidFn(prefix)
 	}
-	return nil, fmt.Errorf("ResolveAppAID 未配置")
+	return nil, fmt.Errorf("ResolveAppAID 未設定")
 }
 
 func (f *fakeMBIMSource) ResolveLogicalChannelAID(app string, fallback string) (string, string, error) {
@@ -283,7 +283,7 @@ func TestMBIMBackendLiveIdentity(t *testing.T) {
 	var b any = NewMBIMBackend("", src)
 	reader, ok := b.(liveIdentityReader)
 	if !ok {
-		t.Fatal("MBIMBackend 未實現 live 身份介面（會導致面板 ICCID/IMSI 為空）")
+		t.Fatal("MBIMBackend 未實作 live 身分介面（會導致面板 ICCID/IMSI 為空）")
 	}
 	if iccid, _ := reader.GetICCIDLive(context.Background()); iccid != "89103000000589140892" {
 		t.Fatalf("GetICCIDLive = %q", iccid)
@@ -477,7 +477,7 @@ func TestMBIMBackendCapabilityDelegates(t *testing.T) {
 	src := &fakeMBIMSource{capability: want}
 	b := NewMBIMBackend("", src)
 	if b.Capability() != want {
-		t.Fatal("Capability 應透傳 source 的能力物件")
+		t.Fatal("Capability 應直通傳送 source 的能力物件")
 	}
 }
 
@@ -531,7 +531,7 @@ func TestMBIMBackendCalculateAKAMarksDeadOnNoDeviceSupport(t *testing.T) {
 	}
 	_, _, _, _, err := b.CalculateAKA(context.Background(), make([]byte, 16), make([]byte, 16))
 	if err == nil {
-		t.Fatal("應返回錯誤")
+		t.Fatal("應回傳錯誤")
 	}
 	if caps.AuthAKAUsable() {
 		t.Fatal("status=9(NO_DEVICE_SUPPORT) 後應熔斷")
@@ -549,10 +549,10 @@ func TestMBIMBackendCalculateAKADoesNotMarkDeadOnSyncFailure(t *testing.T) {
 	b := NewMBIMBackend("", src)
 	_, _, _, _, err := b.CalculateAKA(context.Background(), make([]byte, 16), make([]byte, 16))
 	if err == nil {
-		t.Fatal("應返回錯誤")
+		t.Fatal("應回傳錯誤")
 	}
 	if !caps.AuthAKAUsable() {
-		t.Fatal("status=35(AUTH_SYNC_FAILURE) 是合法認證響應，不應熔斷 Auth 服務")
+		t.Fatal("status=35(AUTH_SYNC_FAILURE) 是合法認證回應，不應熔斷 Auth 服務")
 	}
 }
 
@@ -622,7 +622,7 @@ func TestMBIMBackendSIMAuthDelegates(t *testing.T) {
 }
 
 // ResolveSIMAuthAID 讓 backend.SIMAuthAIDResolver 在 MBIM 下也可用。
-// SIM 身份鑑權與 ATAKAProvider 風格的邏輯通道讀取都依賴
+// SIM 身分驗證與 ATAKAProvider 風格的邏輯通道讀取都依賴
 // 這個介面拿完整 AID,而不是直接用拒絕短 AID 的卡上 fallback 短 AID 去開通道。
 func TestMBIMBackendResolveSIMAuthAIDUSIM(t *testing.T) {
 	full := []byte{0xA0, 0x00, 0x00, 0x00, 0x87, 0x10, 0x02, 0xFF, 0xFF, 0xFF, 0xFF, 0x89, 0x07, 0x09, 0x00, 0x00}

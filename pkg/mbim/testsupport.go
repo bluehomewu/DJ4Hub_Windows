@@ -34,7 +34,7 @@ func (s *scriptedTransport) WriteMessage(b []byte) error {
 		s.toRead <- out
 		return nil
 	}
-	// MBIMEx 版本協商(CID_VERSION)是裝置初始化握手的一部分,會在 OPEN 之後發出。
+	// MBIMEx 版本協商(CID_VERSION)是裝置初始化交握的一部分,會在 OPEN 之後發出。
 	// 僅指令碼化特定 CID 的 reply 不會應答它;這裡預設以"支援 MBIMEx 2.0"回應,
 	// 使所有 fake 都能快速通過初始化,而不必每個 reply 都顯式處理該 CID。
 	if out, ok := defaultVersionAnswer(cp); ok {
@@ -148,7 +148,7 @@ func TestQMIReadResp(msgID uint16, data []byte, sw1, sw2 byte) []byte {
 }
 
 // TestQMIReadErrorResp 構造一個僅帶 QMI 標準 Result Code TLV(0x02，result=FAILURE)
-// 而不帶 card_result/read_result 的失敗響應，用於驗證呼叫方能正確解析出 qmi_error。
+// 而不帶 card_result/read_result 的失敗回應，用於驗證呼叫方能正確解析出 qmi_error。
 func TestQMIReadErrorResp(msgID uint16, qmiErrorCode uint16) []byte {
 	result := []byte{0x02, 0x04, 0x00, 0x01, 0x00, byte(qmiErrorCode), byte(qmiErrorCode >> 8)}
 	return buildQMIMessage(0x0B, 0x01, 2, msgID, result)
@@ -509,12 +509,12 @@ func TestAnswerUICC(written []byte) ([]byte, bool) {
 }
 
 // TestAnswerUICCApplicationListAndReadBinary 答覆 OPEN + APPLICATION_LIST(單個
-// USIM 應用,完整 fullAID)+ READ_BINARY(CID 9,直讀:校驗 AID 與 fullAID 完全一致,
-// 不一致返回 SW=6A82 File Not Found;一致則返回 efData)。OPEN_CHANNEL/UICC_APDU/
+// USIM 應用,完整 fullAID)+ READ_BINARY(CID 9,直接讀取:驗證 AID 與 fullAID 完全一致,
+// 不一致回傳 SW=6A82 File Not Found;一致則回傳 efData)。OPEN_CHANNEL/UICC_APDU/
 // CLOSE_CHANNEL 一律答覆 status=0x9(NoDeviceSupport),用於證明 ReadSIMEF 已不再
 // 開邏輯通道——這顆 EM7430 上開通道無論空 AID(status=0x15 InvalidParameters)還是
 // 短 AID(status=0x87430002 SelectFailed)都必然失敗,READ_BINARY/READ_RECORD 這兩個
-// 直讀 CID 此前從未在真機上驗證過(此前呼叫點全部排在一個必然失敗的 AID 解析步驟
+// 直接讀取 CID 此前從未在真機上驗證過(此前呼叫點全部排在一個必然失敗的 AID 解析步驟
 // 之後),現在改為唯一真正的讀取路徑。
 func TestAnswerUICCApplicationListAndReadBinary(written []byte, fullAID []byte, efData []byte) ([]byte, bool) {
 	h, err := decodeHeader(written)
@@ -547,10 +547,10 @@ func TestAnswerUICCApplicationListAndReadBinary(written []byte, fullAID []byte, 
 }
 
 // TestAnswerUICCEFDIRReadRecordThenReadBinary 答覆 OPEN + APPLICATION_LIST 以
-// status=0x9(模擬該 CID 未被韌體實現)+ READ_RECORD(CID 10,AID 為空、絕對路徑
-// 3F00/2F00,模組內部完成選 MF→選 EF_DIR→讀記錄:記錄 1 返回單條 TLV 包裝 fullAID
-// 的 EF_DIR 記錄,記錄 ≥2 返回 SW=6A83 表示無更多記錄)+ READ_BINARY(CID 9,校驗
-// AID 與從 EF_DIR 解析出的 fullAID 一致,返回 efData)。OPEN_CHANNEL/UICC_APDU/
+// status=0x9(模擬該 CID 未被韌體實作)+ READ_RECORD(CID 10,AID 為空、絕對路徑
+// 3F00/2F00,模組內部完成選 MF→選 EF_DIR→讀記錄:記錄 1 回傳單條 TLV 包裝 fullAID
+// 的 EF_DIR 記錄,記錄 ≥2 回傳 SW=6A83 表示無更多記錄)+ READ_BINARY(CID 9,驗證
+// AID 與從 EF_DIR 解析出的 fullAID 一致,回傳 efData)。OPEN_CHANNEL/UICC_APDU/
 // CLOSE_CHANNEL 一律答覆 status=0x9,證明整條路徑不開邏輯通道。
 func TestAnswerUICCEFDIRReadRecordThenReadBinary(written []byte, fullAID []byte, efData []byte) ([]byte, bool) {
 	h, err := decodeHeader(written)
@@ -589,9 +589,9 @@ func TestAnswerUICCEFDIRReadRecordThenReadBinary(written []byte, fullAID []byte,
 }
 
 // TestAnswerUICCNoAIDFound 答覆 OPEN + APPLICATION_LIST 以 status=0x9 + READ_RECORD
-// 記錄 1 即返回 SW=6A83(EF_DIR 空,沒有任何應用記錄)。OPEN_CHANNEL/READ_BINARY/
+// 記錄 1 即回傳 SW=6A83(EF_DIR 空,沒有任何應用記錄)。OPEN_CHANNEL/READ_BINARY/
 // UICC_APDU/CLOSE_CHANNEL 一律答覆 status=0x9,用於證明 AID 解析失敗時 ReadSIMEF
-// 直接報錯,不會回退到(必然失敗的)短 AID 開通道。
+// 直接回報錯誤,不會回退到(必然失敗的)短 AID 開通道。
 func TestAnswerUICCNoAIDFound(written []byte) ([]byte, bool) {
 	h, err := decodeHeader(written)
 	if err != nil {
@@ -618,7 +618,7 @@ func TestAnswerUICCNoAIDFound(written []byte) ([]byte, bool) {
 	}
 }
 
-// buildUICCFileResponseInfo 按 parseUICCFileResponse 期望的佈局(Version,SW1,SW2,
+// buildUICCFileResponseInfo 按 parseUICCFileResponse 期望的結構(Version,SW1,SW2,
 // Data ref(offset,size))編碼 READ_BINARY/READ_RECORD 的應答 info buffer。
 func buildUICCFileResponseInfo(sw1, sw2 byte, data []byte) []byte {
 	const fixed = 20
@@ -632,9 +632,9 @@ func buildUICCFileResponseInfo(sw1, sw2 byte, data []byte) []byte {
 	return info
 }
 
-// uiccReadBinaryFromWritten 按 encodeUICCReadBinary 的佈局(固定 44 位元組:Version,
+// uiccReadBinaryFromWritten 按 encodeUICCReadBinary 的結構(固定 44 位元組:Version,
 // AppId ref(offset,size)@4/8,FilePath ref(offset,size)@12/16,ReadOffset@20,
-// ReadSize@24)解析一條 UICC_READ_BINARY 命令的請求欄位。
+// ReadSize@24)解析一條 UICC_READ_BINARY 指令的請求欄位。
 func uiccReadBinaryFromWritten(written []byte) (aid, path []byte, offset, size uint32) {
 	if len(written) < 48+44 {
 		return nil, nil, 0, 0
@@ -647,9 +647,9 @@ func uiccReadBinaryFromWritten(written []byte) (aid, path []byte, offset, size u
 	return aid, path, offset, size
 }
 
-// uiccReadRecordFromWritten 按 encodeUICCReadRecord 的佈局(固定 40 位元組:Version,
+// uiccReadRecordFromWritten 按 encodeUICCReadRecord 的結構(固定 40 位元組:Version,
 // AppId ref(offset,size)@4/8,FilePath ref(offset,size)@12/16,RecordNumber@20)
-// 解析一條 UICC_READ_RECORD 命令的請求欄位。
+// 解析一條 UICC_READ_RECORD 指令的請求欄位。
 func uiccReadRecordFromWritten(written []byte) (aid, path []byte, record uint32) {
 	if len(written) < 48+40 {
 		return nil, nil, 0

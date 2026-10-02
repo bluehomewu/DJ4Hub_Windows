@@ -17,7 +17,7 @@ async function refreshCalls() {
   callPollBusy = true;
   try {
     const result = await api('/api/calls');
-    const states = ['通話中', '保持', '撥號中', '響鈴中', '來電', '呼叫等待'];
+    const states = ['通話中', '保留', '撥號中', '響鈴中', '來電', '呼叫等待'];
     const calls = result.calls || [];
     const ids = new Set(calls.map(c => c.id));
     for (const id of callStarted.keys()) if (!ids.has(id)) callStarted.delete(id);
@@ -83,7 +83,7 @@ $('#apn-save').onclick = async () => {
 function stopPhoneAudio(){
   audioPlayers.forEach(p=>{p.pause();p.srcObject=null;});audioPlayers=[];
   audioStreams.forEach(s=>s.getTracks().forEach(t=>t.stop()));audioStreams=[];
-  $('#audio-feedback').textContent='音訊已斷開';
+  $('#audio-feedback').textContent='音訊已中斷';
 }
 let audioPermissionRequested = false;
 let audioDiscoveryBusy = false;
@@ -122,8 +122,8 @@ async function discoverPhoneAudio(){
     }
     updateAudioAvailability();
     const hasModule = !$('#audio-modem-in').disabled && !$('#audio-modem-out').disabled;
-    $('#audio-feedback').textContent = !hasModule ? '模組音訊尚未就緒，撥號或連線音訊時會自動初始化。無需選擇電腦自帶音效卡代替模組音效卡。' : '已識別模組音效卡，撥號時自動連線電腦音訊。建議使用耳機避免回聲。';
-  }catch(e){$('#audio-feedback').textContent=e.name === 'NotAllowedError' ? '麥克風權限未獲允許。可在瀏覽器站點設定中允許後，點選“查詢音訊裝置”重試。' : `無法讀取音訊裝置：${e.message}`;}
+    $('#audio-feedback').textContent = !hasModule ? '模組音訊尚未就緒，撥號或連線音訊時會自動初始化。無需選擇電腦內建音效卡代替模組音效卡。' : '已識別模組音效卡，撥號時自動連線電腦音訊。建議使用耳機避免回音。';
+  }catch(e){$('#audio-feedback').textContent=e.name === 'NotAllowedError' ? '麥克風權限未獲允許。可在瀏覽器網站設定中允許後，點選「查詢音訊裝置」重試。' : `無法讀取音訊裝置：${e.message}`;}
   finally { audioDiscoveryBusy = false; $('#audio-discover').disabled = false; }
 }
 $('#audio-discover').onclick=discoverPhoneAudio;
@@ -200,16 +200,16 @@ async function prepareAutomaticAudio() {
     catch (_) { stopPhoneAudio(); clearModuleAudioToken(); }
   }
   const status = await api('/api/calls/audio');
-  if (!status.configured) throw new Error(status.summary || '本機音訊依賴未配置');
+  if (!status.configured) throw new Error(status.summary || '本機音訊依賴未設定');
   if (status.active) throw new Error('音訊由另一個頁面使用，請在原頁面停止後重試');
   const current = await api('/api/calls');
-  if ((current.calls || []).length) throw new Error('目前有通話或來電，不能重連 USB 初始化音訊；請在無通話時進入電話頁完成自動初始化');
+  if ((current.calls || []).length) throw new Error('目前有通話或來電，不能重新連線 USB 初始化音訊；請在無通話時進入電話頁完成自動初始化');
   if (localStorage.getItem('dj4hub-auto-audio-consent') !== '2') {
-    if (!await showModal({title:'啟用自動通話音訊',message:'首次使用新模組會備份配置、授權並開啟 ADB，必要時重啟；該授權會保留，不會自動撤銷。隨後臨時載入已校驗的驅動，可能短暫中斷上網。不會刷韌體。掛斷關閉麥克風並保留待機。',confirmLabel:'允許初始化和自動音訊'})) throw new Error('已取消自動音訊');
+    if (!await showModal({title:'啟用自動通話音訊',message:'首次使用新模組會備份設定、授權並開啟 ADB，必要時重啟；該授權會保留，不會自動撤銷。隨後臨時載入已驗證的驅動，可能短暫中斷上網。不會刷韌體。掛斷關閉麥克風並保留待機。',confirmLabel:'允許初始化和自動音訊'})) throw new Error('已取消自動音訊');
     localStorage.setItem('dj4hub-auto-audio-consent', '2');
   }
   moduleAudioBusy = true;
-  $('#audio-module-status').textContent = '正在校驗裝置、載入音訊並等待 USB 重新連線…';
+  $('#audio-module-status').textContent = '正在驗證裝置、載入音訊並等待 USB 重新連線…';
   try {
     const result = await moduleAudioRequest('prepare', '');
     moduleAudioToken = result.token;
@@ -230,7 +230,7 @@ setInterval(async () => {
   }
   moduleAudioLeaseBusy = true;
   try { await moduleAudioRequest('lease'); }
-  catch(e) { stopPhoneAudio(); clearModuleAudioToken(); $('#audio-module-status').textContent = e.message + '。音訊已斷開，下次撥號會重新初始化。'; }
+  catch(e) { stopPhoneAudio(); clearModuleAudioToken(); $('#audio-module-status').textContent = e.message + '。音訊已中斷，下次撥號會重新初始化。'; }
   finally { moduleAudioLeaseBusy = false; }
 }, 10000);
 document.querySelector('[data-view="calls"]').addEventListener('click', refreshModuleAudio);
@@ -248,7 +248,7 @@ window.addEventListener('pagehide', () => {
   }
 });
 navigator.mediaDevices?.addEventListener('devicechange', () => {
-  if (audioStreams.length) { stopPhoneAudio(); $('#audio-feedback').textContent = '音訊裝置發生變化，已安全斷開，請重新查詢並連線。'; }
+  if (audioStreams.length) { stopPhoneAudio(); $('#audio-feedback').textContent = '音訊裝置發生變化，已安全中斷，請重新查詢並連線。'; }
 });
 // Keep native values and change handlers as the source of truth.
 document.querySelectorAll('.phone-audio-fields select, .apn-settings select').forEach(select => {

@@ -8,11 +8,11 @@ import (
 // UICCApplication 是 MS UICC Application List 裡的一個應用項。
 type UICCApplication struct {
 	Type uint32 // MbimUiccApplicationType(2=USIM,3=ISIM,...)
-	AID  []byte // 完整應用標識(ApplicationId)
+	AID  []byte // 完整應用識別碼(ApplicationId)
 }
 
-// QueryUICCApplicationList 透過 MS UICC Low Level Access 的 APPLICATION_LIST(CID 7)直讀
-// 卡上應用列表(含完整 AID),無需手動開邏輯通道/選 EF_DIR。
+// QueryUICCApplicationList 透過 MS UICC Low Level Access 的 APPLICATION_LIST(CID 7)直接讀取
+// 卡上應用清單(含完整 AID),無需手動開邏輯通道/選 EF_DIR。
 func QueryUICCApplicationList(ctx context.Context, d *Device) ([]UICCApplication, error) {
 	resp, err := d.Command(ctx, UUIDMSUICCLowLevelAccess, CIDUICCApplicationList, CommandTypeQuery, nil)
 	if err != nil {
@@ -24,14 +24,14 @@ func QueryUICCApplicationList(ctx context.Context, d *Device) ([]UICCApplication
 	return parseUICCApplicationList(resp.InfoBuffer)
 }
 
-// UICCFileResult 是直讀檔案(ReadBinary/ReadRecord)的結果:卡狀態字 + 資料。
+// UICCFileResult 是直接讀取檔案(ReadBinary/ReadRecord)的結果:卡狀態字 + 資料。
 type UICCFileResult struct {
 	SW1  uint32
 	SW2  uint32
 	Data []byte
 }
 
-// encodeUICCReadBinary 按 libmbim Read Binary 的 query 佈局編碼(固定 44 位元組 + 變長區)。
+// encodeUICCReadBinary 按 libmbim Read Binary 的 query 結構編碼(固定 44 位元組 + 變長區)。
 // 欄位:Version, AppId(ref), FilePath(ref), ReadOffset, ReadSize, LocalPin(string,空), Data(ref,空)。
 func encodeUICCReadBinary(aid, filePath []byte, readOffset, readSize uint32) []byte {
 	const fixed = 44
@@ -53,7 +53,7 @@ func encodeUICCReadBinary(aid, filePath []byte, readOffset, readSize uint32) []b
 	return info
 }
 
-// UICCReadBinary 透過 READ_BINARY(CID 9)直讀透明 EF:給出完整 AID 與檔案路徑,
+// UICCReadBinary 透過 READ_BINARY(CID 9)直接讀取透明 EF:給出完整 AID 與檔案路徑,
 // 模組內部完成選應用/選檔案,無需手動開邏輯通道。
 func UICCReadBinary(ctx context.Context, d *Device, aid, filePath []byte, readOffset, readSize uint32) (UICCFileResult, error) {
 	resp, err := d.Command(ctx, UUIDMSUICCLowLevelAccess, CIDUICCReadBinary, CommandTypeQuery, encodeUICCReadBinary(aid, filePath, readOffset, readSize))
@@ -66,7 +66,7 @@ func UICCReadBinary(ctx context.Context, d *Device, aid, filePath []byte, readOf
 	return parseUICCFileResponse(resp.InfoBuffer)
 }
 
-// encodeUICCReadRecord 按 libmbim Read Record 的 query 佈局編碼(固定 40 位元組 + 變長區)。
+// encodeUICCReadRecord 按 libmbim Read Record 的 query 結構編碼(固定 40 位元組 + 變長區)。
 // 欄位:Version, AppId(ref), FilePath(ref), RecordNumber, LocalPin(string,空), Data(ref,空)。
 func encodeUICCReadRecord(aid, filePath []byte, recordNumber uint32) []byte {
 	const fixed = 40
@@ -87,7 +87,7 @@ func encodeUICCReadRecord(aid, filePath []byte, recordNumber uint32) []byte {
 	return info
 }
 
-// UICCReadRecord 透過 READ_RECORD(CID 10)直讀線性記錄 EF(如 EF_MSISDN)。
+// UICCReadRecord 透過 READ_RECORD(CID 10)直接讀取線性記錄 EF(如 EF_MSISDN)。
 func UICCReadRecord(ctx context.Context, d *Device, aid, filePath []byte, recordNumber uint32) (UICCFileResult, error) {
 	resp, err := d.Command(ctx, UUIDMSUICCLowLevelAccess, CIDUICCReadRecord, CommandTypeQuery, encodeUICCReadRecord(aid, filePath, recordNumber))
 	if err != nil {

@@ -8,12 +8,12 @@ import (
 	"go.bug.st/serial"
 )
 
-// SerialAT 是一個輕量級的串列埠包裝器，用於在不例項化整個 Manager 的情況下執行簡單的 AT 命令
+// SerialAT 是一個輕量級的串列埠包裝器，用於在不實例化整個 Manager 的情況下執行簡單的 AT 指令
 type SerialAT struct {
 	port serial.Port
 }
 
-// NewSerialAT 開啟串列埠並返回 SerialAT 例項
+// NewSerialAT 開啟串列埠並回傳 SerialAT 實例
 func NewSerialAT(portName string, baudRate int, dataBits int, stopBits int, parity string) (*SerialAT, error) {
 	mode := &serial.Mode{
 		BaudRate: baudRate,
@@ -45,7 +45,7 @@ func NewSerialAT(portName string, baudRate int, dataBits int, stopBits int, pari
 		return nil, err
 	}
 
-	// 設定預設超時
+	// 設定預設逾時
 	if err := port.SetReadTimeout(time.Second); err != nil {
 		port.Close()
 		return nil, err
@@ -59,13 +59,13 @@ func (s *SerialAT) Close() error {
 	return s.port.Close()
 }
 
-// Execute 傳送 AT 命令並等待響應
+// Execute 傳送 AT 指令並等待回應
 func (s *SerialAT) Execute(cmd string, timeout time.Duration) (string, error) {
 	if timeout <= 0 {
 		timeout = 2 * time.Second
 	}
 
-	// 臨時調整超時
+	// 臨時調整逾時
 	if err := s.port.SetReadTimeout(100 * time.Millisecond); err != nil {
 		return "", err
 	}

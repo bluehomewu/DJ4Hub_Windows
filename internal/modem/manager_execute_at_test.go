@@ -168,7 +168,7 @@ func TestManagerClassifiesFatalSerialRuntimeErrors(t *testing.T) {
 		{name: "no such device", err: errors.New("open /dev/ttyUSB2: no such device"), want: true},
 		{name: "bad file descriptor", err: errors.New("bad file descriptor"), want: true},
 		{name: "timeout", err: errors.New("timeout"), want: false},
-		{name: "command error", err: errors.New("裝置返回錯誤: ERROR"), want: false},
+		{name: "command error", err: errors.New("裝置回傳錯誤: ERROR"), want: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -284,8 +284,8 @@ func TestHandleCommandTriggersWatchdogAfterConsecutiveNormalTimeouts(t *testing.
 			errChan:  make(chan error, 1),
 		}
 		m.handleCommand(req)
-		if err := <-req.errChan; err == nil || err.Error() != "命令執行超時" {
-			t.Fatalf("timeout %d error=%v want 命令執行超時", i, err)
+		if err := <-req.errChan; err == nil || err.Error() != "指令執行逾時" {
+			t.Fatalf("timeout %d error=%v want 指令執行逾時", i, err)
 		}
 		if i < atTimeoutWatchdogThreshold {
 			select {
@@ -332,8 +332,8 @@ func TestHandleCommandIgnoresHighPriorityTimeoutsForWatchdog(t *testing.T) {
 			highPriority: true,
 		}
 		m.handleCommand(req)
-		if err := <-req.errChan; err == nil || err.Error() != "命令執行超時" {
-			t.Fatalf("timeout %d error=%v want 命令執行超時", i, err)
+		if err := <-req.errChan; err == nil || err.Error() != "指令執行逾時" {
+			t.Fatalf("timeout %d error=%v want 指令執行逾時", i, err)
 		}
 	}
 
@@ -380,8 +380,8 @@ func TestHandleCommandResetsTimeoutWatchdogOnDeviceError(t *testing.T) {
 		m.rxChan <- rxMsg{Data: "ERROR"}
 	}()
 	m.handleCommand(req)
-	if err := <-req.errChan; err == nil || !strings.Contains(err.Error(), "裝置返回錯誤") {
-		t.Fatalf("device error=%v want 裝置返回錯誤", err)
+	if err := <-req.errChan; err == nil || !strings.Contains(err.Error(), "裝置回傳錯誤") {
+		t.Fatalf("device error=%v want 裝置回傳錯誤", err)
 	}
 
 	for i := 0; i < atTimeoutWatchdogThreshold-1; i++ {

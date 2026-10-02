@@ -30,14 +30,14 @@
         <div id="sidebar-device" class="device-presence is-offline">
           <span class="presence-light" aria-hidden="true"></span>
           <div>
-            <small>本地裝置</small>
+            <small>本機裝置</small>
             <strong id="sidebar-device-name">等待裝置</strong>
           </div>
           <span id="sidebar-device-state" class="presence-state">未連線</span>
         </div>
         <div id="sidebar-connection" class="sidebar-connection" hidden>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17.5h14M7 14l3-3 2.5 2 4.5-5"/><path d="M14 8h3v3"/></svg>
-          <div><small>聯網連線</small><strong id="sidebar-connection-detail">--</strong></div>
+          <div><small>行動網路連線</small><strong id="sidebar-connection-detail">--</strong></div>
           <span id="sidebar-connection-state">已連線</span>
         </div>
       </div>
@@ -63,7 +63,7 @@
         </button>
         <button class="tab" data-view="at" type="button">
           <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><path d="m7.5 9 2.5 2.5L7.5 14M12.5 14h4"/></svg>
-          <span><strong>AT 除錯</strong><small>高階診斷</small></span>
+          <span><strong>AT 除錯</strong><small>進階診斷</small></span>
         </button>
       </nav>
 
@@ -113,9 +113,9 @@
           <small>每 1 秒更新流量 · 每 10 秒同步裝置</small>
         </div>
         <div class="status-grid">
-          <div class="status-primary"><span>電信業者</span><strong id="operator">--</strong><small>蜂窩網路</small></div>
+          <div class="status-primary"><span>電信業者</span><strong id="operator">--</strong><small>行動網路</small></div>
           <div class="status-primary"><span>訊號</span><strong id="signal">--</strong><small>接收強度</small></div>
-          <div class="status-primary"><span>網路</span><strong id="network-mode">--</strong><small>註冊制式</small></div>
+          <div class="status-primary"><span>網路</span><strong id="network-mode">--</strong><small>註冊網路類型</small></div>
           <div class="status-primary">
             <span>SIM</span><strong id="sim">--</strong><small id="sim-phone-empty">卡片狀態</small>
             <div id="sim-phone-actions" class="sim-phone-actions" hidden>
@@ -128,24 +128,24 @@
           <div><span>即時上傳</span><strong id="traffic-tx-rate">--</strong></div>
           <div><span>本次下載</span><strong id="traffic-session-rx">--</strong></div>
           <div><span>本次上傳</span><strong id="traffic-session-tx">--</strong></div>
-          <div><span>會話總流量</span><strong id="traffic-session-total">--</strong></div>
+          <div><span>本次總流量</span><strong id="traffic-session-total">--</strong></div>
         </div>
         <section id="hardware-details" class="hardware-details" hidden></section>
         <p id="workmode-status" class="inline-status attention" hidden></p>
         <section class="activity-section" aria-labelledby="activity-title">
           <div class="section-heading activity-heading">
-            <div><h2 id="activity-title">聯網活動</h2><p>僅展示連線後設資料，不讀取通訊內容。</p></div>
+            <div><h2 id="activity-title">連網活動</h2><p>僅顯示連線後設資料，不讀取通訊內容。</p></div>
             <span id="activity-updated" class="activity-updated">等待取樣</span>
           </div>
           <div class="activity-panel">
-            <div class="activity-route" aria-label="目前聯網鏈路">
-              <span><small>物理出口</small><strong id="activity-physical">--</strong></span>
+            <div class="activity-route" aria-label="目前連網路徑">
+              <span><small>實體網卡</small><strong id="activity-physical">--</strong></span>
               <i aria-hidden="true">→</i>
               <span><small>網路隧道</small><strong id="activity-tunnel">--</strong></span>
               <i aria-hidden="true">→</i>
               <span><small>應用連線</small><strong id="activity-count">--</strong></span>
             </div>
-            <div id="activity-list" class="activity-list empty">尚未讀取聯網活動</div>
+            <div id="activity-list" class="activity-list empty">尚未讀取連網活動</div>
             <p class="activity-note">僅列出經由模組網卡的 TCP 連線及其應用；Windows 不提供單條連線流量，HTTPS 頁面與內容不可見。</p>
           </div>
         </section>
@@ -157,7 +157,7 @@
           <div class="view-meta"><span>自動輪詢</span><strong>5s</strong></div>
         </div>
         <div class="surface-panel compose-panel">
-          <div class="panel-heading"><div><span class="panel-icon" aria-hidden="true">＋</span><strong>新訊息</strong></div><small>支援長簡訊自動分片</small></div>
+          <div class="panel-heading"><div><span class="panel-icon" aria-hidden="true">＋</span><strong>新訊息</strong></div><small>支援長簡訊自動分段</small></div>
           <form id="send-form" class="message-composer">
             <label class="recipient-field" for="phone">
               <span>收件人</span>
@@ -168,7 +168,7 @@
               <textarea id="message" placeholder="輸入簡訊內容…" maxlength="1000" required></textarea>
             </label>
             <div class="composer-footer">
-              <span id="message-counter" class="message-counter" aria-live="polite">0 字 · 自動分片</span>
+              <span id="message-counter" class="message-counter" aria-live="polite">0 字 · 自動分段</span>
               <button class="composer-send" type="submit" aria-label="傳送簡訊">
                 <span class="composer-send-label">傳送</span>
                 <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 14V5m0 0L6.5 8.5M10 5l3.5 3.5"/></svg>
@@ -219,7 +219,7 @@
           <div class="profile-panel-content">
             <div class="profile-tools-grid">
               <details class="fold-panel">
-                <summary><span><span class="panel-icon" aria-hidden="true">i</span><strong>卡片概覽</strong></span><small>卡型別、韌體、EID</small></summary>
+                <summary><span><span class="panel-icon" aria-hidden="true">i</span><strong>卡片概覽</strong></span><small>卡片類型、韌體、EID</small></summary>
                 <div id="esim-chip" class="diagnostic-grid" hidden></div>
               </details>
               <details id="esim-runtime-section" class="fold-panel" hidden>
@@ -227,7 +227,7 @@
                 <div id="esim-runtime" class="diagnostic-grid"></div>
               </details>
               <details id="esim-phonebook-section" class="fold-panel" hidden>
-                <summary><span><span class="panel-icon" aria-hidden="true">⌁</span><strong>通訊錄相容性</strong></span><small>只讀檢測</small></summary>
+                <summary><span><span class="panel-icon" aria-hidden="true">⌁</span><strong>通訊錄相容性</strong></span><small>唯讀檢測</small></summary>
                 <div class="phonebook-probe">
                   <p id="esim-phonebook-status" class="inline-status">檢測目前 Profile 是否支援卡內通訊錄；不會寫入聯絡人。</p>
                   <button id="probe-esim-phonebook" class="secondary compact" type="button">檢測目前卡片</button>
@@ -242,14 +242,14 @@
 
       <section id="network" class="view">
         <div class="view-intro">
-          <div><span class="section-kicker">CONNECTIVITY</span><h2>網路</h2><p>檢查蜂窩註冊、模組網卡、Windows 出口與公網連通性。</p></div>
+          <div><span class="section-kicker">CONNECTIVITY</span><h2>網路</h2><p>檢查行動網路註冊、模組網卡、Windows 出口與網際網路連通性。</p></div>
           <div class="view-intro-actions">
             <p id="network-status" class="network-status">尚未讀取網路狀態</p>
             <button id="refresh-network" class="secondary" type="button">重新整理診斷</button>
           </div>
         </div>
         <div id="network-grid" class="network-summary"></div>
-        <div class="settings-section apn-settings"><h2>APN 設定</h2><p>選擇電信業者預設或輸入自定義 APN。僅修改主資料連線，保留 IMS 配置。</p><div class="control-panel"><select id="apn-preset" aria-label="電信業者預設"><option value="">自定義 / 保留現有設定</option><option value="web">One NZ · web</option></select><input id="apn-value" placeholder="APN" aria-label="APN"><select id="apn-pdn" aria-label="IP 型別"><option>IPV4V6</option><option>IP</option><option>IPV6</option></select><button id="apn-save" type="button">儲存 APN</button><button id="apn-read" class="secondary" type="button">讀取目前配置</button></div><p id="apn-feedback" role="status"></p></div>
+        <div class="settings-section apn-settings"><h2>APN 設定</h2><p>選擇電信業者預設或輸入自訂 APN。僅修改主資料連線，保留 IMS 設定。</p><div class="control-panel"><select id="apn-preset" aria-label="電信業者預設"><option value="">自訂 / 保留現有設定</option><option value="web">One NZ · web</option></select><input id="apn-value" placeholder="APN" aria-label="APN"><select id="apn-pdn" aria-label="IP 類型"><option>IPV4V6</option><option>IP</option><option>IPV6</option></select><button id="apn-save" type="button">儲存 APN</button><button id="apn-read" class="secondary" type="button">讀取目前設定</button></div><p id="apn-feedback" role="status"></p></div>
         <div id="network-recovery" class="network-recovery" hidden>
           <div>
             <strong id="network-recovery-title">Windows 網卡需要處理</strong>
@@ -259,9 +259,9 @@
         </div>
 
         <div class="settings-section">
-          <div class="section-heading"><div><h2>連通性檢測</h2><p>強制繫結 USB 網卡，驗證真實公網與代理鏈路。</p></div></div>
+          <div class="section-heading"><div><h2>連通性檢測</h2><p>強制繫結 USB 網卡，驗證真實網際網路與代理路徑。</p></div></div>
           <div class="control-panel">
-            <button id="check-4g-route" class="secondary" type="button">檢測公網連線</button>
+            <button id="check-4g-route" class="secondary" type="button">檢測網際網路連線</button>
             <button id="check-proxy-route" class="secondary" type="button">檢測代理</button>
           </div>
           <div id="network-checks" class="list empty compact-list">尚未檢測</div>
@@ -273,8 +273,8 @@
             <div class="usbnet-selector" role="group" aria-label="選擇 USB 網卡模式">
               <button id="usbnet-mode-0" class="usbnet-mode-option" type="button" aria-pressed="false"><span class="usbnet-index">0</span><span class="usbnet-copy"><strong>簡訊 / 行動寬頻</strong><small>NDIS/MBIM 驅動</small></span><span class="usbnet-check" aria-hidden="true">✓</span></button>
               <button id="usbnet-mode-1" class="usbnet-mode-option" type="button" aria-pressed="false"><span class="usbnet-index">1</span><span class="usbnet-copy"><strong>4G 網卡</strong><small>ECM 驅動</small></span><span class="usbnet-check" aria-hidden="true">✓</span></button>
-              <button id="usbnet-mode-2" class="usbnet-mode-option" type="button" aria-pressed="false"><span class="usbnet-index">2</span><span class="usbnet-copy"><strong>實驗模式</strong><small>高階配置</small></span><span class="usbnet-check" aria-hidden="true">✓</span></button>
-              <button id="usbnet-mode-3" class="usbnet-mode-option" type="button" aria-pressed="false"><span class="usbnet-index">3</span><span class="usbnet-copy"><strong>實驗模式</strong><small>高階配置</small></span><span class="usbnet-check" aria-hidden="true">✓</span></button>
+              <button id="usbnet-mode-2" class="usbnet-mode-option" type="button" aria-pressed="false"><span class="usbnet-index">2</span><span class="usbnet-copy"><strong>實驗模式</strong><small>進階設定</small></span><span class="usbnet-check" aria-hidden="true">✓</span></button>
+              <button id="usbnet-mode-3" class="usbnet-mode-option" type="button" aria-pressed="false"><span class="usbnet-index">3</span><span class="usbnet-copy"><strong>實驗模式</strong><small>進階設定</small></span><span class="usbnet-check" aria-hidden="true">✓</span></button>
             </div>
             <button id="reboot-module" class="reboot-action danger" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 7v4h-4M5 17v-4h4"/><path d="M7 8a6.5 6.5 0 0 1 10.5-1L19 10M5 14l1.5 2A6.5 6.5 0 0 0 17 16"/></svg><span><strong>重啟模組</strong><small>重新列舉 USB</small></span></button>
           </div>
@@ -289,7 +289,7 @@
       <section id="at" class="view">
         <div class="view-intro">
           <div><span class="section-kicker">ADVANCED</span><h2>AT 除錯</h2><p>直接向模組傳送指令，適合診斷與開發。</p></div>
-          <span class="risk-badge">高階功能</span>
+          <span class="risk-badge">進階功能</span>
         </div>
         <div class="terminal-panel">
           <form id="at-form" class="terminal-toolbar">
@@ -297,14 +297,14 @@
             <input id="at-command" type="text" placeholder="輸入 AT 指令，例如 AT+CSQ" spellcheck="false" aria-label="AT 指令" required>
             <button type="submit">執行</button>
           </form>
-          <pre id="at-output">等待命令</pre>
+          <pre id="at-output">等待指令</pre>
         </div>
       </section>
       <section id="calls" class="view">
         <div class="view-intro"><div><span class="section-kicker">PHONE</span><h2>電話</h2><p>透過 SIM 撥打電話，使用數字鍵盤操作語音選單。</p></div></div>
         <div class="settings-section"><p id="phone-status" role="status">尚未讀取通話狀態</p><div class="control-panel"><input id="phone-number" type="tel" placeholder="電話號碼" aria-label="電話號碼"><button id="phone-dial">撥打</button><button id="phone-answer" class="secondary">接聽</button><button id="phone-hangup" class="danger">掛斷</button></div><div id="phone-keypad" class="phone-keypad"></div><p id="phone-feedback" role="status"></p></div>
         <div class="settings-section audio-settings">
-          <div class="section-heading"><div><h2>通話音訊</h2><p>選擇電腦與模組的音訊裝置，建議佩戴耳機。</p></div><button id="audio-discover" class="secondary" type="button">查詢音訊裝置</button></div>
+          <div class="section-heading"><div><h2>通話音訊</h2><p>選擇電腦與模組的音訊裝置，建議配戴耳機。</p></div><button id="audio-discover" class="secondary" type="button">查詢音訊裝置</button></div>
           <div class="audio-auto-row">
             <label class="audio-auto-setting" for="phone-use-audio">
               <span class="audio-auto-copy"><span class="audio-auto-title">自動通話音訊</span><span id="audio-auto-description" class="audio-auto-description">撥號時自動連線，掛斷後關閉麥克風並保留模組待機</span></span>
@@ -315,14 +315,14 @@
           <p id="audio-module-status" role="status">正在檢查本機實驗音訊支援…</p>
           <div class="audio-device-groups">
             <div class="audio-device-group"><div class="audio-group-heading"><strong>電腦裝置</strong><span>你說話和收聽的裝置</span></div>
-              <div class="phone-audio-fields"><label>麥克風<select id="audio-mic" aria-label="電腦麥克風"><option value="">請先查詢裝置</option></select></label><label>揚聲器<select id="audio-speaker" aria-label="電腦揚聲器"><option value="">請先查詢裝置</option></select></label></div>
+              <div class="phone-audio-fields"><label>麥克風<select id="audio-mic" aria-label="電腦麥克風"><option value="">請先查詢裝置</option></select></label><label>喇叭<select id="audio-speaker" aria-label="電腦喇叭"><option value="">請先查詢裝置</option></select></label></div>
             </div>
             <div class="audio-device-group"><div class="audio-group-heading"><strong>模組裝置</strong><span>需要模組提供 USB 音效卡</span></div>
               <div class="phone-audio-fields"><label>音訊輸入<select id="audio-modem-in" aria-label="模組音訊輸入"><option value="">請先查詢裝置</option></select></label><label>音訊輸出<select id="audio-modem-out" aria-label="模組音訊輸出"><option value="">請先查詢裝置</option></select></label></div>
             </div>
           </div>
-          <div class="audio-toolbar"><div class="control-panel"><button id="audio-connect" type="button">連線音訊</button><button id="audio-stop" class="secondary" type="button">斷開音訊</button><button id="audio-mute" class="secondary" type="button" aria-pressed="false">麥克風靜音</button></div><label class="audio-volume">收聽音量 <input id="audio-volume" type="range" min="0" max="1" step="0.05" value="0.7"></label></div>
-          <p id="audio-feedback" role="status">尚未連線音訊。若列表中沒有模組音效卡，需要先驗證韌體的 USB 音訊支援。</p>
+          <div class="audio-toolbar"><div class="control-panel"><button id="audio-connect" type="button">連線音訊</button><button id="audio-stop" class="secondary" type="button">中斷音訊</button><button id="audio-mute" class="secondary" type="button" aria-pressed="false">麥克風靜音</button></div><label class="audio-volume">收聽音量 <input id="audio-volume" type="range" min="0" max="1" step="0.05" value="0.7"></label></div>
+          <p id="audio-feedback" role="status">尚未連線音訊。若清單中沒有模組音效卡，需要先驗證韌體的 USB 音訊支援。</p>
           <button type="button" class="secondary" data-history="call">通話記錄</button>
           <button type="button" class="secondary" data-enable-alerts>開啟來電／簡訊提示音</button>
         </div>

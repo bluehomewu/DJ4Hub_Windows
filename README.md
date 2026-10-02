@@ -4,7 +4,7 @@
 
 # DJ 4G Hub for Windows
 
-[DJ 4G Hub](https://github.com/WongLoki/DJ4Hub) 的 Windows 移植版：在 Windows 上透過 **DJI 4G 模組**（USB `2ca3:4006`，Quectel QDC507）原有的 USB 介面，提供裝置狀態、簡訊、SIM 通話控制、eSIM Profile、行動網路、聯網活動與 AT 除錯等功能，不修改模組韌體。
+[DJ 4G Hub](https://github.com/WongLoki/DJ4Hub) 的 Windows 移植版：在 Windows 上透過 **DJI 4G 模組**（USB `2ca3:4006`，Quectel QDC507）原有的 USB 介面，提供裝置狀態、簡訊、SIM 通話控制、eSIM Profile、行動網路、連網活動與 AT 除錯等功能，不修改模組韌體。
 
 服務與網頁都在本機執行，預設只監聽 `127.0.0.1:7575`，沒有遠端遙測。
 
@@ -18,8 +18,8 @@
 | AT 通道 | libusb 直接佔用 USB bulk 介面 | Quectel 驅動提供的「AT Port」COM 埠 |
 | 行動上網 | 切到 `usbnet=1`（ECM）才有網卡 | `usbnet=0` 搭配 Quectel NDIS／MBIM 驅動即為 Windows「行動電話」介面，可同時收發簡訊與上網 |
 | 網卡處理 | `networksetup` 啟用服務、重新 DHCP | 以 netsh 連線行動寬頻；網卡被停用時經 UAC 啟用 |
-| 聯網活動 | `nettop`，含每條連線流量 | TCP 連線表，列出應用與目標；Windows 不提供單條連線流量 |
-| 啟動器 | shell 指令碼 | `dj4ghub.exe` 內建子命令，雙擊即可啟動 |
+| 連網活動 | `nettop`，含每條連線流量 | TCP 連線表，列出應用與目標；Windows 不提供單條連線流量 |
+| 啟動器 | shell 指令碼 | `dj4ghub.exe` 內建子指令，雙擊即可啟動 |
 | 原生 App | SwiftUI App | 不提供，改用網頁 |
 | 實驗通話音訊 | ADB 載入驅動，比對 adb 的 USB 位置 | 同一套流程；Windows adb 不提供 USB 位置，改以 PnP 位置核對唯一模組並鎖定 adb 序號 |
 
@@ -39,7 +39,7 @@
 從 Release 或自行建置取得 `DJ-4G-Hub-<版本>-windows-amd64.zip`，解壓後雙擊 `dj4ghub.exe`，瀏覽器會開啟 `http://127.0.0.1:7575`。
 
 ```text
-dj4ghub start          背景啟動並開啟管理網頁（雙擊 exe 等同此命令）
+dj4ghub start          背景啟動並開啟管理網頁（雙擊 exe 等同此指令）
 dj4ghub start --demo   不接硬體的示範模式
 dj4ghub stop           停止背景服務
 dj4ghub status         檢視執行狀態
@@ -106,7 +106,7 @@ pwsh -File scripts/build-windows.ps1 -Arch arm64
 go test -tags hardware -run Hardware -v ./cmd/dj4ghub
 ```
 
-程式結構與平臺層說明見 [SOURCE_STRUCTURE.md](SOURCE_STRUCTURE.md)。
+程式結構與平台層說明見 [SOURCE_STRUCTURE.md](SOURCE_STRUCTURE.md)。
 
 ## 目前限制
 

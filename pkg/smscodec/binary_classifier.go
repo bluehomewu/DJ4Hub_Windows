@@ -107,7 +107,7 @@ func classifyBinarySMS(t *tpdu.TPDU, msg []byte) binarySMSClassification {
 	// OMA CP：優先由埠識別，其次由 content-type 識別。
 	if (hasDestPort && destPort == wapPushPort16) || isLikelyOMAContentType(c.ContentType) {
 		c.Kind = binaryKindOmaCP
-		c.Label = "OMA CP 電信業者配置簡訊"
+		c.Label = "OMA CP 電信業者設定簡訊"
 		if cfg, err := DecodeOmaCPFromTPDU(c.Payload); err == nil {
 			summary := strings.Split(strings.TrimSpace(FormatOmaCPSummary(cfg)), "\n")
 			c.SummaryLines = append(c.SummaryLines, summary...)
@@ -190,7 +190,7 @@ type wspPush struct {
 }
 
 func parseWSPPush(data []byte) wspPush {
-	// 簡化實現：按最常見 Push 結構解析
+	// 簡化實作：按最常見 Push 結構解析
 	// [TID][PDU Type][HeadersLen][Headers...][Body...]
 	if len(data) < 4 {
 		return wspPush{}

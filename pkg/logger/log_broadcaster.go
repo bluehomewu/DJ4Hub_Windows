@@ -17,14 +17,14 @@ type LogEntry struct {
 	Fields  string `json:"fields,omitempty"`
 }
 
-// Broadcaster 日誌廣播器，將日誌條目推送給所有訂閱的客戶端
+// Broadcaster 日誌廣播器，將日誌條目推送給所有訂閱的用戶端
 type Broadcaster struct {
 	clients map[chan LogEntry]struct{}
 	mu      sync.RWMutex
-	maxSize int // 每個客戶端緩衝區大小
+	maxSize int // 每個用戶端緩衝區大小
 }
 
-// 全域性廣播器例項
+// 全域性廣播器實例
 var GlobalBroadcaster = NewBroadcaster(100)
 
 // NewBroadcaster 建立新的廣播器
@@ -35,7 +35,7 @@ func NewBroadcaster(bufferSize int) *Broadcaster {
 	}
 }
 
-// Subscribe 訂閱日誌流，返回接收日誌的通道
+// Subscribe 訂閱日誌流，回傳接收日誌的通道
 func (b *Broadcaster) Subscribe() chan LogEntry {
 	ch := make(chan LogEntry, b.maxSize)
 	b.mu.Lock()
@@ -66,14 +66,14 @@ func (b *Broadcaster) Broadcast(entry LogEntry) {
 	}
 }
 
-// ClientCount 返回目前訂閱客戶端數量
+// ClientCount 回傳目前訂閱用戶端數量
 func (b *Broadcaster) ClientCount() int {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
 	return len(b.clients)
 }
 
-// SSECore 自定義 zapcore.Core，將日誌傳送到 Broadcaster
+// SSECore 自訂 zapcore.Core，將日誌傳送到 Broadcaster
 type SSECore struct {
 	zapcore.LevelEnabler
 	broadcaster *Broadcaster
@@ -108,7 +108,7 @@ func (c *SSECore) Check(entry zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.
 }
 
 func (c *SSECore) Write(entry zapcore.Entry, fields []zapcore.Field) error {
-	// 如果沒有客戶端訂閱，直接返回
+	// 如果沒有用戶端訂閱，直接回傳
 	if c.broadcaster.ClientCount() == 0 {
 		return nil
 	}

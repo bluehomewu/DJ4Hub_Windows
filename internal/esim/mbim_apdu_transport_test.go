@@ -60,7 +60,7 @@ func TestMBIMAPDUTransportAcquiresExclusiveLease(t *testing.T) {
 		t.Fatalf("OpenEUICCLogicalChannel: %v", err)
 	}
 	if !tr.coord.hasSession(ch) {
-		t.Fatal("開啟通道後應登記會話")
+		t.Fatal("開啟通道後應登記工作階段")
 	}
 	if _, err := tr.TransmitEUICCAPDU(context.Background(), 1, ch, []byte{0x00, 0xA4}); err != nil {
 		t.Fatalf("TransmitEUICCAPDU: %v", err)
@@ -69,7 +69,7 @@ func TestMBIMAPDUTransportAcquiresExclusiveLease(t *testing.T) {
 		t.Fatalf("CloseEUICCLogicalChannel: %v", err)
 	}
 	if tr.coord.hasSession(ch) {
-		t.Fatal("關閉通道後會話應被移除")
+		t.Fatal("關閉通道後工作階段應被移除")
 	}
 }
 

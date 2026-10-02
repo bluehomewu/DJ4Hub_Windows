@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// SlogAdapter 是一個 slog.Handler 實現，用於將 slog 的日誌橋接到 zap logger。
+// SlogAdapter 是一個 slog.Handler 實作，用於將 slog 的日誌橋接到 zap logger。
 type SlogAdapter struct {
 	logger *zap.Logger
 	// callerChain 承載 slog logger.With("caller", "...") 注入的呼叫鏈，
@@ -35,8 +35,8 @@ func NewSlogHandler(logger *zap.Logger) *SlogAdapter {
 
 // Enabled 決定是否啟用某日誌級別
 func (h *SlogAdapter) Enabled(_ context.Context, level slog.Level) bool {
-	// 如果全域性開關或者配置沒有把 debug 開啟，這裡的 zap logger 會自動濾除
-	// 為了確保所有的都丟給 zap 判斷，我們總是返回 true，或者可以根據 zap 的配置判斷
+	// 如果全域性開關或者設定沒有把 debug 開啟，這裡的 zap logger 會自動濾除
+	// 為了確保所有的都丟給 zap 判斷，我們總是回傳 true，或者可以根據 zap 的設定判斷
 	return true
 }
 
@@ -96,7 +96,7 @@ func (h *SlogAdapter) Handle(_ context.Context, r slog.Record) error {
 	return nil
 }
 
-// WithAttrs 返回帶有預設屬性的 Handler
+// WithAttrs 回傳帶有預設屬性的 Handler
 func (h *SlogAdapter) WithAttrs(attrs []slog.Attr) slog.Handler {
 	fields := make([]zap.Field, 0, len(attrs))
 	callers := make([]string, 0, len(h.callerChain)+len(attrs))
@@ -119,7 +119,7 @@ func (h *SlogAdapter) WithAttrs(attrs []slog.Attr) slog.Handler {
 	}
 }
 
-// WithGroup 返回帶名稱空間的 Handler (這裡簡略實現)
+// WithGroup 回傳帶名稱空間的 Handler (這裡簡略實作)
 func (h *SlogAdapter) WithGroup(name string) slog.Handler {
 	return &SlogAdapter{
 		logger:      h.logger.Named(name),

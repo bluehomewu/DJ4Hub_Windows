@@ -152,7 +152,7 @@ func enableAdapterElevated(ctx context.Context, interfaceName string) error {
 	output, err := runHidden(ctx, "powershell.exe", "-NoProfile", "-NonInteractive", "-Command", script)
 	if err != nil {
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-			return errors.New("等待 Windows 管理員授權超時")
+			return errors.New("等待 Windows 管理員授權逾時")
 		}
 		detail := strings.TrimSpace(output)
 		if detail == "" {

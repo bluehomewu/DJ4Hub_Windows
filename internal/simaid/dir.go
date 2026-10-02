@@ -43,7 +43,7 @@ func ReadDirectoryAIDs(transmit func([]byte) ([]byte, error)) ([][]byte, error) 
 		}
 		sw1, sw2, ok := APDUStatus(rsp)
 		if !ok {
-			lastErr = fmt.Errorf("EF_DIR 記錄 %d 響應過短: %X", record, rsp)
+			lastErr = fmt.Errorf("EF_DIR 記錄 %d 回應過短: %X", record, rsp)
 			continue
 		}
 		if sw1 == 0x6A && (sw2 == 0x83 || sw2 == 0x82) {
@@ -71,7 +71,7 @@ func selectFileWithTransmit(transmit func([]byte) ([]byte, error), name string, 
 	}
 	sw1, sw2, ok := APDUStatus(rsp)
 	if !ok {
-		return fmt.Errorf("選擇 %s 失敗: APDU 響應過短: %X", name, rsp)
+		return fmt.Errorf("選擇 %s 失敗: APDU 回應過短: %X", name, rsp)
 	}
 	if !IsSelectSuccess(sw1, sw2) {
 		return fmt.Errorf("選擇 %s 失敗: SW=%02X%02X", name, sw1, sw2)

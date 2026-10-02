@@ -22,7 +22,7 @@ func IsSelectSuccess(sw1, sw2 byte) bool {
 func ExtractSuccessData(rsp []byte) ([]byte, error) {
 	sw1, sw2, ok := APDUStatus(rsp)
 	if !ok {
-		return nil, fmt.Errorf("APDU 響應過短: %X", rsp)
+		return nil, fmt.Errorf("APDU 回應過短: %X", rsp)
 	}
 	if !IsSuccess(sw1, sw2) {
 		return nil, fmt.Errorf("SW=%02X%02X", sw1, sw2)

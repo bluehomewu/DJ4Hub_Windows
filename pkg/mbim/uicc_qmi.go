@@ -13,7 +13,7 @@ type UICCAppInfo struct {
 }
 
 // QMIUIMApplicationList 封裝了一套極致輕量的、無需完整狀態機的 QMI over MBIM 隧道邏輯。
-// 它透過向 CTL 申請 UIM client ID，然後傳送 UIM_GET_CARD_STATUS，最後按照標準的 QMI 報文結構
+// 它透過向 CTL 申請 UIM client ID，然後傳送 UIM_GET_CARD_STATUS，最後按照標準的 QMI 封包結構
 // 解析出所有卡槽中註冊的全部應用(USIM, ISIM, CSIM等)的資訊(含型別和長AID)。
 func (d *Device) QMIUIMApplicationList(ctx context.Context) ([]UICCAppInfo, error) {
 	clientID, err := d.allocUIMClient(ctx)
@@ -52,8 +52,8 @@ func (d *Device) releaseUIMClient(ctx context.Context, clientID uint8) {
 	_, _ = d.SendQMI(ctx, relReq)
 }
 
-// SendQMI 專門用於透過 QMI over MBIM 隧道傳送底層的 QMUX 報文，並返回響應的 QMUX 報文。
-// 此方法要求外部已經完全構建好 QMI 的報文頭(包含 IFType 等)，它將其作為透明負載下發。
+// SendQMI 專門用於透過 QMI over MBIM 隧道傳送底層的 QMUX 封包，並回傳回應的 QMUX 封包。
+// 此方法要求外部已經完全建置好 QMI 的封包頭(包含 IFType 等)，它將其作為透明負載下發。
 func (d *Device) SendQMI(ctx context.Context, payload []byte) ([]byte, error) {
 	// QMI over MBIM 固定使用 CommandTypeSet
 	res, err := d.Command(ctx, UUIDQMI, CIDQMIMsg, CommandTypeSet, payload)
@@ -63,7 +63,7 @@ func (d *Device) SendQMI(ctx context.Context, payload []byte) ([]byte, error) {
 	return res.InfoBuffer, nil
 }
 
-// buildQMIMessage 將引數組裝為一個原生的、帶 QMUX 頭和 SDU 頭的完整二進位 QMI 幀。
+// buildQMIMessage 將引數組裝為一個原生的、帶 QMUX 頭和 SDU 頭的完整二進位 QMI 訊框。
 func buildQMIMessage(service, clientID uint8, txID uint16, msgID uint16, tlvs []byte) []byte {
 	isCTL := service == 0x00
 	var sduLen int
@@ -206,5 +206,5 @@ func parseAllAIDs(data []byte) ([]UICCAppInfo, error) {
 	nextTlv:
 		idx += 3 + int(l)
 	}
-	return apps, nil // 就算沒找到 TLV，或者 TLV 為空，也返回目前收集到的 apps
+	return apps, nil // 就算沒找到 TLV，或者 TLV 為空，也回傳目前收集到的 apps
 }

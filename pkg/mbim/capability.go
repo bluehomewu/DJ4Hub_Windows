@@ -43,8 +43,8 @@ func (c *Capabilities) DeviceResetUsable() bool {
 }
 
 // AppListKnownUnsupported 報告 APPLICATION_LIST 是否"確知不支援":僅當 UICC 服務
-// 已宣告(init 探針確實跑過)但探針失敗時為真。此時 AID 解析應直接走 EF_DIR 直讀,
-// 跳過註定失敗的 APPLICATION_LIST。未宣告/未探(unknown)時返回 false,保留原有
+// 已宣告(init 探針確實跑過)但探針失敗時為真。此時 AID 解析應直接走 EF_DIR 直接讀取,
+// 跳過註定失敗的 APPLICATION_LIST。未宣告/未探(unknown)時回傳 false,保留原有
 // "先試再回退"行為,不引入迴歸。
 func (c *Capabilities) AppListKnownUnsupported() bool {
 	return c != nil && c.Services.HasService(UUIDMSUICCLowLevelAccess) && !c.AppListOK

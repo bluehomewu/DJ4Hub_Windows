@@ -621,7 +621,7 @@ func newTestQMIManagerForPowerCycle(t *testing.T, be *fakeSIMPowerBackend, calls
 	}
 }
 
-// newTestATManagerForSIMReload 建立一個用於測試 AT 通道 SIM 過載的 Manager 例項，指定後端模式為 AT
+// newTestATManagerForSIMReload 建立一個用於測試 AT 通道 SIM 過載的 Manager 實例，指定後端模式為 AT
 func newTestATManagerForSIMReload(t *testing.T, be *fakeSIMPowerBackend, calls *atomic.Int32) *Manager {
 	t.Helper()
 	be.mode = backend.BackendAT
@@ -1129,7 +1129,7 @@ func TestRunPostSwitchHookStillCallsAfterSwitchWhenAPDUStaysBusy(t *testing.T) {
 
 	mgr.runPostSwitchHook(SwitchOperationEnableProfile, 0)
 
-	// APDU 忙時仍應執行 onAfterSwitch 回撥，避免切卡後上層恢復流程被跳過。
+	// APDU 忙時仍應執行 onAfterSwitch 回呼，避免切卡後上層恢復流程被跳過。
 	if afterCalls.Load() != 1 {
 		t.Fatalf("onAfterSwitch calls=%d want 1", afterCalls.Load())
 	}
@@ -2440,7 +2440,7 @@ func TestSafeListNotificationConvertsMalformedResponsePanicToError(t *testing.T)
 	if notifications != nil {
 		t.Fatalf("notifications=%v want nil on malformed response", notifications)
 	}
-	if !strings.Contains(err.Error(), "解析通知列表響應失敗") {
+	if !strings.Contains(err.Error(), "解析通知清單回應失敗") {
 		t.Fatalf("error=%q want parse failure context", err)
 	}
 }
@@ -2486,7 +2486,7 @@ func TestRecoverDownloadInstallFinalizeErrorSendsInstallNotification(t *testing.
 		context.Background(),
 		mustDecodeHex(t, aidHex),
 		[]*sgp22.NotificationMetadata{{SequenceNumber: 11}},
-		errors.New("APDU 透傳失敗: 裝置返回錯誤: ERROR (cancel session error: Execution Error)"),
+		errors.New("APDU 直通傳送失敗: 裝置回傳錯誤: ERROR (cancel session error: Execution Error)"),
 	)
 	if !ok {
 		t.Fatal("recoverDownloadInstallFinalizeError() ok=false, want true")

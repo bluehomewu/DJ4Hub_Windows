@@ -70,8 +70,8 @@ func UICCOpenChannel(ctx context.Context, d *Device, aid []byte) (uint32, error)
 	r := newInfoReader(resp.InfoBuffer)
 	uiccStatus, _ := r.u32At(0)
 	channel, _ := r.u32At(4)
-	// status 是卡對 SELECT 的狀態字:新韌體返回 SW1(如 0x90=成功),舊韌體返回 0。
-	// 只在確屬錯誤狀態時失敗,0x90/0x91/0x61/0x62/0x63 等成功/告警都接受,與 mbimcli 一致。
+	// status 是卡對 SELECT 的狀態字:新韌體回傳 SW1(如 0x90=成功),舊韌體回傳 0。
+	// 只在確屬錯誤狀態時失敗,0x90/0x91/0x61/0x62/0x63 等成功/警告都接受,與 mbimcli 一致。
 	if !uiccOpenChannelStatusOK(uiccStatus) {
 		return 0, fmt.Errorf("mbim: UICC open channel status=0x%x", uiccStatus)
 	}
@@ -91,7 +91,7 @@ func uiccOpenChannelStatusOK(status uint32) bool {
 	switch sw1 {
 	case 0x90, 0x91, // 正常成功
 		0x61,       // 還有更多資料
-		0x62, 0x63: // 告警,命令已完成
+		0x62, 0x63: // 警告,指令已完成
 		return true
 	}
 	return false

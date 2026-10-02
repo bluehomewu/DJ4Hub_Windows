@@ -23,7 +23,7 @@ func SelectAIDWithTransmit(aids [][]byte, match func([]byte) bool, transmit func
 			}
 			sw1, sw2, ok := APDUStatus(rsp)
 			if !ok {
-				lastErr = fmt.Errorf("APDU 響應過短: %X", rsp)
+				lastErr = fmt.Errorf("APDU 回應過短: %X", rsp)
 				continue
 			}
 			if IsSelectSuccess(sw1, sw2) {

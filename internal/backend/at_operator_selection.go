@@ -5,7 +5,7 @@ import (
 )
 
 // ============================================================================
-// OperatorSelectionProvider 實現
+// OperatorSelectionProvider 實作
 // ============================================================================
 
 func (a *ATBackend) ScanOperators(ctx context.Context) ([]OperatorCandidate, error) {

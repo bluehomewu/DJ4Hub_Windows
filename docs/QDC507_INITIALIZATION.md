@@ -5,16 +5,16 @@
 ## 實際問題與結論
 
 本次新裝置報告 QDC507GLEFM21，編譯時間 Jan 29 2024 18:15:19。
-原 USB 配置為 `0x2CA3,0x4006,1,1,1,1,1,0,0`，ECM 網路介面已存在，但 ADB 位為 0。
+原 USB 設定為 `0x2CA3,0x4006,1,1,1,1,1,0,0`，ECM 網路介面已存在，但 ADB 位為 0。
 原軟體只處理 ADB 已連線後的 root，不能完成新裝置的首次授權。
 
 受控測試完成：
 
-- 透過 AT+GSN 取得穩定身份，備份原配置；不將實際 IMEI、SIM 資訊或挑戰寫入倉庫。
-- 舊式 QADBKEY 挑戰可讀取；對應授權和僅開啟 ADB 的配置被裝置接受。
-- 重啟後核對同一 IMEI，USB 配置為 `0x2CA3,0x4006,1,1,1,1,1,1,0`。
-- root shell 返回 uid=0；核心為 3.18.44，USB functions 為 diag,serial,ecm,ffs。
-- 固定雜湊音訊執行檔案成功載入，服務 prepare 返回 active=true；ALSA 音效卡及 USB audio 出現。
+- 透過 AT+GSN 取得穩定身分，備份原設定；不將實際 IMEI、SIM 資訊或挑戰寫入儲存庫。
+- 舊式 QADBKEY 挑戰可讀取；對應授權和僅開啟 ADB 的設定被裝置接受。
+- 重啟後核對同一 IMEI，USB 設定為 `0x2CA3,0x4006,1,1,1,1,1,1,0`。
+- root shell 回傳 uid=0；核心為 3.18.44，USB functions 為 diag,serial,ecm,ffs。
+- 固定雜湊音訊執行檔案成功載入，服務 prepare 回傳 active=true；ALSA 音效卡及 USB audio 出現。
 - 診斷時啟動的 5037 ADB 服務曾佔用介面；停止該診斷服務並重新啟動專用 5039 服務後恢復。
 - 未刷韌體、寫入 boot/MTD/NV、修改 IMEI、撥打電話、錄音或開啟 Mac 麥克風。
 
@@ -22,55 +22,55 @@
 
 ### 後續撥號驗證（同日）
 
-同一張 SIM 在舊裝置能通話，新裝置撥號返回 ERROR。舊裝置初始化前備份中的 IMS 為 1,1，新裝置為 0,0。先單獨開啟 UAC 並重啟，撥號仍失敗；隨後另行備份，僅設定 `AT+QCFG="ims",1` 並重啟，回讀變為 1,1，使用者確認通話恢復。USB、ECM、APN 與該次 IMS 修改前備份一致。此結果支援 IMS 配置是本次故障關鍵因素，但未單獨撤銷 UAC 做反向實驗，也未進行長期穩定性驗證。
+同一張 SIM 在舊裝置能通話，新裝置撥號回傳 ERROR。舊裝置初始化前備份中的 IMS 為 1,1，新裝置為 0,0。先單獨開啟 UAC 並重啟，撥號仍失敗；隨後另行備份，僅設定 `AT+QCFG="ims",1` 並重啟，讀回變為 1,1，使用者確認通話恢復。USB、ECM、APN 與該次 IMS 修改前備份一致。此結果支援 IMS 設定是本次故障關鍵因素，但未單獨撤銷 UAC 做反向實驗，也未進行長期穩定性驗證。
 
-上述 UAC/IMS 寫入是使用者授權後的裝置實驗，不是目前軟體的自動配置步驟。軟體現已相容末尾帶單個 audio 的 RMNET/ECM 組合，並在撥號/接聽失敗後提供只讀診斷。詳見 [撥號失敗診斷](VOICE_DIAGNOSTICS.md)。
+上述 UAC/IMS 寫入是使用者授權後的裝置實驗，不是目前軟體的自動設定步驟。軟體現已相容末尾帶單個 audio 的 RMNET/ECM 組合，並在撥號/接聽失敗後提供唯讀診斷。詳見 [撥號失敗診斷](VOICE_DIAGNOSTICS.md)。
 
 ## 產品流程
 
-1. 確認僅一臺 DJI USB 模組，鎖定 USB 位置；檢查無語音通話或未知 CLCC 狀態。
-2. 使用 AT+GSN 校驗 IMEI，嚴格校驗 QDC507 韌體和完整 USB 配置。
-3. ADB 未開啟時，先將配置寫入本機私有備份並同步到磁碟。
-4. 僅接受已驗證的舊式 8 位挑戰，使用獨立 Go 實現的協議派生，不依賴 Python、OpenSSL 或聯網。
-5. 授權後再次核對身份和原配置，只將 ADB 位從 0 改成 1；不更改 UAC、網路模式、IMS/APN 或 VID/PID。
-6. 無通話時重啟，核對原身份、配置與 USB 位置。超時不會無限重啟。
+1. 確認僅一台 DJI USB 模組，鎖定 USB 位置；檢查無語音通話或未知 CLCC 狀態。
+2. 使用 AT+GSN 驗證 IMEI，嚴格驗證 QDC507 韌體和完整 USB 設定。
+3. ADB 未開啟時，先將設定寫入本機私有備份並同步到磁碟。
+4. 僅接受已驗證的舊式 8 位挑戰，使用獨立 Go 實作的協定派生，不依賴 Python、OpenSSL 或連網。
+5. 授權後再次核對身分和原設定，只將 ADB 位從 0 改成 1；不更改 UAC、網路模式、IMS/APN 或 VID/PID。
+6. 無通話時重啟，核對原身分、設定與 USB 位置。逾時不會無限重啟。
 7. 必要時重新提交目前舊式挑戰。ADB 仍不可連線則明確提示介面占用，不自動殺其他程式。
-8. 檢查 root（需要時標準 adb root）、核心及 USB functions，校驗驅動雜湊後載入臨時音訊執行時。
-9. 掛斷關閉電腦音訊，保留模組待機。退出或心跳失效恢復臨時 USB 音訊配置，不執行 unroot。
+8. 檢查 root（需要時標準 adb root）、核心及 USB functions，驗證驅動雜湊後載入臨時音訊執行時。
+9. 掛斷關閉電腦音訊，保留模組待機。結束或心跳失效恢復臨時 USB 音訊設定，不執行 unroot。
 
-已經啟用 ADB 且可連線的裝置不會重複寫配置或重啟。USB 位置變化、多裝置、身份不符、未知挑戰、備份失敗、呼叫狀態異常均停止。
+已經啟用 ADB 且可連線的裝置不會重複寫設定或重啟。USB 位置變化、多裝置、身分不符、未知挑戰、備份失敗、呼叫狀態異常均停止。
 
-## 客戶端與 Web
+## 用戶端與 Web
 
-新客戶端的音訊準備請求攜帶 `X-DJ4Hub-Initialize: 1`，可完成首次初始化。舊客戶端不攜帶此欄位，仍只使用已經授權的 ADB。
+新用戶端的音訊準備請求攜帶 `X-DJ4Hub-Initialize: 1`，可完成首次初始化。舊用戶端不攜帶此欄位，仍只使用已經授權的 ADB。
 Web 將首次授權說明升級到版本 2，說明 ADB 授權保留、可能重啟及不刷機；舊的臨時驅動授權不能直接替代新授權。
-原有本機同源和自定義請求頭檢查不變。初始化與撥號共享 audioMu，不能同時由本服務發起。
+原有本機同源和自訂請求頭檢查不變。初始化與撥號共享 audioMu，不能同時由本服務發起。
 外部程式仍可能競爭裝置，因此不能替代硬體獨佔管理；請勿同時執行多個模組管理工具。
 
 ## 儲存與持久化邊界
 
-配置備份：`~/Library/Application Support/DJ4Hub/device-backups/`，目錄 0700、檔案 0600。
+設定備份：`~/Library/Application Support/DJ4Hub/device-backups/`，目錄 0700、檔案 0600。
 內容含裝置 IMEI、韌體資訊、原 USB 功能位及時間，不含授權密碼。
-此目錄不會自動加入通訊記錄的雲盤備份。
+此目錄不會自動加入通訊記錄的雲端硬碟備份。
 
-ADB 介面配置儲存在裝置；授權不自動撤銷。不承諾所有韌體重啟後都保持 root，因此每次仍檢查權限。
+ADB 介面設定儲存在裝置；授權不自動撤銷。不承諾所有韌體重啟後都保持 root，因此每次仍檢查權限。
 音訊驅動仍位於裝置 `/tmp`，重啟後過載。沒有裝置端持久啟動服務，也沒有宣稱完整韌體備份或一鍵刷機恢復。
-配置備份不是 raw NAND/OOB/ECC、NV/EFS/QCN 備份，不能用來救磚。
+設定備份不是 raw NAND/OOB/ECC、NV/EFS/QCN 備份，不能用來救磚。
 
 ## 驗證與後續門檻
 
-- Go 專項測試：公開協議向量、異常挑戰、USB 格式、唯一位置、備份權限、不洩漏口令、已啟用冪等、身份不符、通話阻斷、備份失敗及授權拒絕。
+- Go 專項測試：公開協定向量、異常挑戰、USB 格式、唯一位置、備份權限、不洩漏密碼、已啟用冪等、身分不符、通話阻斷、備份失敗及授權拒絕。
 - Go 全量測試和主服務 race 測試通過；Web 音訊 6 項、Swift 13 項測試通過。
-- goimports 已執行；golangci-lint 報告 6 項原有 errcheck 告警（activate_darwin.go 5 項、main.go 1 項），新增程式碼無告警。
+- goimports 已執行；golangci-lint 報告 6 項原有 errcheck 警告（activate_darwin.go 5 項、main.go 1 項），新增程式碼無警告。
 - 生成獨立 .app，並保留已安裝舊版本後更新；未建立 GitHub Release。
-- 新版 `/Applications/DJ 4G Hub.app` 啟動後，服務回讀 active=true；電話頁實測顯示「模組待機就緒 · 電腦麥克風未開啟」。初次關閉 ADB 的裝置授權路徑由受控實驗驗證；Go 自動初始化完整路徑通過模擬測試，已啟用裝置上的自動待機通過本機客戶端實測。
+- 新版 `/Applications/DJ 4G Hub.app` 啟動後，服務讀回 active=true；電話頁實測顯示「模組待機就緒 · 電腦麥克風未開啟」。初次關閉 ADB 的裝置授權路徑由受控實驗驗證；Go 自動初始化完整路徑通過模擬測試，已啟用裝置上的自動待機通過本機用戶端實測。
 
-完整定製韌體需要另行取得匹配的原廠底包、分割槽佈局、刷寫程式、安全鏈資訊、各臺裝置獨有資料備份，並在備用硬體完成恢復演練。標準 EG25/EC25 韌體不能直接跨刷。
+完整定製韌體需要另行取得匹配的原廠底包、分割區設定、刷寫程式、安全鏈資訊、各台裝置獨有資料備份，並在備用硬體完成恢復演練。標準 EG25/EC25 韌體不能直接跨刷。
 
 ## 來源
 
-- [移遠 ADB 授權與介面配置順序](https://forums.quectel.com/t/how-to-enable-adb-interface-for-new-ec25-e-modem/21951)
-- [舊式協議參考（固定提交；僅參考行為）](https://github.com/carp4/qadbkey-unlock/tree/cab52a0a7429c8d8b8f31da8894c8c93155c0fc5)
+- [移遠 ADB 授權與介面設定順序](https://forums.quectel.com/t/how-to-enable-adb-interface-for-new-ec25-e-modem/21951)
+- [舊式協定參考（固定提交；僅參考行為）](https://github.com/carp4/qadbkey-unlock/tree/cab52a0a7429c8d8b8f31da8894c8c93155c0fc5)
 - [QDC507 跨刷故障與供應商支援邊界](https://forums.quectel.com/t/firmware-request-for-eg25g-qdc507/58093)
 - [同型執行時方案研究](https://github.com/cr-zhichen/DJOneHubNative/blob/main/docs/MODULE_RESEARCH.md)
 - [目前音訊測試歷史及驅動來源](QDC507_AUDIO_RESEARCH.md)

@@ -125,7 +125,7 @@ func downloadBPPErrorMessage(err sgp22.LoadBoundProfilePackageError) string {
 	case sgp22.BPPErrorReasonInstallFailedDueToInterruption:
 		return "eUICC 安裝 profile 時被中斷，請稍後重試"
 	case sgp22.BPPErrorReasonInstallFailedDueToDataMismatch:
-		return "eUICC 安裝 profile 時資料校驗不匹配"
+		return "eUICC 安裝 profile 時資料驗證不符"
 	case sgp22.BPPErrorReasonPPRNotAllowed:
 		return "eUICC 策略規則不允許安裝該 profile"
 	default:

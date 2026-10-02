@@ -70,7 +70,7 @@ func LookupCertificateIssuer(keyID string) string {
 }
 
 // LookupCertificateIssuers 從 EUICCInfo2 中的 euiccCiPKIdListForSigning 欄位批次查詢
-// 入參是原始二進位 keyID 列表，返回人類可讀的簽發機構名稱列表
+// 入參是原始二進位 keyID 清單，回傳人類可讀的簽發機構名稱清單
 func LookupCertificateIssuers(keyIDs [][]byte) []string {
 	result := make([]string, 0, len(keyIDs))
 	for _, kid := range keyIDs {
@@ -81,7 +81,7 @@ func LookupCertificateIssuers(keyIDs [][]byte) []string {
 
 // LookupManufacturer 根據 EID 前 8 位（EUM 字首）查詢晶片製造商名稱
 // sasAccreditationNumber 可選，來自 EUICCInfo2 中的 sasAccreditationNumber 欄位
-// 返回格式如 "Kigen 🇬🇧" 或 "Thales 🇫🇷"
+// 回傳格式如 "Kigen 🇬🇧" 或 "Thales 🇫🇷"
 func LookupManufacturer(eid string, sasAccreditationNumber string) string {
 	if len(eid) < 8 {
 		return ""
@@ -103,7 +103,7 @@ func LookupManufacturer(eid string, sasAccreditationNumber string) string {
 	return ""
 }
 
-// regionFlag 將兩字母國家程式碼轉換為 emoji 國旗
+// regionFlag 將兩字母國碼轉換為 emoji 國旗
 func regionFlag(code string) string {
 	if len(code) < 2 {
 		return ""

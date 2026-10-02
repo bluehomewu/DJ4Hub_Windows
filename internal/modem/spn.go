@@ -40,7 +40,7 @@ func DecodeEFSPN(data []byte) (string, error) {
 		// 0x82 表示帶 2 位元組基準的壓縮 UCS2 編碼方式
 		decoded, err = decodeSPNCompressedUCS2(name, 2)
 	default:
-		// 預設檢測，若是可列印 ASCII 字符集則直接轉換，否則走 GSM 7-bit 編碼解析
+		// 預設檢測，若是可列印 ASCII 字元集則直接轉換，否則走 GSM 7-bit 編碼解析
 		if isPrintableASCII(name) {
 			decoded = string(name)
 		} else {
@@ -121,7 +121,7 @@ func decodeSPNCompressedUCS2(data []byte, baseBytes int) (string, error) {
 	return b.String(), nil
 }
 
-// decodeSPNGSM 解碼 GSM 7-bit 預設字符集編碼的文字並驗證生成的 UTF-8 是否合法
+// decodeSPNGSM 解碼 GSM 7-bit 預設字元集編碼的文字並驗證生成的 UTF-8 是否合法
 func decodeSPNGSM(data []byte) (string, error) {
 	decoded, err := gsm7.Decode(data)
 	if err != nil {

@@ -7,7 +7,7 @@ import (
 )
 
 // 期望終態:Update/Add 儲存裝置時不把執行時路徑寫進 config(只存 IMEI + 意圖)。
-// 目前實現會寫 control_device/interface/at_port → 本測試現在應 FAIL,證明儲存側洩漏。
+// 目前實作會寫 control_device/interface/at_port → 本測試現在應 FAIL,證明儲存側洩漏。
 func TestUpdateDeviceInFileDoesNotPersistRuntimePaths(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.yaml")
 	raw := "devices:\n- id: dev1\n  device_backend: qmi\n  modem_imei: \"867383058993207\"\n"

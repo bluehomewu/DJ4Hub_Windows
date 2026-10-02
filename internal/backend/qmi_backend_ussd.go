@@ -60,7 +60,7 @@ func (q *QMIBackend) ExecuteUSSD(ctx context.Context, command string, timeout ti
 	defer q.ussdMu.Unlock()
 	q.resetUSSDChannelsLocked()
 	if q.ussdAwaitRelease {
-		return nil, errors.New("上次 USSD 會話尚未釋放，請稍後重試")
+		return nil, errors.New("上次 USSD 工作階段尚未釋放，請稍後重試")
 	}
 
 	opCtx, opCancel := context.WithTimeout(ctx, timeout)
@@ -78,7 +78,7 @@ func (q *QMIBackend) ExecuteUSSD(ctx context.Context, command string, timeout ti
 			if qmiUSSDOperationDeadlineExceeded(opCtx, err) {
 				q.ussdAwaitRelease = true
 				_ = src.VOICECancelUSSD(context.Background())
-				return nil, errors.New("USSD 響應網路超時（QMI 非同步請求超時）")
+				return nil, errors.New("USSD 回應網路逾時（QMI 非同步請求逾時）")
 			}
 			return nil, fmt.Errorf("傳送 QMI USSD 失敗: %w", qmiUSSDDecorateQMIError(err))
 		}
@@ -102,7 +102,7 @@ func (q *QMIBackend) ExecuteUSSD(ctx context.Context, command string, timeout ti
 		if qmiUSSDOperationDeadlineExceeded(opCtx, err) {
 			q.ussdAwaitRelease = true
 			_ = src.VOICECancelUSSD(context.Background())
-			return nil, errors.New("USSD 響應網路超時（QMI 請求超時）")
+			return nil, errors.New("USSD 回應網路逾時（QMI 請求逾時）")
 		}
 		return nil, fmt.Errorf("傳送 QMI USSD 失敗: %w", qmiUSSDDecorateQMIError(err))
 	}
@@ -127,7 +127,7 @@ func (q *QMIBackend) waitQMIUSSDResult(ctx context.Context, src qmiUSSDSource) (
 		}
 		q.ussdAwaitRelease = true
 		_ = src.VOICECancelUSSD(context.Background())
-		return nil, errors.New("USSD 響應網路超時（無回撥）")
+		return nil, errors.New("USSD 回應網路逾時（無回呼）")
 	}
 }
 
@@ -192,14 +192,14 @@ func (q *QMIBackend) queryQMIUSSDVoiceDomain(ctx context.Context, src qmiUSSDSou
 	}
 	cfg, err := voiceSrc.VOICEGetConfig(ctx, qmi.VoiceConfigQuery{VoiceDomainPreference: true})
 	if err != nil {
-		logger.Debug("QMI USSD 前置 VOICE 配置讀取失敗", "control_path", q.controlPath, "err", err)
+		logger.Debug("QMI USSD 前置 VOICE 設定讀取失敗", "control_path", q.controlPath, "err", err)
 		return 0, false
 	}
 	if cfg == nil || !cfg.HasCurrentVoiceDomainPreference {
-		logger.Debug("QMI USSD 前置 VOICE 配置未返回 voice domain", "control_path", q.controlPath)
+		logger.Debug("QMI USSD 前置 VOICE 設定未回傳 voice domain", "control_path", q.controlPath)
 		return 0, false
 	}
-	logger.Debug("QMI USSD 前置 VOICE 配置",
+	logger.Debug("QMI USSD 前置 VOICE 設定",
 		"control_path", q.controlPath,
 		"current_voice_domain", cfg.CurrentVoiceDomainPreference,
 		"current_voice_domain_name", qmiUSSDVoiceDomainName(uint32(cfg.CurrentVoiceDomainPreference)),

@@ -22,8 +22,8 @@ func TestEncodeUICCOpenChannel(t *testing.T) {
 
 // libmbim 的 uicc-ref-byte-array 編碼(_mbim_struct_builder_append_byte_array,
 // swapped_offset_length=true)對空陣列有特殊處理:buffer_len==0 時 offset 欄位寫 0,
-// 不指向變長區。舊實現無論 AID 是否為空都寫 offset=fixed(16),空 AID 時這個非零
-// offset 指向一段空資料——不符合協議、可能是真機上空 AID 開通道返回
+// 不指向變長區。舊實作無論 AID 是否為空都寫 offset=fixed(16),空 AID 時這個非零
+// offset 指向一段空資料——不符合協定、可能是真機上空 AID 開通道回傳
 // status=0x15(InvalidParameters)的原因。
 func TestEncodeUICCOpenChannelEmptyAIDWritesZeroOffset(t *testing.T) {
 	info := encodeUICCOpenChannel(nil, 0, 0)
@@ -50,7 +50,7 @@ func TestEncodeUICCAPDU(t *testing.T) {
 }
 
 // 新韌體 OPEN_CHANNEL 的 status 欄位是 SELECT 的 SW1:0x90 表示成功、通道已開啟。
-// 舊實現把"非 0 即失敗"判錯,會拒掉這類裝置。
+// 舊實作把"非 0 即失敗"判錯,會拒掉這類裝置。
 func TestUICCOpenChannelAcceptsSW1Success(t *testing.T) {
 	for _, status := range []uint32{0x00, 0x90, 0x91, 0x61, 0x9000} {
 		st := status
@@ -75,7 +75,7 @@ func TestUICCOpenChannelAcceptsSW1Success(t *testing.T) {
 		ch, err := UICCOpenChannel(context.Background(), d, []byte{0xA0})
 		d.Close()
 		if err != nil {
-			t.Fatalf("status=0x%x: UICCOpenChannel 報錯: %v", st, err)
+			t.Fatalf("status=0x%x: UICCOpenChannel 回報錯誤: %v", st, err)
 		}
 		if ch != 1 {
 			t.Fatalf("status=0x%x: channel = %d, want 1", st, ch)
@@ -105,7 +105,7 @@ func TestUICCOpenChannelRejectsErrorSW1(t *testing.T) {
 	}
 	defer d.Close()
 	if _, err := UICCOpenChannel(context.Background(), d, []byte{0xA0}); err == nil {
-		t.Fatal("status=0x6A 應返回錯誤")
+		t.Fatal("status=0x6A 應回傳錯誤")
 	}
 }
 
@@ -190,7 +190,7 @@ func TestUICCStatusWordBytes(t *testing.T) {
 		{0x90, [2]byte{0x90, 0x00}},   // 僅 SW1
 		{0x9000, [2]byte{0x90, 0x00}}, // 完整 SW
 		{0x61, [2]byte{0x61, 0x00}},   // 僅 SW1(更多資料)
-		{0x6310, [2]byte{0x63, 0x10}}, // 完整 SW(告警)
+		{0x6310, [2]byte{0x63, 0x10}}, // 完整 SW(警告)
 	}
 	for _, c := range cases {
 		got := uiccStatusWordBytes(c.status)

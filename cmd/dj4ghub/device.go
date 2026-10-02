@@ -206,7 +206,7 @@ func driverIssueText(node pnpDevice) string {
 	case cmProbDisabled:
 		return fmt.Sprintf("%s 已在 Windows 中停用", name)
 	default:
-		return fmt.Sprintf("%s 驅動異常（程式碼 %d）", name, node.Problem)
+		return fmt.Sprintf("%s 驅動異常（錯誤代碼 %d）", name, node.Problem)
 	}
 }
 

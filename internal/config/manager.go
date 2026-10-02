@@ -12,13 +12,13 @@ var (
 	configPath   string
 )
 
-// InitGlobalManager 初始化全域性配置管理器，將首次從檔案載入到記憶體
+// InitGlobalManager 初始化全域性設定管理器，將首次從檔案載入到記憶體
 func InitGlobalManager(path string) error {
 	configPath = path
 	return ReloadFromFile()
 }
 
-// ReloadFromFile 從磁碟重新載入最新配置到記憶體，通常在任何更新配置的動作後主動呼叫
+// ReloadFromFile 從磁碟重新載入最新設定到記憶體，通常在任何更新設定的動作後主動呼叫
 func ReloadFromFile() error {
 	if configPath == "" {
 		return nil
@@ -30,11 +30,11 @@ func ReloadFromFile() error {
 	configMu.Lock()
 	globalConfig = cfg
 	configMu.Unlock()
-	logger.Info("配置檔案已從磁碟熱載入到記憶體", "path", configPath)
+	logger.Info("設定檔已從磁碟熱載入到記憶體", "path", configPath)
 	return nil
 }
 
-// GetConfig 取得目前處於記憶體中的全域性配置。為保障一致性，不可在外部直接修改返回值。
+// GetConfig 取得目前處於記憶體中的全域性設定。為保障一致性，不可在外部直接修改回傳值。
 func GetConfig() *Config {
 	configMu.RLock()
 	defer configMu.RUnlock()
@@ -44,15 +44,15 @@ func GetConfig() *Config {
 	return globalConfig
 }
 
-// GetConfigPath 返回目前全域性配置檔案路徑，供需要直接讀寫配置檔案的場景使用
-// （如裝置恢復後回寫發現到的物理路徑）。
+// GetConfigPath 回傳目前全域性設定檔路徑，供需要直接讀寫設定檔的場景使用
+// （如裝置恢復後回寫發現到的實體路徑）。
 func GetConfigPath() string {
 	configMu.RLock()
 	defer configMu.RUnlock()
 	return configPath
 }
 
-// ListDevices 快捷取得記憶體中的裝置列表，替代原 ListDevicesFromFile 造成的高頻 IO
+// ListDevices 快捷取得記憶體中的裝置清單，替代原 ListDevicesFromFile 造成的高頻 IO
 func ListDevices() []DeviceConfig {
 	return GetConfig().Devices
 }

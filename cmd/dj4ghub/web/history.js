@@ -1,7 +1,7 @@
 (() => {
   const dialog = document.createElement('dialog');
   dialog.style.cssText = 'width:min(760px,90vw);max-height:80vh;border:1px solid #ddd;border-radius:16px;padding:24px;color:inherit;background:var(--surface,#fff)';
-  dialog.innerHTML = '<h2>通訊記錄</h2><p>記錄儲存在本機。無法確認來源的舊簡訊歸入“未歸屬”；時長為觀測值。</p><select aria-label="篩選 SIM 卡"></select> <button type="button" data-refresh>重新整理</button> <button type="button" data-close>關閉</button><p role="status"></p><div data-rows></div><button type="button" data-more>載入更多</button>';
+  dialog.innerHTML = '<h2>通訊記錄</h2><p>記錄儲存在本機。無法確認來源的舊簡訊歸入「未歸屬」；時長為觀測值。</p><select aria-label="篩選 SIM 卡"></select> <button type="button" data-refresh>重新整理</button> <button type="button" data-close>關閉</button><p role="status"></p><div data-rows></div><button type="button" data-more>載入更多</button>';
   document.body.append(dialog);
   const select = dialog.querySelector('select');
   const rows = dialog.querySelector('[data-rows]');
@@ -33,7 +33,7 @@
         const body = document.createElement('p'); body.style.whiteSpace = 'pre-wrap'; body.textContent = kind === 'sms' ? record.content : record.state === 'ended' ? `觀測通話時長：${record.duration_seconds} 秒` : '';
         article.append(title, meta, body); rows.append(article);
       }
-      offset = data.next_offset; status.textContent = `共 ${data.total} 條`; more.hidden = offset >= data.total;
+      offset = data.next_offset; status.textContent = `共 ${data.total} 筆`; more.hidden = offset >= data.total;
     } catch (error) { status.textContent = error.message; more.hidden = true; }
     finally { loading = false; select.disabled = false; more.disabled = false; }
   }

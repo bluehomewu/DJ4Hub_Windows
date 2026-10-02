@@ -61,7 +61,7 @@ func ProbeIMEI(atPort string, timeout time.Duration) (string, error) {
 		timeout = 1500 * time.Millisecond
 	}
 
-	// 配置標準的 3 線非同步串列埠波特率與幀校驗格式
+	// 設定標準的 3 線非同步串列埠鮑率與訊框驗證格式
 	mode := &serial.Mode{
 		BaudRate: 115200,
 		DataBits: 8,
@@ -85,7 +85,7 @@ func ProbeIMEI(atPort string, timeout time.Duration) (string, error) {
 		_, _ = p.Write([]byte(s))
 	}
 
-	// 寫入 AT 測試命令與查詢 IMEI 的 AT+CGSN 命令
+	// 寫入 AT 測試指令與查詢 IMEI 的 AT+CGSN 指令
 	write("AT\r\n")
 	time.Sleep(40 * time.Millisecond)
 	write("AT+CGSN\r\n")

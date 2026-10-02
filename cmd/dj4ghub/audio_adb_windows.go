@@ -44,7 +44,7 @@ func audioUSBLocation(context.Context) (string, error) {
 		}
 	}
 	if len(locations) != 1 || locations[0] == "" {
-		return "", errors.New("請只連線一臺 DJI 模組；未授權或修改任何裝置")
+		return "", errors.New("請只連線一台 DJI 模組；未授權或修改任何裝置")
 	}
 	return locations[0], nil
 }

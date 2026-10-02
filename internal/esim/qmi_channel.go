@@ -21,10 +21,10 @@ var (
 	ErrQMIUIMNotSupported       = errors.New("qmi_uim_not_supported")
 	ErrQMIControlDeviceMissing  = errors.New("qmi_control_device_missing")
 	// ErrQMIUIMCardReset 表示卡片在執行 APDU（通常是攜帶 refresh=true 的 EnableProfile）時觸發了內部 UICC RESET。
-	// 模組會返回 QMI_ERR_CARD_CALL_CONTROL_REF_FAILED (0x0030)，這是正常預期行為，不代表切卡失敗。
+	// 模組會回傳 QMI_ERR_CARD_CALL_CONTROL_REF_FAILED (0x0030)，這是正常預期行為，不代表切卡失敗。
 	ErrQMIUIMCardReset = errors.New("qmi_uim_card_reset")
 	// ErrMBIMUICCInvalidChannel 是 ErrQMIUIMCardReset 的 MBIM 對應物：MBIM 模組在同樣的場景下
-	// 返回 Microsoft UICC Low Level Access 定義的 MBIM_STATUS_ERROR_MS_INVALID_LOGICAL_CHANNEL /
+	// 回傳 Microsoft UICC Low Level Access 定義的 MBIM_STATUS_ERROR_MS_INVALID_LOGICAL_CHANNEL /
 	// MS_SELECT_FAILED / MS_NO_LOGICAL_CHANNELS（0x8743000x），代表 eUICC 內部 RESET 使邏輯通道失效，
 	// 同樣是預期訊號，不代表切卡失敗。
 	ErrMBIMUICCInvalidChannel             = errors.New("mbim_uicc_invalid_channel")
@@ -58,7 +58,7 @@ type QMIChannel struct {
 	opened    bool
 	mu        sync.Mutex
 	// activeCtx 是目前操作的 context（由 DownloadProfile 注入）。
-	// 普通操作未注入時為 nil，使用 context.Background() 作為兜底。
+	// 普通操作未注入時為 nil，使用 context.Background() 作為後備。
 	activeCtx atomic.Pointer[context.Context]
 }
 
@@ -79,7 +79,7 @@ func (c *QMIChannel) SetContext(ctx context.Context) {
 	c.activeCtx.Store(&ctx)
 }
 
-// getActiveCtx 返回目前有效的 context。未注入時返回 context.Background()。
+// getActiveCtx 回傳目前有效的 context。未注入時回傳 context.Background()。
 func (c *QMIChannel) getActiveCtx() context.Context {
 	if p := c.activeCtx.Load(); p != nil {
 		return *p
@@ -132,7 +132,7 @@ func (c *QMIChannel) Transmit(command []byte) ([]byte, error) {
 		return nil, wrapQMIChannelError("transmit APDU", err)
 	}
 	if elapsed := time.Since(started); shouldLogQMIAPDUSuccess(elapsed) {
-		logger.RunDebug("QMI APDU 透傳成功",
+		logger.RunDebug("QMI APDU 直通傳送成功",
 			"transport", transportQMI,
 			"control_device", c.transport.ControlDevice(),
 			"channel", c.channel,
@@ -175,7 +175,7 @@ func wrapQMIChannelError(operation string, err error) error {
 		case qmiq.QMIErrDeviceNotReady, qmiq.QMIErrInvalidID:
 			return fmt.Errorf("%w: %s", ErrQMIUIMNotAvailable, operation)
 		case qmiq.QMIErrCardCallControlRefFail:
-			// 卡片執行 EnableProfile+refresh 後觸發內部 UICC RESET，模組返回 0x0030 屬於正常行為。
+			// 卡片執行 EnableProfile+refresh 後觸發內部 UICC RESET，模組回傳 0x0030 屬於正常行為。
 			// 包裝為 ErrQMIUIMCardReset，讓上層用 errors.Is 精確識別，而不依賴字串匹配。
 			return fmt.Errorf("%w: %s", ErrQMIUIMCardReset, operation)
 		}

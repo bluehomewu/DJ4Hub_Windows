@@ -422,8 +422,8 @@ func extractAllSMSPDUsAfterPrefix(resp string, prefix string) []string {
 	return out
 }
 
-// parseCSCA 解析 AT+CSCA? 響應，提取簡訊中心號碼
-// 響應格式: +CSCA: "+447870002308",145
+// parseCSCA 解析 AT+CSCA? 回應，提取簡訊中心號碼
+// 回應格式: +CSCA: "+447870002308",145
 func parseCSCA(resp string) string {
 	line, ok := findLineWithPrefix(resp, "+CSCA:")
 	if !ok {
@@ -437,8 +437,8 @@ func parseCSCA(resp string) string {
 	return strings.TrimSpace(v)
 }
 
-// parseCNUM 解析 AT+CNUM 響應，提取第一個有效本機號碼。
-// 響應格式: +CNUM: "label","+8613800138000",145
+// parseCNUM 解析 AT+CNUM 回應，提取第一個有效本機號碼。
+// 回應格式: +CNUM: "label","+8613800138000",145
 func parseCNUM(resp string) string {
 	for _, line := range splitLines(resp) {
 		if !strings.HasPrefix(line, "+CNUM:") {
@@ -455,8 +455,8 @@ func parseCNUM(resp string) string {
 	return ""
 }
 
-// ParseMSISDNResponse 解析 AT+CNUM 響應並返回第一個有效本機號碼。
-// internal/modem 之外的 USB AT 適配層使用此入口保持號碼校驗一致。
+// ParseMSISDNResponse 解析 AT+CNUM 回應並回傳第一個有效本機號碼。
+// internal/modem 之外的 USB AT 轉接層使用此入口保持號碼驗證一致。
 func ParseMSISDNResponse(resp string) string {
 	return parseCNUM(resp)
 }
@@ -500,8 +500,8 @@ func canonicalPhoneCandidate(v string) string {
 	return s
 }
 
-// parseUSBNet 解析 AT+QCFG="usbnet" 響應
-// 響應格式: +QCFG: "usbnet",0
+// parseUSBNet 解析 AT+QCFG="usbnet" 回應
+// 回應格式: +QCFG: "usbnet",0
 func parseUSBNet(resp string) (int, bool) {
 	line, ok := findLineWithPrefix(resp, "+QCFG:")
 	if !ok {
@@ -522,8 +522,8 @@ func parseUSBNet(resp string) (int, bool) {
 	return -1, false
 }
 
-// parseCCHO 解析 AT+CCHO 響應，提取邏輯通道號
-// 響應格式: +CCHO: <channel>
+// parseCCHO 解析 AT+CCHO 回應，提取邏輯通道號
+// 回應格式: +CCHO: <channel>
 func parseCCHO(resp string) (int, bool) {
 	line, ok := findLineWithPrefix(resp, "+CCHO:")
 	if !ok {
@@ -541,8 +541,8 @@ func parseCCHO(resp string) (int, bool) {
 	return -1, false
 }
 
-// parseCGLA 解析 AT+CGLA 響應，提取 APDU 響應
-// 響應格式: +CGLA: <len>,"<apdu>"
+// parseCGLA 解析 AT+CGLA 回應，提取 APDU 回應
+// 回應格式: +CGLA: <len>,"<apdu>"
 func parseCGLA(resp string) (string, bool) {
 	line, ok := findLineWithPrefix(resp, "+CGLA:")
 	if !ok {
@@ -555,8 +555,8 @@ func parseCGLA(resp string) (string, bool) {
 	return apduStr, true
 }
 
-// parseCSIM 解析 AT+CSIM 響應，提取 APDU 響應
-// 響應格式: +CSIM: <len>,"<apdu>"
+// parseCSIM 解析 AT+CSIM 回應，提取 APDU 回應
+// 回應格式: +CSIM: <len>,"<apdu>"
 func parseCSIM(resp string) (string, bool) {
 	line, ok := findLineWithPrefix(resp, "+CSIM:")
 	if !ok {
@@ -569,8 +569,8 @@ func parseCSIM(resp string) (string, bool) {
 	return apduStr, true
 }
 
-// ParseCRSM 解析 AT+CRSM 響應
-// 返回值格式為：sw1, sw2, hex_data, ok
+// ParseCRSM 解析 AT+CRSM 回應
+// 回傳值格式為：sw1, sw2, hex_data, ok
 // 以 +CRSM: 144,0,"082984021385481729" 為例 -> sw1=144, sw2=0, data="082984021385481729"
 func ParseCRSM(resp string) (int, int, string, bool) {
 	line, ok := findLineWithPrefix(resp, "+CRSM:")

@@ -13,7 +13,7 @@ func TestAPDUCoordinatorChanMuIsStablePerChannel(t *testing.T) {
 	a := c.getOrCreateChanMu(3)
 	b := c.getOrCreateChanMu(3)
 	if a != b {
-		t.Fatal("getOrCreateChanMu(3) 應返回同一把鎖")
+		t.Fatal("getOrCreateChanMu(3) 應回傳同一把鎖")
 	}
 	if c.getOrCreateChanMu(4) == a {
 		t.Fatal("不同 channel 應是不同鎖")
@@ -30,10 +30,10 @@ func TestAPDUCoordinatorSessionRegistry(t *testing.T) {
 		t.Fatal("繫結後 hasSession 應為 true")
 	}
 	if _, ok := c.takeSession(2); !ok {
-		t.Fatal("takeSession 應取出已繫結會話")
+		t.Fatal("takeSession 應取出已繫結工作階段")
 	}
 	if c.hasSession(2) {
-		t.Fatal("takeSession 後會話應被移除")
+		t.Fatal("takeSession 後工作階段應被移除")
 	}
 }
 
@@ -41,10 +41,10 @@ func TestAPDUCoordinatorAcquireLeaseNilArbiterReturnsNil(t *testing.T) {
 	c := newAPDUCoordinator("MBIM")
 	lease, err := c.acquireLease(context.Background(), 0, "owner", apduarbiter.APDUClassEUICCWrite, 0, apduarbiter.TransportScopeExclusive)
 	if err != nil {
-		t.Fatalf("nil arbiter 不應報錯: %v", err)
+		t.Fatalf("nil arbiter 不應回報錯誤: %v", err)
 	}
 	if lease != nil {
-		t.Fatal("nil arbiter 應返回 nil 租約(退化為僅互斥)")
+		t.Fatal("nil arbiter 應回傳 nil 租約(退化為僅互斥)")
 	}
 }
 
@@ -57,7 +57,7 @@ func TestAPDUCoordinatorAcquireLeaseUsesArbiterAndMode(t *testing.T) {
 		t.Fatalf("acquireLease 失敗: %v", err)
 	}
 	if lease == nil {
-		t.Fatal("有 arbiter 時應返回非 nil 租約")
+		t.Fatal("有 arbiter 時應回傳非 nil 租約")
 	}
 	lease.Release()
 }

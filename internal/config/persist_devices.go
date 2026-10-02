@@ -101,21 +101,21 @@ func updateDevicesInFile(path string, mutate func(*yaml.Node) (*yaml.Node, error
 
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return fmt.Errorf("讀取配置檔案失敗: %w", err)
+		return fmt.Errorf("讀取設定檔失敗: %w", err)
 	}
 
 	var doc yaml.Node
 	if err := yaml.Unmarshal(data, &doc); err != nil {
-		return fmt.Errorf("解析配置檔案失敗: %w", err)
+		return fmt.Errorf("解析設定檔失敗: %w", err)
 	}
 
 	if len(doc.Content) == 0 {
-		return fmt.Errorf("配置檔案為空")
+		return fmt.Errorf("設定檔為空")
 	}
 
 	root := doc.Content[0]
 	if root.Kind != yaml.MappingNode {
-		return fmt.Errorf("配置檔案結構錯誤")
+		return fmt.Errorf("設定檔結構錯誤")
 	}
 
 	devices := getMapValue(root, "devices")
@@ -130,21 +130,21 @@ func updateDevicesInFile(path string, mutate func(*yaml.Node) (*yaml.Node, error
 
 	out, err := yaml.Marshal(&doc)
 	if err != nil {
-		return fmt.Errorf("序列化配置檔案失敗: %w", err)
+		return fmt.Errorf("序列化設定檔失敗: %w", err)
 	}
 
 	tmp := path + ".tmp"
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return fmt.Errorf("建立配置目錄失敗: %w", err)
+		return fmt.Errorf("建立設定目錄失敗: %w", err)
 	}
 	if err := os.WriteFile(tmp, out, 0o600); err != nil {
-		return fmt.Errorf("寫入臨時配置檔案失敗: %w", err)
+		return fmt.Errorf("寫入臨時設定檔失敗: %w", err)
 	}
 	if err := os.Rename(tmp, path); err != nil {
-		return fmt.Errorf("替換配置檔案失敗: %w", err)
+		return fmt.Errorf("替換設定檔失敗: %w", err)
 	}
 
-	_ = ReloadFromFile() // 觸發配置過載到記憶體
+	_ = ReloadFromFile() // 觸發設定過載到記憶體
 	return nil
 }
 

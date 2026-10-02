@@ -8,7 +8,7 @@ import (
 	"github.com/WongLoki/DJ4Hub/pkg/logger"
 )
 
-// 後端模式常量
+// 後端模式常數
 const (
 	BackendAT   = "at"
 	BackendQMI  = "qmi"
@@ -39,7 +39,7 @@ func ValidateBackendMode(in string) error {
 	}
 }
 
-// NewBackend 根據配置模式建立對應後端例項的工廠方法
+// NewBackend 根據設定模式建立對應後端實例的工廠方法
 // mode: "at" | "qmi"
 // controlPath: QMI 控制裝置路徑（qmi 模式必須）
 // m: modem.Manager（at 模式必須）

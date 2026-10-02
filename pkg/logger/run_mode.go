@@ -14,7 +14,7 @@ var (
 	goRunMode bool
 )
 
-// IsGoRun 返回目前行程是否大機率由 `go run` 啟動。
+// IsGoRun 回傳目前行程是否大機率由 `go run` 啟動。
 // 也支援透過 DJ4GHUB_FORCE_GO_RUN_LOG=true/false 手動覆蓋判定結果。
 func IsGoRun() bool {
 	goRunOnce.Do(func() {

@@ -17,7 +17,7 @@ type apduSessionInfo struct {
 }
 
 // apduCoordinator 提供 eUICC APDU 傳輸共用的序列化與仲裁:
-// 按通道互斥 + apduarbiter 租約 + 邏輯通道會話登記。QMI/MBIM 兩個傳輸共用。
+// 按通道互斥 + apduarbiter 租約 + 邏輯通道工作階段登記。QMI/MBIM 兩個傳輸共用。
 type apduCoordinator struct {
 	mode string
 

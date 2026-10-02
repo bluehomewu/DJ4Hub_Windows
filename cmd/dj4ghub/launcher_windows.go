@@ -93,7 +93,7 @@ func runCLI(args []string) int {
 			break
 		}
 		printUsage(os.Stderr)
-		err = fmt.Errorf("未知命令：%s", command)
+		err = fmt.Errorf("未知指令：%s", command)
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "錯誤：%v\n", err)
@@ -114,11 +114,11 @@ func printUsage(out io.Writer) {
                          在背景啟動並開啟管理網頁（直接雙擊 exe 等同 start）
   dj4ghub stop           停止背景服務
   dj4ghub status         檢視執行狀態
-  dj4ghub logs           檢視即時日誌（Ctrl+C 退出）
+  dj4ghub logs           檢視即時日誌（Ctrl+C 結束）
   dj4ghub open           開啟管理網頁
-  dj4ghub activate       檢查模組網卡並連線 Windows 行動寬頻後退出
+  dj4ghub activate       檢查模組網卡並連線 Windows 行動寬頻後結束
   dj4ghub serve [--demo] [--port COMx] [--listen 127.0.0.1:7575]
-                         在前臺執行服務（除錯用）
+                         在前景執行服務（除錯用）
   dj4ghub version        顯示版本
 `, appVersion)
 }
@@ -129,7 +129,7 @@ func validateListenAddress(listen string) error {
 		return fmt.Errorf("無效的監聽位址 %q: %w", listen, err)
 	}
 	if ip := net.ParseIP(host); host != "localhost" && (ip == nil || !ip.IsLoopback()) {
-		log.Printf("警告：%s 不是本機迴環位址，區域網內其他裝置將能讀取簡訊並控制模組", listen)
+		log.Printf("警告：%s 不是本機回送位址，區域網路內其他裝置將能讀取簡訊並控制模組", listen)
 	}
 	return nil
 }
@@ -304,9 +304,9 @@ func startService(args []string) error {
 		case err := <-exited:
 			removeServiceState()
 			path, _ := logPath()
-			return fmt.Errorf("背景服務啟動後立即退出（%v），請檢視日誌 %s", err, path)
+			return fmt.Errorf("背景服務啟動後立即結束（%v），請檢視日誌 %s", err, path)
 		case <-deadline:
-			return errors.New("背景服務在 25 秒內沒有響應，請執行 dj4ghub logs 檢視原因")
+			return errors.New("背景服務在 25 秒內沒有回應，請執行 dj4ghub logs 檢視原因")
 		case <-time.After(300 * time.Millisecond):
 		}
 	}
@@ -376,7 +376,7 @@ func stopService() error {
 		return fmt.Errorf("無法結束 PID %d: %w", state.PID, err)
 	}
 	removeServiceState()
-	fmt.Println("DJ 4G Hub 未在 10 秒內正常退出，已強制結束")
+	fmt.Println("DJ 4G Hub 未在 10 秒內正常結束，已強制結束")
 	return nil
 }
 

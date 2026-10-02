@@ -50,7 +50,7 @@ func buildQMIReadRecord(clientID uint8, txID uint16, fileID uint16, aid, path []
 
 func parseQMIReadResult(frame []byte) (data []byte, sw1, sw2 byte, err error) {
 	if len(frame) < 13 {
-		return nil, 0, 0, fmt.Errorf("qmi read: 響應過短 %d", len(frame))
+		return nil, 0, 0, fmt.Errorf("qmi read: 回應過短 %d", len(frame))
 	}
 	tlvs := frame[13:]
 	have := false
@@ -89,7 +89,7 @@ func parseQMIReadResult(frame []byte) (data []byte, sw1, sw2 byte, err error) {
 		return nil, 0, 0, fmt.Errorf("qmi read: 請求被模組拒絕，qmi_error=0x%04X", qmiErrorCode)
 	}
 	if !have && data == nil {
-		return nil, 0, 0, fmt.Errorf("qmi read: 響應缺少 card_result/read_result TLV")
+		return nil, 0, 0, fmt.Errorf("qmi read: 回應缺少 card_result/read_result TLV")
 	}
 	return data, sw1, sw2, nil
 }

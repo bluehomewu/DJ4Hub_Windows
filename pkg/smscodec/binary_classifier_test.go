@@ -52,7 +52,7 @@ func TestClassifyBinarySMS_OmaCPByPort(t *testing.T) {
 		t.Fatalf("應識別為 OMA CP，實際: %s", c.Kind)
 	}
 	out := formatBinaryClassification(c)
-	if !strings.Contains(out, "[OMA CP 電信業者配置簡訊]") {
+	if !strings.Contains(out, "[OMA CP 電信業者設定簡訊]") {
 		t.Fatalf("輸出缺少 OMA CP 標籤: %s", out)
 	}
 	if !strings.Contains(out, "raw=") {

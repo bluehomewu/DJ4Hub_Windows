@@ -157,7 +157,7 @@ func (a *app) saveAPN(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !regexp.MustCompile(`^[A-Za-z0-9.-]{1,100}$`).MatchString(body.APN) || (body.PDN != "IP" && body.PDN != "IPV4V6" && body.PDN != "IPV6") {
-		writeError(w, 400, "APN 或 IP 型別無效")
+		writeError(w, 400, "APN 或 IP 類型無效")
 		return
 	}
 	raw, err := a.phoneCommand("AT+CLCC")
@@ -184,5 +184,5 @@ func (a *app) saveAPN(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	writeError(w, 502, "模組未返回預期 APN，請重新整理檢查")
+	writeError(w, 502, "模組未回傳預期 APN，請重新整理檢查")
 }

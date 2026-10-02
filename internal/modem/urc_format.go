@@ -36,7 +36,7 @@ func urcKey(line string) string {
 		}
 		return s
 	}
-	// 無字首但含空格的標準 URC，需要返回完整字串作為 Key
+	// 無字首但含空格的標準 URC，需要回傳完整字串作為 Key
 	switch s {
 	case "NO CARRIER", "NO ANSWER", "SMS Ready", "Call Ready", "NORMAL POWER DOWN":
 		return s

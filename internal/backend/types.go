@@ -2,7 +2,7 @@ package backend
 
 import "time"
 
-// SignalInfo 訊號品質資訊（AT 和 QMI 後端統一返回此結構）
+// SignalInfo 訊號品質資訊（AT 和 QMI 後端統一回傳此結構）
 type SignalInfo struct {
 	// 通用訊號強度
 	RSSI int // dBm（AT+CSQ 轉換值 或 NAS.GetSignalStrength）
@@ -18,25 +18,25 @@ type SignalInfo struct {
 	NR5GSINR int
 }
 
-// ServingSystem 網路註冊狀態（AT 和 QMI 後端統一返回此結構）
+// ServingSystem 網路註冊狀態（AT 和 QMI 後端統一回傳此結構）
 type ServingSystem struct {
 	// 註冊狀態（0=未註冊, 1=本地註冊, 2=搜尋中, 3=被拒, 4=未知, 5=漫遊註冊）
 	RegStatus     int
 	RegStatusText string
 
 	// PLMN 資訊
-	Operator string // 電信業者名稱/程式碼
+	Operator string // 電信業者名稱/代碼
 	MCC      uint16
 	MNC      uint16
 
 	// 位置資訊
-	LAC    string // 位置區程式碼
-	CellID string // 小區 ID
+	LAC    string // 位置區碼
+	CellID string // 基地台 ID
 
-	// 接入技術
+	// 存取技術
 	NetworkMode   string // LTE/WCDMA/GSM 等
 	NetworkDuplex string // FDD/TDD
-	RadioBand     string // 目前服務小區/無線介面頻段
+	RadioBand     string // 目前服務基地台/無線介面頻段
 	RadioChannel  uint32 // EARFCN/ARFCN/channel
 
 	// PS 附著狀態
@@ -84,7 +84,7 @@ type SMS struct {
 	Timestamp time.Time
 }
 
-// SMSSummary 簡訊列表概要
+// SMSSummary 簡訊清單概要
 type SMSSummary struct {
 	Index int
 	Tag   int // 0=已讀, 1=未讀, 2=已傳送, 3=未傳送

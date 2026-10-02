@@ -223,7 +223,7 @@ func Setup(cfg LogConfig) {
 	}
 	fileEncoderConfig.ConsoleSeparator = " "
 
-	// 預設配置
+	// 預設設定
 	if cfg.Filename == "" {
 		cfg.Filename = "logs/app.log"
 	}

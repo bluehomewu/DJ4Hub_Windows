@@ -11,7 +11,7 @@ func buildQMIUIMPowerRequest(clientID uint8, msgID uint16, slot uint8) []byte {
 
 func parseQMIResultOnly(frame []byte) error {
 	if len(frame) < 13 {
-		return fmt.Errorf("qmi uim power: 響應過短 %d", len(frame))
+		return fmt.Errorf("qmi uim power: 回應過短 %d", len(frame))
 	}
 	tlvs := frame[13:]
 	for idx := 0; idx+3 <= len(tlvs); {
@@ -28,7 +28,7 @@ func parseQMIResultOnly(frame []byte) error {
 		}
 		idx += 3 + l
 	}
-	return fmt.Errorf("qmi uim power: 響應缺少 result TLV")
+	return fmt.Errorf("qmi uim power: 回應缺少 result TLV")
 }
 
 func (d *Device) UIMPowerOffSIM(ctx context.Context, slot uint8) error {
@@ -75,7 +75,7 @@ func ParseActiveSlot(frame []byte) (slot uint8, known bool, source string, err e
 		return 0, false, "", err
 	}
 	if len(frame) < 13 {
-		return 0, false, "", fmt.Errorf("qmi card status: 響應過短 %d", len(frame))
+		return 0, false, "", fmt.Errorf("qmi card status: 回應過短 %d", len(frame))
 	}
 	tlvs := frame[13:]
 	for idx := 0; idx+3 <= len(tlvs); {

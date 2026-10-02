@@ -88,7 +88,7 @@ func (h *communicationHistory) snapshot(directory string, prefix string) (string
 	}
 	info, err := os.Stat(directory)
 	if err != nil || !info.IsDir() {
-		return "", fmt.Errorf("備份目錄不可用，請確認雲盤目錄已下載到本機")
+		return "", fmt.Errorf("備份目錄不可用，請確認雲端硬碟目錄已下載到本機")
 	}
 	stage, err := os.MkdirTemp(filepath.Dir(h.path), ".history-snapshot-*")
 	if err != nil {
@@ -321,7 +321,7 @@ func (a *app) historyBackupStatus(w http.ResponseWriter, r *http.Request) {
 func (a *app) historyBackupAction(w http.ResponseWriter, r *http.Request) {
 	// Native requests have no Origin. Cross-origin web pages cannot choose file paths.
 	if r.Header.Get("X-DJ4Hub-Audio") != "1" || r.Header.Get("Origin") != "" {
-		writeError(w, 403, "請從 macOS 客戶端的備份設定操作")
+		writeError(w, 403, "請從 macOS 用戶端的備份設定操作")
 		return
 	}
 	var body struct {
@@ -365,7 +365,7 @@ func (a *app) historyBackupAction(w http.ResponseWriter, r *http.Request) {
 		message = "備份設定已儲存"
 	case "backup":
 		_, err = h.backupNow()
-		message = "完整備份已寫入所選目錄；雲盤上傳進度請在 Finder 檢視"
+		message = "完整備份已寫入所選目錄；雲端硬碟上傳進度請在 Finder 檢視"
 	case "restore":
 		if !body.Confirmed || !filepath.IsAbs(body.Path) {
 			writeError(w, 400, "恢復前需要確認")
@@ -374,7 +374,7 @@ func (a *app) historyBackupAction(w http.ResponseWriter, r *http.Request) {
 		var count int
 		var safety string
 		count, safety, err = h.restoreBackup(body.Path)
-		message = fmt.Sprintf("已補回 %d 條記錄；原資料安全備份：%s", count, safety)
+		message = fmt.Sprintf("已補回 %d 筆記錄；原資料安全備份：%s", count, safety)
 	default:
 		writeError(w, 400, "不支援的備份操作")
 		return

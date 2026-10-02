@@ -45,7 +45,7 @@ func NewDeleteProfileError(code DeleteProfileErrorCode, message string, err erro
 	}
 }
 
-// ClassifyDeleteProfileError 返回 DeleteProfile 錯誤類別。
+// ClassifyDeleteProfileError 回傳 DeleteProfile 錯誤類別。
 func ClassifyDeleteProfileError(err error) DeleteProfileErrorCode {
 	if err == nil {
 		return ""

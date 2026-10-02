@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-// 構造一個標準的 OMA CP WBXML 測試用例（APN 配置）
+// 構造一個標準的 OMA CP WBXML 測試用例（APN 設定）
 // 等價 XML：
 //
 //	<wap-provisioningdoc>
@@ -27,7 +27,7 @@ func buildTestWBXML() []byte {
 	// WBXML Header
 	buf = append(buf, 0x03) // 版本 1.3
 	buf = append(buf, 0x0B) // 公共 ID: OMA CP
-	buf = append(buf, 0x6A) // 字符集: UTF-8 (106)
+	buf = append(buf, 0x6A) // 字元集: UTF-8 (106)
 	buf = append(buf, 0x00) // 字串表長度: 0
 
 	// <wap-provisioningdoc> (tag 0x05, has content)
@@ -38,7 +38,7 @@ func buildTestWBXML() []byte {
 	buf = append(buf, 0x06|byte(wbxmlHasContent)|byte(wbxmlHasAttrs))
 	// type="NAPDEF" — 使用 ATTRSTART 0xA4 (type=NAPDEF)
 	buf = append(buf, 0xA4)
-	buf = append(buf, byte(wbxmlEnd)) // 結束屬性列表
+	buf = append(buf, byte(wbxmlEnd)) // 結束屬性清單
 
 	// <parm name="NAPID" value="internet"/> (tag 0x07, has attributes, no content)
 	buf = append(buf, 0x07|byte(wbxmlHasAttrs))
@@ -47,7 +47,7 @@ func buildTestWBXML() []byte {
 	buf = append(buf, byte(wbxmlStrI))
 	buf = append(buf, []byte("internet")...)
 	buf = append(buf, 0x00)           // null 終止符
-	buf = append(buf, byte(wbxmlEnd)) // 結束屬性列表
+	buf = append(buf, byte(wbxmlEnd)) // 結束屬性清單
 
 	// <parm name="NAP-ADDRESS" value="internet.telekom"/>
 	buf = append(buf, 0x07|byte(wbxmlHasAttrs))
@@ -79,7 +79,7 @@ func buildTestWBXML() []byte {
 	buf = append(buf, 0x06|byte(wbxmlHasContent)|byte(wbxmlHasAttrs))
 	buf = append(buf, byte(wbxmlSwitchPage), 0x01) // 切換 attr code page 到 1
 	buf = append(buf, 0xA4)                        // type="APPLICATION" (code page 1 的 0xA4)
-	buf = append(buf, byte(wbxmlEnd))              // 結束屬性列表
+	buf = append(buf, byte(wbxmlEnd))              // 結束屬性清單
 
 	// <parm name="APPID" value="w4"/>
 	buf = append(buf, 0x07|byte(wbxmlHasAttrs))
@@ -210,12 +210,12 @@ func TestDecodeOmaCPFromTPDU_EncryptedFallback(t *testing.T) {
 	data, _ := hex.DecodeString("0048150e221515b00011a8e388e4673a650e13c5cc6d22e1e78eb152d2ef139c27513b6abe5b130adb9b43f8e78eb863e07c27b195cf4571505558a485d9c3dc0c68a5cea1c0b35845c5")
 	_, err := DecodeOmaCPFromTPDU(data)
 	if err == nil {
-		t.Fatal("加密資料應返回錯誤")
+		t.Fatal("加密資料應回傳錯誤")
 	}
 	if !strings.Contains(err.Error(), "加密") {
 		t.Errorf("錯誤資訊應提及加密，實際: %s", err.Error())
 	}
-	t.Logf("加密資料正確返回錯誤: %v", err)
+	t.Logf("加密資料正確回傳錯誤: %v", err)
 }
 
 func TestFormatOmaCPSummary(t *testing.T) {

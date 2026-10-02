@@ -82,14 +82,14 @@ type Config struct {
 	Proxy    ProxyConfig    `mapstructure:"proxy"`
 }
 
-// ProxyConfig 定義代理服務配置
+// ProxyConfig 定義代理服務設定
 type ProxyConfig struct {
-	Instances []ProxyInstance `mapstructure:"instances"` // 代理例項列表
+	Instances []ProxyInstance `mapstructure:"instances"` // 代理實例清單
 }
 
-// ProxyInstance 定義一個代理例項配置
+// ProxyInstance 定義一個代理實例設定
 type ProxyInstance struct {
-	ID          string `mapstructure:"id" json:"id"`                   // 例項唯一標識
+	ID          string `mapstructure:"id" json:"id"`                   // 實例唯一識別碼
 	Name        string `mapstructure:"name" json:"name"`               // 顯示名稱
 	DeviceID    string `mapstructure:"device_id" json:"device_id"`     // 繫結裝置 ID（強制繫結對應網卡）
 	Enabled     bool   `mapstructure:"enabled" json:"enabled"`         // 是否啟用
@@ -145,7 +145,7 @@ type DeviceConfig struct {
 	QMIProxyExecutable string `mapstructure:"qmi_proxy_executable"`
 	ESIMTransport      string `mapstructure:"esim_transport"` // eSIM 傳輸通道: at|qmi|mbim，預設 at
 	DeviceBackend      string `mapstructure:"device_backend"` // 裝置後端模式: at|qmi|mbim|auto，預設 at
-	USBNetMode         *int   `mapstructure:"usbnet_mode"`    // 可選：用於校驗/設定 Quectel USBNET 模式
+	USBNetMode         *int   `mapstructure:"usbnet_mode"`    // 可選：用於驗證/設定 Quectel USBNET 模式
 	// ESIMSwitch controls deterministic eSIM switch behavior. Zero values preserve current behavior.
 	ESIMSwitch ESIMSwitchConfig `mapstructure:"esim_switch"`
 
@@ -159,14 +159,14 @@ type DeviceConfig struct {
 	StopBits int    `mapstructure:"stop_bits"`
 	Parity   string `mapstructure:"parity"`
 
-	// 以下為執行時有效策略（投影自 card_policies，按 ICCID），不再從配置檔案載入
+	// 以下為執行時有效策略（投影自 card_policies，按 ICCID），不再從設定檔載入
 	APN             string `mapstructure:"-"`
 	NetworkEnabled  bool   `mapstructure:"-"`
 	IPVersion       string `mapstructure:"-"`
 	AirplaneEnabled bool   `mapstructure:"-"`
 	SMSEnabled      bool   `mapstructure:"-"` // SMS 恆開，執行時強制 true
 
-	// USB Audio (自動發現，無需手動配置)
+	// USB Audio (自動發現，無需手動設定)
 	AudioDevice string `mapstructure:"-"` // Deprecated: 執行時解析,絕不從檔案讀取
 }
 
@@ -179,13 +179,13 @@ type TelegramConfig struct {
 	Proxy    string `mapstructure:"proxy"`    // HTTP 代理位址 (例如 http://127.0.0.1:7890)
 }
 
-// FeishuConfig 飛書通知配置
+// FeishuConfig 飛書通知設定
 type FeishuConfig struct {
 	Enabled   bool     `mapstructure:"enabled"`
-	AppID     string   `mapstructure:"app_id"`     // 飛書開放平臺應用 App ID
-	AppSecret string   `mapstructure:"app_secret"` // 飛書開放平臺應用 App Secret
-	ChatIDs   []string `mapstructure:"chat_ids"`   // 飛書群聊 chat_id 列表
-	ChatID    string   `mapstructure:"chat_id"`    // 相容舊配置：單個 chat_id
+	AppID     string   `mapstructure:"app_id"`     // 飛書開放平台應用 App ID
+	AppSecret string   `mapstructure:"app_secret"` // 飛書開放平台應用 App Secret
+	ChatIDs   []string `mapstructure:"chat_ids"`   // 飛書群聊 chat_id 清單
+	ChatID    string   `mapstructure:"chat_id"`    // 相容舊設定：單個 chat_id
 }
 
 type QQConfig struct {
@@ -256,15 +256,15 @@ func Load(path string) (*Config, error) {
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("讀取配置檔案失敗: %w", err)
+		return nil, fmt.Errorf("讀取設定檔失敗: %w", err)
 	}
 
 	var cfg Config
 	if err := viper.Unmarshal(&cfg); err != nil {
-		return nil, fmt.Errorf("解析配置檔案失敗: %w", err)
+		return nil, fmt.Errorf("解析設定檔失敗: %w", err)
 	}
 
-	// 相容舊版單值配置: feishu.chat_id
+	// 相容舊版單值設定: feishu.chat_id
 	if len(cfg.Feishu.ChatIDs) == 0 && strings.TrimSpace(cfg.Feishu.ChatID) != "" {
 		cfg.Feishu.ChatIDs = []string{strings.TrimSpace(cfg.Feishu.ChatID)}
 	}

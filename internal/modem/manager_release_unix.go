@@ -16,7 +16,7 @@ import (
 
 // forceReleasePort 檢查埠是否被佔用，如果是則殺掉佔用者
 func (m *Manager) forceReleasePort(portPath string) {
-	// 裝置檔案不存在時 fuser 可能返回核心執行緒 PID，直接跳過避免誤殺。
+	// 裝置檔案不存在時 fuser 可能回傳核心執行緒 PID，直接跳過避免誤殺。
 	if _, err := os.Stat(portPath); err != nil {
 		return
 	}
@@ -56,7 +56,7 @@ func (m *Manager) forceReleasePort(portPath string) {
 	}
 	if len(released) > 0 {
 		logger.Warn(fmt.Sprintf("[%s] 檢測到埠被外部行程佔用，正在強制釋放", m.cfg.ID), "port", portPath, "pids", released)
-		// 等待程序完全退出
+		// 等待行程完全結束
 		time.Sleep(200 * time.Millisecond)
 	}
 }
@@ -104,4 +104,4 @@ func currentProcessTaskPIDSet() map[int]struct{} {
 	return out
 }
 
-// SetSMSCallback 設定簡訊接收回撥
+// SetSMSCallback 設定簡訊接收回呼

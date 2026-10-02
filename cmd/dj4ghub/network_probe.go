@@ -42,7 +42,7 @@ func probeCellularInternet(ctx context.Context, interfaceName string, sourceIPv4
 
 func probeAnyTarget(ctx context.Context, interfaceName string, sourceIPv4 string, targets []string) (string, error) {
 	if len(targets) == 0 {
-		return "", errors.New("沒有配置公網檢測位址")
+		return "", errors.New("沒有設定網際網路檢測位址")
 	}
 	probeCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -118,7 +118,7 @@ func probeHTTPFromInterface(ctx context.Context, interfaceName string, sourceIPv
 		return err
 	}
 	if err := response.Body.Close(); err != nil {
-		return fmt.Errorf("關閉公網檢測響應: %w", err)
+		return fmt.Errorf("關閉網際網路檢測回應: %w", err)
 	}
 	return nil
 }

@@ -12,7 +12,7 @@ import (
 	qmiq "github.com/iniwex5/quectel-qmi-go/pkg/qmi"
 )
 
-// QMIUIMTransport 提供獨立於 qmicore.Manager 的 QMI UIM APDU 傳輸實現。
+// QMIUIMTransport 提供獨立於 qmicore.Manager 的 QMI UIM APDU 傳輸實作。
 // 僅負責 eUICC APDU，不負責網路撥號。
 type QMIUIMTransport struct {
 	controlDevice string
@@ -33,7 +33,7 @@ func NewQMIUIMTransportWithOptions(controlDevice string, clientOptions qmiq.Clie
 	}
 }
 
-// getOrCreateChanMu 返回指定 channel 對應的互斥鎖（懶建立，執行緒安全）
+// getOrCreateChanMu 回傳指定 channel 對應的互斥鎖（懶建立，執行緒安全）
 func (t *QMIUIMTransport) getOrCreateChanMu(channel byte) *sync.Mutex {
 	return t.coord.getOrCreateChanMu(channel)
 }
@@ -184,7 +184,7 @@ func (t *QMIUIMTransport) TransmitEUICCAPDU(ctx context.Context, slot byte, chan
 		lease.Touch()
 	}
 
-	// per-channel 互斥：同一通道內 APDU 順序執行，不同通道可併發
+	// per-channel 互斥：同一通道內 APDU 順序執行，不同通道可並行
 	chanMu := t.getOrCreateChanMu(channel)
 	chanMu.Lock()
 	defer chanMu.Unlock()
@@ -194,8 +194,8 @@ func (t *QMIUIMTransport) TransmitEUICCAPDU(ctx context.Context, slot byte, chan
 		return nil, err
 	}
 
-	// 使用上層傳入的 ctx（通常來自 DownloadProfile），不再建立固定 10 秒超時的內部 ctx。
-	// 這樣 BPP 安裝期間 eUICC 加解密+NVRAM 寫入導致的長時回應就不會觸發超時錯誤。
+	// 使用上層傳入的 ctx（通常來自 DownloadProfile），不再建立固定 10 秒逾時的內部 ctx。
+	// 這樣 BPP 安裝期間 eUICC 加解密+NVRAM 寫入導致的長時回應就不會觸發逾時錯誤。
 	resp, err := uim.SendAPDU(ctx, slot, channel, command)
 	if lease != nil {
 		lease.Touch()

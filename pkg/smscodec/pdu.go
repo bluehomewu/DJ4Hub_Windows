@@ -33,7 +33,7 @@ func NormalizeSMSEncoding(raw string) (SMSEncoding, error) {
 	}
 }
 
-// IsHexString 判斷字串是否為偶數長度的十六進位制編碼。
+// IsHexString 判斷字串是否為偶數長度的十六進位編碼。
 func IsHexString(s string) bool {
 	if len(s) < 2 || len(s)%2 != 0 {
 		return false
@@ -47,17 +47,17 @@ func IsHexString(s string) bool {
 	return true
 }
 
-// ConcatInfo 長簡訊分片資訊（UDH concatenation header）
+// ConcatInfo 長簡訊分段資訊（UDH concatenation header）
 type ConcatInfo struct {
 	IsConcat bool // 是否為多段簡訊
-	Ref      int  // 引用號（同一條長簡訊的所有分片共享此值）
+	Ref      int  // 引用號（同一條長簡訊的所有分段共享此值）
 	RefBits  int  // 引用號位寬：8 或 16
-	Total    int  // 總分片數
+	Total    int  // 總分段數
 	Seq      int  // 目前序號 (1-based)
 }
 
-// DecodeDeliverTPDU 解碼下行簡訊 TPDU，返回傳送方號碼、文字內容、傳送時間、和 concat 分片資訊。
-// 如果 TPDU 包含 UDH concatenation header（長簡訊分片），concat.IsConcat 為 true。
+// DecodeDeliverTPDU 解碼下行簡訊 TPDU，回傳傳送方號碼、文字內容、傳送時間、和 concat 分段資訊。
+// 如果 TPDU 包含 UDH concatenation header（長簡訊分段），concat.IsConcat 為 true。
 func DecodeDeliverTPDU(tpduBytes []byte) (sender string, text string, ts time.Time, concat ConcatInfo, err error) {
 	if trimmed, ok := TrimDeliverTPDUToDeclaredLength(tpduBytes); ok {
 		tpduBytes = trimmed
@@ -73,7 +73,7 @@ func DecodeDeliverTPDU(tpduBytes []byte) (sender string, text string, ts time.Ti
 	if err != nil {
 		return "", "", time.Time{}, ConcatInfo{}, err
 	}
-	// 檢測 UDH 中的 concatenation 資訊（長簡訊分片標識）
+	// 檢測 UDH 中的 concatenation 資訊（長簡訊分段識別碼）
 	if t.UDH != nil {
 		if segments, seqno, mref, ok := t.UDH.ConcatInfo8(); ok && segments > 1 {
 			concat = ConcatInfo{IsConcat: true, Ref: mref, RefBits: 8, Total: segments, Seq: seqno}
@@ -82,7 +82,7 @@ func DecodeDeliverTPDU(tpduBytes []byte) (sender string, text string, ts time.Ti
 		}
 	}
 
-	// 檢查是否為二進位資料 (比如針對 SIM 卡的 OTA / Class 2 訊息)，直接強轉會破壞編碼導致 webhook 報錯
+	// 檢查是否為二進位資料 (比如針對 SIM 卡的 OTA / Class 2 訊息)，直接強轉會破壞編碼導致 webhook 回報錯誤
 	textStr := string(msg)
 	alpha, aErr := t.DCS.Alphabet()
 	if aErr == nil && alpha == tpdu.Alpha8Bit {

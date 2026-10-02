@@ -27,7 +27,7 @@ func TestCapabilitiesAuthAKANotAdvertised(t *testing.T) {
 func TestCapabilitiesUICCChannelAndMBIMEx(t *testing.T) {
 	c := &Capabilities{UICCChannelOK: true, MBIMExOK: true, QMIOverMBIMOK: true}
 	if !c.UICCChannelAKAUsable() || !c.MBIMExUsable() || !c.QMIReadUsable() {
-		t.Fatal("探針位應透傳")
+		t.Fatal("探針位應直通傳送")
 	}
 }
 

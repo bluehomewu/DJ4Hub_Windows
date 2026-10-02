@@ -56,7 +56,7 @@ func (d *Device) Open(ctx context.Context, maxControlTransfer uint32) error {
 
 	// 走 mbim-proxy 時必須先發 PROXY_CONFIG 告訴代理要開啟哪個底層裝置,
 	// 之後 OPEN 才能被代理正確轉發——順序與 libmbim / `mbimcli -p` 一致。
-	// 順序反了(先 OPEN)代理不知道目標裝置,DeviceCaps 等後續命令會失敗。
+	// 順序反了(先 OPEN)代理不知道目標裝置,DeviceCaps 等後續指令會失敗。
 	if pc, ok := d.tr.(proxyConfigurer); ok {
 		if path, need := pc.needsProxyConfig(); need {
 			info := encodeProxyConfigInfo(path, 30)

@@ -368,7 +368,7 @@ func newDemoApp() *app {
 		sms: []receivedSMS{
 			{
 				Sender:    "10086",
-				Content:   "【DJ 4G Hub 示範】本月套餐剩餘流量 18.6GB。",
+				Content:   "【DJ 4G Hub 示範】本月資費方案剩餘流量 18.6GB。",
 				Timestamp: now.Add(-18 * time.Minute),
 			},
 			{
@@ -1452,7 +1452,7 @@ func (a *app) check4GRoute(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, networkCheckResult{
 			OK:      false,
 			Summary: "未偵測到 4G 模組",
-			Detail:  "請連線相容 USB 裝置後再檢測公網連線",
+			Detail:  "請連線相容 USB 裝置後再檢測網際網路連線",
 		})
 		return
 	}
@@ -1468,8 +1468,8 @@ func (a *app) check4GRoute(w http.ResponseWriter, r *http.Request) {
 	if a.demo {
 		writeJSON(w, http.StatusOK, networkCheckResult{
 			OK:      true,
-			Summary: "示範：4G 公網連線正常",
-			Detail:  fmt.Sprintf("已透過 %s 模擬公網驗證", service.Device),
+			Summary: "示範：4G 網際網路連線正常",
+			Detail:  fmt.Sprintf("已透過 %s 模擬網際網路驗證", service.Device),
 		})
 		return
 	}
@@ -1478,7 +1478,7 @@ func (a *app) check4GRoute(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), cellularProbeTimeout)
 	defer cancel()
 	target, dnsOK, err := probeCellularInternet(ctx, service.Device, service.IPv4)
-	routeDetail := "Windows 未返回系統出口"
+	routeDetail := "Windows 未回傳系統出口"
 	if route.Interface != "" {
 		routeDetail = fmt.Sprintf("Windows 系統出口為 %s", route.Interface)
 		if route.Gateway != "" {
@@ -1488,8 +1488,8 @@ func (a *app) check4GRoute(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		writeJSON(w, http.StatusOK, networkCheckResult{
 			OK:      false,
-			Summary: "4G 網卡已就緒，但公網不可達",
-			Detail:  fmt.Sprintf("已強制透過 %s（%s）請求公網但未收到響應；%s。請檢查 APN、SIM 漫遊權限或套餐狀態", service.Device, service.IPv4, routeDetail),
+			Summary: "4G 網卡已就緒，但網際網路不可達",
+			Detail:  fmt.Sprintf("已強制透過 %s（%s）請求網際網路但未收到回應；%s。請檢查 APN、SIM 漫遊權限或資費方案狀態", service.Device, service.IPv4, routeDetail),
 		})
 		log.Printf("cellular internet probe failed on %s (%s): %v", service.Device, service.IPv4, err)
 		return
@@ -1497,14 +1497,14 @@ func (a *app) check4GRoute(w http.ResponseWriter, r *http.Request) {
 	if !dnsOK {
 		writeJSON(w, http.StatusOK, networkCheckResult{
 			OK:      false,
-			Summary: "4G 公網可達，但域名存取失敗",
-			Detail:  fmt.Sprintf("%s（%s）可存取 %s，但域名檢測未通過；請檢查 DNS 設定", service.Device, service.IPv4, target),
+			Summary: "4G 網際網路可達，但網域名稱存取失敗",
+			Detail:  fmt.Sprintf("%s（%s）可存取 %s，但網域名稱檢測未通過；請檢查 DNS 設定", service.Device, service.IPv4, target),
 		})
 		return
 	}
-	summary := "4G 公網連線正常"
+	summary := "4G 網際網路連線正常"
 	if route.Interface != service.Device {
-		summary = "4G 公網可達，但不是 Windows 系統出口"
+		summary = "4G 網際網路可達，但不是 Windows 系統出口"
 	}
 	writeJSON(w, http.StatusOK, networkCheckResult{
 		OK:      true,
@@ -1530,7 +1530,7 @@ func (a *app) checkProxyRoute(w http.ResponseWriter, _ *http.Request) {
 	if err != nil {
 		writeJSON(w, http.StatusOK, networkCheckResult{
 			OK:      false,
-			Summary: "代理未打通",
+			Summary: "代理無法連通",
 			Detail:  "127.0.0.1:7890 代理存取失敗：" + err.Error(),
 		})
 		return
@@ -1539,15 +1539,15 @@ func (a *app) checkProxyRoute(w http.ResponseWriter, _ *http.Request) {
 	if resp.StatusCode == http.StatusNoContent || (resp.StatusCode >= 200 && resp.StatusCode < 400) {
 		writeJSON(w, http.StatusOK, networkCheckResult{
 			OK:      true,
-			Summary: "代理已打通",
-			Detail:  fmt.Sprintf("127.0.0.1:7890 -> google generate_204 返回 %s", resp.Status),
+			Summary: "代理已連通",
+			Detail:  fmt.Sprintf("127.0.0.1:7890 -> google generate_204 回傳 %s", resp.Status),
 		})
 		return
 	}
 	writeJSON(w, http.StatusOK, networkCheckResult{
 		OK:      false,
-		Summary: "代理響應異常",
-		Detail:  fmt.Sprintf("127.0.0.1:7890 返回 %s", resp.Status),
+		Summary: "代理回應異常",
+		Detail:  fmt.Sprintf("127.0.0.1:7890 回傳 %s", resp.Status),
 	})
 }
 
@@ -1730,7 +1730,7 @@ func (a *app) saveESIMNote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if len(body.Label) > 80 || len(body.Phone) > 80 || len(body.Tags) > 200 {
-		writeError(w, http.StatusBadRequest, "本地備註欄位過長")
+		writeError(w, http.StatusBadRequest, "本機備註欄位過長")
 		return
 	}
 	a.profileNotesMu.Lock()
@@ -1748,7 +1748,7 @@ func (a *app) saveESIMNote(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"message": "本地備註已儲存", "note": a.profileNotes[body.ICCID]})
+	writeJSON(w, http.StatusOK, map[string]any{"message": "本機備註已儲存", "note": a.profileNotes[body.ICCID]})
 }
 
 func atCommandSucceeded(response string) bool {
@@ -1816,7 +1816,7 @@ func encodeModuleProfileNote(note moduleProfileNote) (string, error) {
 		return "", errors.New("iccid is required")
 	}
 	if len(note.Label) > 48 || len(note.Phone) > 40 || len(note.Tags) > 48 {
-		return "", errors.New("模組資料名稱、手機號或標籤過長")
+		return "", errors.New("模組資料名稱、手機號碼或標籤過長")
 	}
 	encode := func(value string) string {
 		return base64.RawURLEncoding.EncodeToString([]byte(value))
@@ -1861,7 +1861,7 @@ func parseMEPhonebookStatus(response string) (used, total int, err error) {
 	re := regexp.MustCompile(`\+CPBS:\s*"ME",(\d+),(\d+)`)
 	match := re.FindStringSubmatch(response)
 	if len(match) != 3 {
-		return 0, 0, errors.New("ME 通訊錄容量未返回")
+		return 0, 0, errors.New("ME 通訊錄容量未回傳")
 	}
 	used, err = strconv.Atoi(match[1])
 	if err != nil {

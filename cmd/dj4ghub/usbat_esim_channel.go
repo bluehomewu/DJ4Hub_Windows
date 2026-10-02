@@ -42,7 +42,7 @@ func (c *usbATESIMChannel) OpenLogicalChannel(aid []byte) (byte, error) {
 	}
 	channel, ok := parseUSBCCHO(resp)
 	if !ok {
-		return 0, fmt.Errorf("解析 CCHO 響應失敗: %s", resp)
+		return 0, fmt.Errorf("解析 CCHO 回應失敗: %s", resp)
 	}
 	c.channel = byte(channel)
 	return c.channel, nil
@@ -58,15 +58,15 @@ func (c *usbATESIMChannel) Transmit(command []byte) ([]byte, error) {
 	cmdHex := strings.ToUpper(hex.EncodeToString(command))
 	resp, err := c.command(fmt.Sprintf(`AT+CGLA=%d,%d,"%s"`, c.channel, len(cmdHex), cmdHex), 15*time.Second)
 	if err != nil {
-		return nil, fmt.Errorf("APDU 透傳失敗: %w", err)
+		return nil, fmt.Errorf("APDU 直通傳送失敗: %w", err)
 	}
 	respHex, ok := parseUSBCGLA(resp)
 	if !ok {
-		return nil, fmt.Errorf("解析 CGLA 響應失敗: %s", resp)
+		return nil, fmt.Errorf("解析 CGLA 回應失敗: %s", resp)
 	}
 	out, err := hex.DecodeString(respHex)
 	if err != nil {
-		return nil, fmt.Errorf("解析 APDU 響應 hex 失敗: %w", err)
+		return nil, fmt.Errorf("解析 APDU 回應 hex 失敗: %w", err)
 	}
 	return out, nil
 }

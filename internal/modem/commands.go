@@ -254,7 +254,7 @@ func (m *Manager) OpenLogicalChannel(aid string) (int, error) {
 	return m.openLogicalChannel(aid, "esim_session_open", "esim", apduarbiter.APDUClassEUICCWrite)
 }
 
-// OpenSIMAuthLogicalChannel 透過 AT+CCHO 開啟 USIM/ISIM 鑑權 logical channel。
+// OpenSIMAuthLogicalChannel 透過 AT+CCHO 開啟 USIM/ISIM 驗證 logical channel。
 func (m *Manager) OpenSIMAuthLogicalChannel(aid string) (int, error) {
 	return m.openLogicalChannel(aid, "sim_aka_open", "sim_aka", apduarbiter.APDUClassUSIMAKA)
 }
@@ -308,7 +308,7 @@ func (m *Manager) openLogicalChannel(aid, leaseOwner, sessionOwner string, class
 	}
 	channel, ok := parseCCHO(resp)
 	if !ok {
-		return -1, fmt.Errorf("解析 logical channel 響應失敗: %s", resp)
+		return -1, fmt.Errorf("解析 logical channel 回應失敗: %s", resp)
 	}
 	if lease != nil {
 		lease.Touch()
@@ -317,7 +317,7 @@ func (m *Manager) openLogicalChannel(aid, leaseOwner, sessionOwner string, class
 	return channel, nil
 }
 
-// TransmitAPDU 透過 AT+CGLA 在 logical channel 上透傳 APDU
+// TransmitAPDU 透過 AT+CGLA 在 logical channel 上直通傳送 APDU
 func (m *Manager) TransmitAPDU(channel int, apduHex string) (string, error) {
 	owner := "esim_apdu"
 	class := apduarbiter.APDUClassEUICCWrite
@@ -346,11 +346,11 @@ func (m *Manager) TransmitAPDU(channel int, apduHex string) (string, error) {
 	cmd := fmt.Sprintf("AT+CGLA=%d,%d,\"%s\"", channel, len(apduHex), apduHex)
 	resp, err := m.ExecuteATSilent(cmd, 10*time.Second)
 	if err != nil {
-		return "", fmt.Errorf("APDU 透傳失敗: %w", err)
+		return "", fmt.Errorf("APDU 直通傳送失敗: %w", err)
 	}
 	apduResp, ok := parseCGLA(resp)
 	if !ok {
-		return "", fmt.Errorf("解析 APDU 響應失敗: %s", resp)
+		return "", fmt.Errorf("解析 APDU 回應失敗: %s", resp)
 	}
 	if lease != nil {
 		lease.Touch()
@@ -363,7 +363,7 @@ func (m *Manager) CloseLogicalChannel(channel int) error {
 	return m.closeLogicalChannel(channel, "esim_session_close", apduarbiter.APDUClassEUICCWrite)
 }
 
-// CloseSIMAuthLogicalChannel 透過 AT+CCHC 清理 USIM/ISIM 鑑權 logical channel。
+// CloseSIMAuthLogicalChannel 透過 AT+CCHC 清理 USIM/ISIM 驗證 logical channel。
 func (m *Manager) CloseSIMAuthLogicalChannel(channel int) error {
 	return m.closeLogicalChannel(channel, "sim_aka_close", apduarbiter.APDUClassRecovery)
 }
@@ -446,7 +446,7 @@ func (m *Manager) TransmitBasicAPDU(apduHex string) (string, error) {
 			}
 			parsed, ok := parseCSIM(resp)
 			if !ok {
-				return "", false, fmt.Errorf("解析 CSIM 響應失敗: %s", resp)
+				return "", false, fmt.Errorf("解析 CSIM 回應失敗: %s", resp)
 			}
 			return parsed, false, nil
 		}
@@ -508,7 +508,7 @@ func followUpBasicAPDU(send func(string) (string, error), originalAPDUHex string
 			return "", fmt.Errorf("APDU hex 解碼失敗: %w", err)
 		}
 		if len(original) < 5 {
-			return "", fmt.Errorf("APDU 收到 6C%02X 但原命令無 Le: %s", sw2, originalAPDUHex)
+			return "", fmt.Errorf("APDU 收到 6C%02X 但原指令無 Le: %s", sw2, originalAPDUHex)
 		}
 		original[len(original)-1] = sw2
 		nextAPDU := strings.ToLower(hex.EncodeToString(original))
