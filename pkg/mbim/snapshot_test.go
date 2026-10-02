@@ -96,7 +96,7 @@ func TestMonitorSMSCallback(t *testing.T) {
 	select {
 	case <-got:
 	case <-time.After(time.Second):
-		t.Fatal("SMS 回调未触发")
+		t.Fatal("SMS 回撥未觸發")
 	}
 }
 

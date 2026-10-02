@@ -90,7 +90,7 @@ func AuthSIM(ctx context.Context, d *Device, rand []byte) (sres uint32, kc uint6
 		return 0, 0, &StatusError{Op: "AUTH_SIM", Status: resp.Status}
 	}
 	b := resp.InfoBuffer
-	// Sres1(u32) + Kc1(u64) + ... ;只取第一组(N=1)。
+	// Sres1(u32) + Kc1(u64) + ... ;只取第一組(N=1)。
 	if len(b) < 12 {
 		return 0, 0, fmt.Errorf("mbim: AUTH_SIM response too short len=%d", len(b))
 	}

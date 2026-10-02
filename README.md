@@ -13,13 +13,13 @@
 
 ## 與 macOS 版的差異
 
-| 項目 | macOS（上游） | Windows（本專案） |
+| 專案 | macOS（上游） | Windows（本專案） |
 | --- | --- | --- |
 | AT 通道 | libusb 直接佔用 USB bulk 介面 | Quectel 驅動提供的「AT Port」COM 埠 |
 | 行動上網 | 切到 `usbnet=1`（ECM）才有網卡 | `usbnet=0` 搭配 Quectel NDIS／MBIM 驅動即為 Windows「行動電話」介面，可同時收發簡訊與上網 |
 | 網卡處理 | `networksetup` 啟用服務、重新 DHCP | 以 netsh 連線行動寬頻；網卡被停用時經 UAC 啟用 |
 | 聯網活動 | `nettop`，含每條連線流量 | TCP 連線表，列出應用與目標；Windows 不提供單條連線流量 |
-| 啟動器 | shell 腳本 | `dj4ghub.exe` 內建子命令，雙擊即可啟動 |
+| 啟動器 | shell 指令碼 | `dj4ghub.exe` 內建子命令，雙擊即可啟動 |
 | 原生 App／實驗音訊 | SwiftUI App、ADB 音訊 | 不提供；通話控制（撥號、接聽、掛斷、按鍵）仍可用 |
 
 ## 需求
@@ -41,8 +41,8 @@
 dj4ghub start          背景啟動並開啟管理網頁（雙擊 exe 等同此命令）
 dj4ghub start --demo   不接硬體的示範模式
 dj4ghub stop           停止背景服務
-dj4ghub status         查看執行狀態
-dj4ghub logs           即時查看日誌
+dj4ghub status         檢視執行狀態
+dj4ghub logs           即時檢視日誌
 dj4ghub open           重新開啟管理網頁
 dj4ghub activate       檢查模組網卡，必要時連線 Windows 行動寬頻後結束
 dj4ghub serve --port COM17
@@ -86,7 +86,7 @@ pwsh -File scripts/build-windows.ps1 -Arch arm64
 go test -tags hardware -run Hardware -v ./cmd/dj4ghub
 ```
 
-程式結構與平台層說明見 [SOURCE_STRUCTURE.md](SOURCE_STRUCTURE.md)。
+程式結構與平臺層說明見 [SOURCE_STRUCTURE.md](SOURCE_STRUCTURE.md)。
 
 ## 目前限制
 
@@ -99,7 +99,7 @@ go test -tags hardware -run Hardware -v ./cmd/dj4ghub
 
 本專案移植自 [WongLoki/DJ4Hub](https://github.com/WongLoki/DJ4Hub)（commit `3914cd6`），其程式碼又演進自 [ZenGeekLabs/DJOneHub](https://github.com/ZenGeekLabs/DJOneHub) 與 [iniwex5/vohive](https://github.com/iniwex5/vohive)。
 
-根目錄程式碼遵循 [PolyForm Noncommercial License 1.0.0](LICENSE)，**不得作商業用途**。必須保留的上游聲明：
+根目錄程式碼遵循 [PolyForm Noncommercial License 1.0.0](LICENSE)，**不得作商業用途**。必須保留的上游宣告：
 
 ```text
 Required Notice: Copyright iniwex5 (https://github.com/iniwex5/vohive)

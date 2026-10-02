@@ -16,8 +16,8 @@ type apduSessionInfo struct {
 	OpenedAt time.Time
 }
 
-// apduCoordinator 提供 eUICC APDU 传输共用的串行化与仲裁:
-// 按通道互斥 + apduarbiter 租约 + 逻辑通道会话登记。QMI/MBIM 两个传输共用。
+// apduCoordinator 提供 eUICC APDU 傳輸共用的序列化與仲裁:
+// 按通道互斥 + apduarbiter 租約 + 邏輯通道會話登記。QMI/MBIM 兩個傳輸共用。
 type apduCoordinator struct {
 	mode string
 
@@ -54,7 +54,7 @@ func (c *apduCoordinator) getOrCreateChanMu(channel byte) *sync.Mutex {
 	return mu
 }
 
-// resetChanMu 清空所有 per-channel 锁(用于传输 Stop:确保没有飞行中的 Transmit 复用旧锁)。
+// resetChanMu 清空所有 per-channel 鎖(用於傳輸 Stop:確保沒有飛行中的 Transmit 複用舊鎖)。
 func (c *apduCoordinator) resetChanMu() {
 	c.chanMuMu.Lock()
 	c.chanMu = make(map[byte]*sync.Mutex)

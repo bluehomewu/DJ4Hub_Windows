@@ -38,11 +38,11 @@ func (c *usbATESIMChannel) OpenLogicalChannel(aid []byte) (byte, error) {
 	aidHex := strings.ToUpper(hex.EncodeToString(aid))
 	resp, err := c.command(fmt.Sprintf(`AT+CCHO="%s"`, aidHex), 8*time.Second)
 	if err != nil {
-		return 0, fmt.Errorf("打开 eUICC logical channel 失败 (AID=%s): %w", aidHex, err)
+		return 0, fmt.Errorf("開啟 eUICC logical channel 失敗 (AID=%s): %w", aidHex, err)
 	}
 	channel, ok := parseUSBCCHO(resp)
 	if !ok {
-		return 0, fmt.Errorf("解析 CCHO 响应失败: %s", resp)
+		return 0, fmt.Errorf("解析 CCHO 響應失敗: %s", resp)
 	}
 	c.channel = byte(channel)
 	return c.channel, nil
@@ -53,20 +53,20 @@ func (c *usbATESIMChannel) Transmit(command []byte) ([]byte, error) {
 	defer c.mu.Unlock()
 
 	if c.channel == 0 {
-		return nil, fmt.Errorf("eUICC logical channel 尚未打开")
+		return nil, fmt.Errorf("eUICC logical channel 尚未開啟")
 	}
 	cmdHex := strings.ToUpper(hex.EncodeToString(command))
 	resp, err := c.command(fmt.Sprintf(`AT+CGLA=%d,%d,"%s"`, c.channel, len(cmdHex), cmdHex), 15*time.Second)
 	if err != nil {
-		return nil, fmt.Errorf("APDU 透传失败: %w", err)
+		return nil, fmt.Errorf("APDU 透傳失敗: %w", err)
 	}
 	respHex, ok := parseUSBCGLA(resp)
 	if !ok {
-		return nil, fmt.Errorf("解析 CGLA 响应失败: %s", resp)
+		return nil, fmt.Errorf("解析 CGLA 響應失敗: %s", resp)
 	}
 	out, err := hex.DecodeString(respHex)
 	if err != nil {
-		return nil, fmt.Errorf("解析 APDU 响应 hex 失败: %w", err)
+		return nil, fmt.Errorf("解析 APDU 響應 hex 失敗: %w", err)
 	}
 	return out, nil
 }
@@ -77,7 +77,7 @@ func (c *usbATESIMChannel) CloseLogicalChannel(channel byte) error {
 
 	_, err := c.command(fmt.Sprintf("AT+CCHC=%d", channel), 8*time.Second)
 	if err != nil {
-		return fmt.Errorf("关闭 eUICC logical channel %d 失败: %w", channel, err)
+		return fmt.Errorf("關閉 eUICC logical channel %d 失敗: %w", channel, err)
 	}
 	if c.channel == channel {
 		c.channel = 0

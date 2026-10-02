@@ -2,7 +2,7 @@ package esim
 
 import "errors"
 
-// DeleteProfileErrorCode 表示 DeleteProfile 场景的可判别错误类别。
+// DeleteProfileErrorCode 表示 DeleteProfile 場景的可判別錯誤類別。
 type DeleteProfileErrorCode string
 
 const (
@@ -14,7 +14,7 @@ const (
 	DeleteProfileErrorInternal        DeleteProfileErrorCode = "INTERNAL"
 )
 
-// DeleteProfileError 为删除 profile 提供结构化错误，便于 API 做稳定状态码映射。
+// DeleteProfileError 為刪除 profile 提供結構化錯誤，便於 API 做穩定狀態碼對映。
 type DeleteProfileError struct {
 	Code    DeleteProfileErrorCode
 	Message string
@@ -36,7 +36,7 @@ func (e *DeleteProfileError) Error() string {
 
 func (e *DeleteProfileError) Unwrap() error { return e.Err }
 
-// NewDeleteProfileError 构造一个可判别的 DeleteProfileError。
+// NewDeleteProfileError 構造一個可判別的 DeleteProfileError。
 func NewDeleteProfileError(code DeleteProfileErrorCode, message string, err error) error {
 	return &DeleteProfileError{
 		Code:    code,
@@ -45,7 +45,7 @@ func NewDeleteProfileError(code DeleteProfileErrorCode, message string, err erro
 	}
 }
 
-// ClassifyDeleteProfileError 返回 DeleteProfile 错误类别。
+// ClassifyDeleteProfileError 返回 DeleteProfile 錯誤類別。
 func ClassifyDeleteProfileError(err error) DeleteProfileErrorCode {
 	if err == nil {
 		return ""

@@ -2,48 +2,48 @@ package backend
 
 import "time"
 
-// SignalInfo 信号质量信息（AT 和 QMI 后端统一返回此结构）
+// SignalInfo 訊號品質資訊（AT 和 QMI 後端統一返回此結構）
 type SignalInfo struct {
-	// 通用信号强度
-	RSSI int // dBm（AT+CSQ 转换值 或 NAS.GetSignalStrength）
+	// 通用訊號強度
+	RSSI int // dBm（AT+CSQ 轉換值 或 NAS.GetSignalStrength）
 
-	// LTE 专有
+	// LTE 專有
 	RSRP int // dBm（AT+QENG 或 NAS.GetSignalInfo）
 	RSRQ int // dB（AT+QENG 或 NAS.GetSignalInfo）
 	SINR int // dB（NAS.GetSignalInfo LTE RSSNR）
 
-	// 5G 专有（NAS.GetSignalInfo 5G TLV）
+	// 5G 專有（NAS.GetSignalInfo 5G TLV）
 	NR5GRSRP int
 	NR5GRSRQ int
 	NR5GSINR int
 }
 
-// ServingSystem 网络注册状态（AT 和 QMI 后端统一返回此结构）
+// ServingSystem 網路註冊狀態（AT 和 QMI 後端統一返回此結構）
 type ServingSystem struct {
-	// 注册状态（0=未注册, 1=本地注册, 2=搜索中, 3=被拒, 4=未知, 5=漫游注册）
+	// 註冊狀態（0=未註冊, 1=本地註冊, 2=搜尋中, 3=被拒, 4=未知, 5=漫遊註冊）
 	RegStatus     int
 	RegStatusText string
 
-	// PLMN 信息
-	Operator string // 运营商名称/代码
+	// PLMN 資訊
+	Operator string // 電信業者名稱/程式碼
 	MCC      uint16
 	MNC      uint16
 
-	// 位置信息
-	LAC    string // 位置区代码
-	CellID string // 小区 ID
+	// 位置資訊
+	LAC    string // 位置區程式碼
+	CellID string // 小區 ID
 
-	// 接入技术
+	// 接入技術
 	NetworkMode   string // LTE/WCDMA/GSM 等
 	NetworkDuplex string // FDD/TDD
-	RadioBand     string // 当前服务小区/无线接口频段
+	RadioBand     string // 目前服務小區/無線介面頻段
 	RadioChannel  uint32 // EARFCN/ARFCN/channel
 
-	// PS 附着状态
+	// PS 附著狀態
 	PSAttached bool
 }
 
-// SIMMetadata 表示 SIM/eSIM profile 的原生元数据。
+// SIMMetadata 表示 SIM/eSIM profile 的原生後設資料。
 type SIMMetadata struct {
 	NativeMCC    string
 	NativeMNC    string
@@ -76,7 +76,7 @@ type SIMServiceTable struct {
 	EnabledServices []int  `json:"enabled_services,omitempty"`
 }
 
-// SMS 短信消息（统一数据结构）
+// SMS 簡訊訊息（統一資料結構）
 type SMS struct {
 	Index     int
 	Sender    string
@@ -84,17 +84,17 @@ type SMS struct {
 	Timestamp time.Time
 }
 
-// SMSSummary 短信列表概要
+// SMSSummary 簡訊列表概要
 type SMSSummary struct {
 	Index int
-	Tag   int // 0=已读, 1=未读, 2=已发送, 3=未发送
+	Tag   int // 0=已讀, 1=未讀, 2=已傳送, 3=未傳送
 }
 
-// OperatingMode 操作模式（映射 AT+CFUN 值和 QMI DMS OperatingMode）
+// OperatingMode 操作模式（對映 AT+CFUN 值和 QMI DMS OperatingMode）
 type OperatingMode int
 
 const (
 	ModeOnline   OperatingMode = 1 // AT+CFUN=1 / DMS ModeOnline
 	ModeLowPower OperatingMode = 0 // AT+CFUN=0 / DMS ModeLowPower
-	ModeRFOff    OperatingMode = 4 // AT+CFUN=4 / DMS ModePersistLow (飞行模式)
+	ModeRFOff    OperatingMode = 4 // AT+CFUN=4 / DMS ModePersistLow (飛航模式)
 )

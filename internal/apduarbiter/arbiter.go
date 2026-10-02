@@ -44,14 +44,14 @@ const (
 const transportPriorityAging = 500 * time.Millisecond
 
 type Options struct {
-	// MaxLeaseHold 是单条 APDU transport lease 的无进展 watchdog 超时。
-	// 持有方应在长耗时单条 APDU 前后调用 Touch；logical channel 生命周期不应再持有该 lease。
+	// MaxLeaseHold 是單條 APDU transport lease 的無進展 watchdog 超時。
+	// 持有方應在長耗時單條 APDU 前後呼叫 Touch；logical channel 生命週期不應再持有該 lease。
 	MaxLeaseHold time.Duration
-	// MaxSessions 是 legacy 兼容字段，仅服务旧 AcquireSession 接口。
-	// 新生产路径应使用 AcquireTransport，默认单设备同一时刻只允许一个 active transport APDU。
+	// MaxSessions 是 legacy 相容欄位，僅服務舊 AcquireSession 介面。
+	// 新生產路徑應使用 AcquireTransport，預設單裝置同一時刻只允許一個 active transport APDU。
 	MaxSessions int
-	// MaxQMITransports 限制 QMI logical-channel transport 并发数量。
-	// 只有显式使用 TransportScopeQMIChannel 的 QMI channel APDU 会使用该并发窗口。
+	// MaxQMITransports 限制 QMI logical-channel transport 併發數量。
+	// 只有顯式使用 TransportScopeQMIChannel 的 QMI channel APDU 會使用該併發視窗。
 	MaxQMITransports int
 }
 
@@ -131,7 +131,7 @@ type activeBarrier struct {
 }
 
 type Arbiter struct {
-	// 64 位 atomic 变量必须放在头部
+	// 64 位 atomic 變數必須放在頭部
 	seq uint64
 
 	deviceID string

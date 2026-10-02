@@ -171,7 +171,7 @@ func TestParseCOPSOperator(t *testing.T) {
 		{
 			name: "known plmn mapped to display name",
 			resp: "\r\n+COPS: 0,2,\"46011\",7\r\n\r\nOK\r\n",
-			want: "中国电信",
+			want: "中國電信",
 		},
 		{
 			name: "unknown plmn falls back to raw code",

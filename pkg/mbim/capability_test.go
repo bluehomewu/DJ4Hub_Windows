@@ -9,25 +9,25 @@ func TestCapabilitiesAuthAKAUsable(t *testing.T) {
 		}},
 	}
 	if !c.AuthAKAUsable() {
-		t.Fatal("宣告 Auth 应可用")
+		t.Fatal("宣告 Auth 應可用")
 	}
 	c.MarkAuthAKADead()
 	if c.AuthAKAUsable() {
-		t.Fatal("熔断后应不可用")
+		t.Fatal("熔斷後應不可用")
 	}
 }
 
 func TestCapabilitiesAuthAKANotAdvertised(t *testing.T) {
 	c := &Capabilities{Services: DeviceServices{}}
 	if c.AuthAKAUsable() {
-		t.Fatal("未宣告 Auth 不应可用")
+		t.Fatal("未宣告 Auth 不應可用")
 	}
 }
 
 func TestCapabilitiesUICCChannelAndMBIMEx(t *testing.T) {
 	c := &Capabilities{UICCChannelOK: true, MBIMExOK: true, QMIOverMBIMOK: true}
 	if !c.UICCChannelAKAUsable() || !c.MBIMExUsable() || !c.QMIReadUsable() {
-		t.Fatal("探针位应透传")
+		t.Fatal("探針位應透傳")
 	}
 }
 
@@ -36,16 +36,16 @@ func TestCapabilitiesAppListKnownUnsupported(t *testing.T) {
 		{Service: UUIDMSUICCLowLevelAccess, CIDs: []uint32{7}},
 	}}
 	if !(&Capabilities{Services: uiccAdvertised, AppListOK: false}).AppListKnownUnsupported() {
-		t.Fatal("宣告 UICC 但探针失败应判为确知不支持")
+		t.Fatal("宣告 UICC 但探針失敗應判為確知不支援")
 	}
 	if (&Capabilities{Services: uiccAdvertised, AppListOK: true}).AppListKnownUnsupported() {
-		t.Fatal("探针成功不应判为不支持")
+		t.Fatal("探針成功不應判為不支援")
 	}
 	if (&Capabilities{}).AppListKnownUnsupported() {
-		t.Fatal("未宣告 UICC 应为 unknown,不判为确知不支持")
+		t.Fatal("未宣告 UICC 應為 unknown,不判為確知不支援")
 	}
 	if (*Capabilities)(nil).AppListKnownUnsupported() {
-		t.Fatal("nil 应为 false")
+		t.Fatal("nil 應為 false")
 	}
 }
 
@@ -60,6 +60,6 @@ func TestCapabilitiesDeviceResetUsable(t *testing.T) {
 		t.Fatal("DeviceResetUsable() = true, want false without DEVICE_RESET")
 	}
 	if (*Capabilities)(nil).DeviceResetUsable() {
-		t.Fatal("nil 应为 false")
+		t.Fatal("nil 應為 false")
 	}
 }

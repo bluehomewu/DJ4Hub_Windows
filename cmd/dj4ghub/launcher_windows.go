@@ -73,13 +73,13 @@ func runCLI(args []string) int {
 		err = activateDJINetwork(os.Stdout)
 	case "audio-check":
 		if _, _, err = moduleAudioRuntime(); err == nil {
-			fmt.Println("本机音频运行文件及 ADB 已就绪；硬件兼容性将在准备时检查。")
+			fmt.Println("本機音訊執行檔案及 ADB 已就緒；硬體相容性將在準備時檢查。")
 		}
 	case "audio-install":
 		if len(args) != 1 {
 			err = errors.New("用法：dj4ghub audio-install DIR")
 		} else if err = installAudioRuntime(args[0]); err == nil {
-			fmt.Println("音频运行文件已导入；执行 dj4ghub audio-check 检查 ADB。未连接设备或加载驱动。")
+			fmt.Println("音訊執行檔案已匯入；執行 dj4ghub audio-check 檢查 ADB。未連線裝置或載入驅動。")
 		}
 	case "version", "--version", "-v":
 		fmt.Printf("DJ 4G Hub for Windows %s\n", appVersion)
@@ -96,7 +96,7 @@ func runCLI(args []string) int {
 		err = fmt.Errorf("未知命令：%s", command)
 	}
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "错误：%v\n", err)
+		fmt.Fprintf(os.Stderr, "錯誤：%v\n", err)
 		pauseIfOwnConsole(true)
 		return 1
 	}
@@ -111,25 +111,25 @@ func printUsage(out io.Writer) {
 
 用法：
   dj4ghub start [--demo] [--port COMx] [--no-open]
-                         在后台启动并打开管理网页（直接双击 exe 等同 start）
-  dj4ghub stop           停止后台服务
-  dj4ghub status         查看运行状态
-  dj4ghub logs           查看实时日志（Ctrl+C 退出）
-  dj4ghub open           打开管理网页
-  dj4ghub activate       检查模块网卡并连接 Windows 行动宽带后退出
+                         在後臺啟動並開啟管理網頁（直接雙擊 exe 等同 start）
+  dj4ghub stop           停止後臺服務
+  dj4ghub status         檢視執行狀態
+  dj4ghub logs           檢視即時日誌（Ctrl+C 退出）
+  dj4ghub open           開啟管理網頁
+  dj4ghub activate       檢查模組網卡並連線 Windows 行動寬頻後退出
   dj4ghub serve [--demo] [--port COMx] [--listen 127.0.0.1:7575]
-                         在前台运行服务（调试用）
-  dj4ghub version        显示版本
+                         在前臺執行服務（除錯用）
+  dj4ghub version        顯示版本
 `, appVersion)
 }
 
 func validateListenAddress(listen string) error {
 	host, _, err := net.SplitHostPort(listen)
 	if err != nil {
-		return fmt.Errorf("无效的监听地址 %q: %w", listen, err)
+		return fmt.Errorf("無效的監聽位址 %q: %w", listen, err)
 	}
 	if ip := net.ParseIP(host); host != "localhost" && (ip == nil || !ip.IsLoopback()) {
-		log.Printf("警告：%s 不是本机回环地址，局域网内其他设备将能读取短信并控制模块", listen)
+		log.Printf("警告：%s 不是本機迴環位址，區域網內其他裝置將能讀取簡訊並控制模組", listen)
 	}
 	return nil
 }
@@ -241,7 +241,7 @@ func startService(args []string) error {
 	}
 
 	if state := runningService(); state != nil {
-		fmt.Printf("DJ 4G Hub 已在运行（PID %d）：%s\n", state.PID, state.URL)
+		fmt.Printf("DJ 4G Hub 已在執行（PID %d）：%s\n", state.PID, state.URL)
 		if !*noOpen {
 			return openURL(state.URL)
 		}
@@ -280,7 +280,7 @@ func startService(args []string) error {
 		CreationFlags: windows.CREATE_NO_WINDOW | windows.CREATE_NEW_PROCESS_GROUP,
 	}
 	if err := child.Start(); err != nil {
-		return fmt.Errorf("启动后台服务失败: %w", err)
+		return fmt.Errorf("啟動後臺服務失敗: %w", err)
 	}
 	state := serviceState{
 		PID:     child.Process.Pid,
@@ -300,19 +300,19 @@ func startService(args []string) error {
 		case err := <-exited:
 			removeServiceState()
 			path, _ := logPath()
-			return fmt.Errorf("后台服务启动后立即退出（%v），请查看日志 %s", err, path)
+			return fmt.Errorf("後臺服務啟動後立即退出（%v），請檢視日誌 %s", err, path)
 		case <-deadline:
-			return errors.New("后台服务在 25 秒内没有响应，请执行 dj4ghub logs 查看原因")
+			return errors.New("後臺服務在 25 秒內沒有響應，請執行 dj4ghub logs 檢視原因")
 		case <-time.After(300 * time.Millisecond):
 		}
 	}
 	_ = child.Process.Release()
 	mode := ""
 	if *demo {
-		mode = "（演示模式）"
+		mode = "（示範模式）"
 	}
-	fmt.Printf("DJ 4G Hub %s 已在后台启动%s：%s\n", appVersion, mode, state.URL)
-	fmt.Println("停止服务：dj4ghub stop")
+	fmt.Printf("DJ 4G Hub %s 已在後臺啟動%s：%s\n", appVersion, mode, state.URL)
+	fmt.Println("停止服務：dj4ghub stop")
 	if !*noOpen {
 		return openURL(state.URL)
 	}
@@ -346,7 +346,7 @@ func stopService() error {
 	state, err := readServiceState()
 	if err != nil || state.PID <= 0 || !processAlive(state.PID) {
 		removeServiceState()
-		fmt.Println("DJ 4G Hub 未在运行")
+		fmt.Println("DJ 4G Hub 未在執行")
 		return nil
 	}
 	request, err := http.NewRequest(http.MethodPost, strings.TrimRight(state.URL, "/")+"/api/control/shutdown", nil)
@@ -365,14 +365,14 @@ func stopService() error {
 	}
 	handle, err := windows.OpenProcess(windows.PROCESS_TERMINATE, false, uint32(state.PID))
 	if err != nil {
-		return fmt.Errorf("无法结束 PID %d: %w", state.PID, err)
+		return fmt.Errorf("無法結束 PID %d: %w", state.PID, err)
 	}
 	defer windows.CloseHandle(handle)
 	if err := windows.TerminateProcess(handle, 1); err != nil {
-		return fmt.Errorf("无法结束 PID %d: %w", state.PID, err)
+		return fmt.Errorf("無法結束 PID %d: %w", state.PID, err)
 	}
 	removeServiceState()
-	fmt.Println("DJ 4G Hub 未在 10 秒内正常退出，已强制结束")
+	fmt.Println("DJ 4G Hub 未在 10 秒內正常退出，已強制結束")
 	return nil
 }
 
@@ -389,18 +389,18 @@ func waitForExit(pid int, timeout time.Duration) bool {
 func printServiceStatus() error {
 	path, _ := logPath()
 	if state := runningService(); state != nil {
-		fmt.Printf("运行中：PID %d，%s（启动于 %s）\n", state.PID, state.URL, state.Started.Format("2006-01-02 15:04:05"))
+		fmt.Printf("執行中：PID %d，%s（啟動於 %s）\n", state.PID, state.URL, state.Started.Format("2006-01-02 15:04:05"))
 	} else {
-		fmt.Println("未运行")
+		fmt.Println("未執行")
 	}
-	fmt.Printf("日志：%s\n", path)
+	fmt.Printf("日誌：%s\n", path)
 	return nil
 }
 
 func openConsole() error {
 	state := runningService()
 	if state == nil {
-		return errors.New("DJ 4G Hub 未在运行；请先执行 dj4ghub start")
+		return errors.New("DJ 4G Hub 未在執行；請先執行 dj4ghub start")
 	}
 	return openURL(state.URL)
 }
@@ -415,7 +415,7 @@ func openURL(target string) error {
 		return err
 	}
 	if err := windows.ShellExecute(0, verb, file, nil, nil, windows.SW_SHOWNORMAL); err != nil {
-		fmt.Printf("请在浏览器中打开：%s\n", target)
+		fmt.Printf("請在瀏覽器中開啟：%s\n", target)
 	}
 	return nil
 }
@@ -427,7 +427,7 @@ func followLogs() error {
 	}
 	file, err := os.Open(path)
 	if err != nil {
-		return fmt.Errorf("尚无日志：%s", path)
+		return fmt.Errorf("尚無日誌：%s", path)
 	}
 	defer file.Close()
 	if info, err := file.Stat(); err == nil && info.Size() > 64*1024 {
@@ -465,6 +465,6 @@ func pauseIfOwnConsole(waitForEnter bool) {
 		return
 	}
 	fmt.Println()
-	fmt.Println("按 Enter 关闭此窗口…")
+	fmt.Println("按 Enter 關閉此視窗…")
 	_, _ = bufio.NewReader(os.Stdin).ReadString('\n')
 }

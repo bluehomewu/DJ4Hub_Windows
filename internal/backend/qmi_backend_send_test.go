@@ -728,7 +728,7 @@ func TestQMIBackendExecuteUSSDOriginateDeadlineReturnsNetworkTimeout(t *testing.
 	if err == nil {
 		t.Fatal("ExecuteUSSD() error=nil want timeout")
 	}
-	if !strings.Contains(err.Error(), "USSD 响应网络超时") {
+	if !strings.Contains(err.Error(), "USSD 響應網路超時") {
 		t.Fatalf("ExecuteUSSD() error=%v want USSD network timeout", err)
 	}
 	if strings.Contains(err.Error(), "context deadline exceeded") {
@@ -775,7 +775,7 @@ func TestQMIBackendExecuteUSSDRejectsNextSessionUntilTimedOutSessionReleases(t *
 
 	src.onUSSD(&qmi.VoiceUSSDIndication{USSData: &qmi.VoiceUSSDPayload{DCS: 0x0F, Text: "stale previous result"}})
 	_, err = be.ExecuteUSSD(context.Background(), "*101#", time.Second)
-	if err == nil || !strings.Contains(err.Error(), "上次 USSD 会话尚未释放") {
+	if err == nil || !strings.Contains(err.Error(), "上次 USSD 會話尚未釋放") {
 		t.Fatalf("second ExecuteUSSD() error=%v want unreleased-session error", err)
 	}
 	if len(src.originateRequests) != 1 {
@@ -824,7 +824,7 @@ func (s *qmiBackendSendSourceStub) GetSMSC(ctx context.Context) (string, error) 
 	return "", nil
 }
 
-// GetDeviceSnapshot 返回 nil，表示没有快照，会降级到实时 IPC。
+// GetDeviceSnapshot 返回 nil，表示沒有快照，會降級到即時 IPC。
 func (s *qmiBackendSendSourceStub) GetDeviceSnapshot() *qmimanager.DeviceSnapshot {
 	return nil
 }

@@ -39,9 +39,9 @@ func openDJIUSBAT() (*usbAT, error) {
 		candidates = atPortCandidates(device.Interfaces)
 		if len(candidates) == 0 {
 			if len(device.DriverIssues) > 0 {
-				return nil, fmt.Errorf("未找到模块 AT 串口：%s；请安装 Quectel USB 驱动", strings.Join(device.DriverIssues, "；"))
+				return nil, fmt.Errorf("未找到模組 AT 串列埠：%s；請安裝 Quectel USB 驅動", strings.Join(device.DriverIssues, "；"))
 			}
-			return nil, errors.New("未找到模块 AT 串口；请确认已安装 Quectel USB 串口驱动")
+			return nil, errors.New("未找到模組 AT 串列埠；請確認已安裝 Quectel USB 串列埠驅動")
 		}
 	}
 	var lastErr error
@@ -74,7 +74,7 @@ func openATPort(name string) (*usbAT, error) {
 	if err != nil {
 		var portErr *serial.PortError
 		if errors.As(err, &portErr) && portErr.Code() == serial.PortBusy {
-			return nil, fmt.Errorf("%s 正被其他程序占用（例如 QCOM、QNavigator 或另一个 DJ 4G Hub）", name)
+			return nil, fmt.Errorf("%s 正被其他程式佔用（例如 QCOM、QNavigator 或另一個 DJ 4G Hub）", name)
 		}
 		return nil, fmt.Errorf("open %s: %w", name, err)
 	}
@@ -98,7 +98,7 @@ func (u *usbAT) Description() string {
 	if u == nil {
 		return "AT port"
 	}
-	return fmt.Sprintf("AT 串口 %s · 2ca3:4006", u.name)
+	return fmt.Sprintf("AT 串列埠 %s · 2ca3:4006", u.name)
 }
 
 func (u *usbAT) Command(cmd string, timeout time.Duration) (string, error) {

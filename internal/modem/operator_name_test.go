@@ -8,9 +8,9 @@ func TestResolveServingOperatorNameFromPLMN(t *testing.T) {
 		code string
 		want string
 	}{
-		{name: "china telecom plmn", code: "46011", want: "中国电信"},
-		{name: "china unicom plmn", code: "46001", want: "中国联通"},
-		{name: "quoted code", code: "\"46015\"", want: "中国广电"},
+		{name: "china telecom plmn", code: "46011", want: "中國電信"},
+		{name: "china unicom plmn", code: "46001", want: "中國聯通"},
+		{name: "quoted code", code: "\"46015\"", want: "中國廣電"},
 		{name: "unknown code fallback", code: "99999", want: "99999"},
 		{name: "empty code", code: "", want: ""},
 	}
@@ -32,7 +32,7 @@ func TestLookupServingOperatorNameFromPLMN(t *testing.T) {
 		want string
 		ok   bool
 	}{
-		{name: "known", code: "46000", want: "中国移动", ok: true},
+		{name: "known", code: "46000", want: "中國移動", ok: true},
 		{name: "unknown", code: "310260", want: "", ok: false},
 	}
 

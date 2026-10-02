@@ -20,10 +20,10 @@ func TestEncodeUICCOpenChannel(t *testing.T) {
 	}
 }
 
-// libmbim 的 uicc-ref-byte-array 编码(_mbim_struct_builder_append_byte_array,
-// swapped_offset_length=true)对空数组有特殊处理:buffer_len==0 时 offset 字段写 0,
-// 不指向变长区。旧实现无论 AID 是否为空都写 offset=fixed(16),空 AID 时这个非零
-// offset 指向一段空数据——不符合协议、可能是真机上空 AID 开通道返回
+// libmbim 的 uicc-ref-byte-array 編碼(_mbim_struct_builder_append_byte_array,
+// swapped_offset_length=true)對空陣列有特殊處理:buffer_len==0 時 offset 欄位寫 0,
+// 不指向變長區。舊實現無論 AID 是否為空都寫 offset=fixed(16),空 AID 時這個非零
+// offset 指向一段空資料——不符合協議、可能是真機上空 AID 開通道返回
 // status=0x15(InvalidParameters)的原因。
 func TestEncodeUICCOpenChannelEmptyAIDWritesZeroOffset(t *testing.T) {
 	info := encodeUICCOpenChannel(nil, 0, 0)
@@ -49,8 +49,8 @@ func TestEncodeUICCAPDU(t *testing.T) {
 	}
 }
 
-// 新固件 OPEN_CHANNEL 的 status 字段是 SELECT 的 SW1:0x90 表示成功、通道已打开。
-// 旧实现把"非 0 即失败"判错,会拒掉这类设备。
+// 新韌體 OPEN_CHANNEL 的 status 欄位是 SELECT 的 SW1:0x90 表示成功、通道已開啟。
+// 舊實現把"非 0 即失敗"判錯,會拒掉這類裝置。
 func TestUICCOpenChannelAcceptsSW1Success(t *testing.T) {
 	for _, status := range []uint32{0x00, 0x90, 0x91, 0x61, 0x9000} {
 		st := status
@@ -75,7 +75,7 @@ func TestUICCOpenChannelAcceptsSW1Success(t *testing.T) {
 		ch, err := UICCOpenChannel(context.Background(), d, []byte{0xA0})
 		d.Close()
 		if err != nil {
-			t.Fatalf("status=0x%x: UICCOpenChannel 报错: %v", st, err)
+			t.Fatalf("status=0x%x: UICCOpenChannel 報錯: %v", st, err)
 		}
 		if ch != 1 {
 			t.Fatalf("status=0x%x: channel = %d, want 1", st, ch)
@@ -83,7 +83,7 @@ func TestUICCOpenChannelAcceptsSW1Success(t *testing.T) {
 	}
 }
 
-// 真正的错误 SW1(如 0x6A 文件未找到)仍应失败。
+// 真正的錯誤 SW1(如 0x6A 檔案未找到)仍應失敗。
 func TestUICCOpenChannelRejectsErrorSW1(t *testing.T) {
 	ft := newFakeTransport()
 	ft.reply = func(w []byte) ([]byte, bool) {
@@ -93,7 +93,7 @@ func TestUICCOpenChannelRejectsErrorSW1(t *testing.T) {
 			return openDoneMsg(h.TransactionID), true
 		case MessageTypeCommand:
 			resp := make([]byte, 16)
-			le.PutUint32(resp[0:], 0x6A) // SW1=0x6A 错误
+			le.PutUint32(resp[0:], 0x6A) // SW1=0x6A 錯誤
 			le.PutUint32(resp[4:], 0)
 			return makeCommandDoneFragmentFor(h.TransactionID, UUIDMSUICCLowLevelAccess, CIDUICCOpenChannel, resp), true
 		}
@@ -105,7 +105,7 @@ func TestUICCOpenChannelRejectsErrorSW1(t *testing.T) {
 	}
 	defer d.Close()
 	if _, err := UICCOpenChannel(context.Background(), d, []byte{0xA0}); err == nil {
-		t.Fatal("status=0x6A 应返回错误")
+		t.Fatal("status=0x6A 應返回錯誤")
 	}
 }
 
@@ -142,8 +142,8 @@ func TestUICCAPDUStatusErrorWrapsKnownMSStatus(t *testing.T) {
 	}
 }
 
-// MBIM 把卡的 SW 放在 Status 字段、Response 只含数据。LPA 需要完整 R-APDU(数据+SW),
-// 故 UICCAPDU 必须把 Status 里的 SW 追加回数据尾部。否则 LPA 会把数据末两字节误当 SW。
+// MBIM 把卡的 SW 放在 Status 欄位、Response 只含資料。LPA 需要完整 R-APDU(資料+SW),
+// 故 UICCAPDU 必須把 Status 裡的 SW 追加回資料尾部。否則 LPA 會把資料末兩位元組誤當 SW。
 func TestUICCAPDUAppendsStatusWordFromStatusField(t *testing.T) {
 	ft := newFakeTransport()
 	ft.reply = func(w []byte) ([]byte, bool) {
@@ -152,9 +152,9 @@ func TestUICCAPDUAppendsStatusWordFromStatusField(t *testing.T) {
 		case MessageTypeOpen:
 			return openDoneMsg(h.TransactionID), true
 		case MessageTypeCommand:
-			data := []byte{0xBF, 0x3E, 0x12, 0x5A, 0x10} // 仅数据,无 SW
+			data := []byte{0xBF, 0x3E, 0x12, 0x5A, 0x10} // 僅資料,無 SW
 			resp := make([]byte, 12+len(data))
-			le.PutUint32(resp[0:], 0x90)             // Status = SW1 0x90(此固件成功)
+			le.PutUint32(resp[0:], 0x90)             // Status = SW1 0x90(此韌體成功)
 			le.PutUint32(resp[4:], uint32(len(data))) // Response length
 			le.PutUint32(resp[8:], 12)                // Response offset
 			copy(resp[12:], data)
@@ -171,7 +171,7 @@ func TestUICCAPDUAppendsStatusWordFromStatusField(t *testing.T) {
 	if err != nil {
 		t.Fatalf("UICCAPDU: %v", err)
 	}
-	want := []byte{0xBF, 0x3E, 0x12, 0x5A, 0x10, 0x90, 0x00} // 数据 + SW(9000)
+	want := []byte{0xBF, 0x3E, 0x12, 0x5A, 0x10, 0x90, 0x00} // 資料 + SW(9000)
 	if len(out) != len(want) {
 		t.Fatalf("response len = %d, want %d (%x)", len(out), len(want), out)
 	}
@@ -187,9 +187,9 @@ func TestUICCStatusWordBytes(t *testing.T) {
 		status uint32
 		want   [2]byte
 	}{
-		{0x90, [2]byte{0x90, 0x00}},   // 仅 SW1
+		{0x90, [2]byte{0x90, 0x00}},   // 僅 SW1
 		{0x9000, [2]byte{0x90, 0x00}}, // 完整 SW
-		{0x61, [2]byte{0x61, 0x00}},   // 仅 SW1(更多数据)
+		{0x61, [2]byte{0x61, 0x00}},   // 僅 SW1(更多資料)
 		{0x6310, [2]byte{0x63, 0x10}}, // 完整 SW(告警)
 	}
 	for _, c := range cases {

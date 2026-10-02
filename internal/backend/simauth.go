@@ -2,21 +2,21 @@ package backend
 
 import "context"
 
-// SIMAuthProvider SIM 卡鉴权 / APDU 通道接口
+// SIMAuthProvider SIM 卡鑑權 / APDU 通道介面
 type SIMAuthProvider interface {
-	// OpenLogicalChannel 打开逻辑通道
-	// AT 实现：AT+CCHO
-	// QMI 实现：UIM.OpenLogicalChannel
+	// OpenLogicalChannel 開啟邏輯通道
+	// AT 實現：AT+CCHO
+	// QMI 實現：UIM.OpenLogicalChannel
 	OpenLogicalChannel(ctx context.Context, aid string) (channelID int, err error)
 
-	// CloseLogicalChannel 关闭逻辑通道
-	// AT 实现：AT+CCHC
-	// QMI 实现：UIM.CloseLogicalChannel
+	// CloseLogicalChannel 關閉邏輯通道
+	// AT 實現：AT+CCHC
+	// QMI 實現：UIM.CloseLogicalChannel
 	CloseLogicalChannel(ctx context.Context, channelID int) error
 
-	// TransmitAPDU 在逻辑通道上传输 APDU
-	// AT 实现：AT+CGLA
-	// QMI 实现：UIM.SendAPDU
+	// TransmitAPDU 在邏輯通道上傳輸 APDU
+	// AT 實現：AT+CGLA
+	// QMI 實現：UIM.SendAPDU
 	TransmitAPDU(ctx context.Context, channelID int, command string) (response string, err error)
 }
 

@@ -54,7 +54,7 @@ func (a *app) phoneCommand(command string) (string, error) {
 	for _, line := range strings.Split(raw, "\n") {
 		line = strings.TrimSpace(line)
 		if line == "ERROR" || strings.HasPrefix(line, "+CME ERROR:") || line == "NO CARRIER" || line == "BUSY" {
-			return raw, fmt.Errorf("模块拒绝操作：%s", line)
+			return raw, fmt.Errorf("模組拒絕操作：%s", line)
 		}
 	}
 	return raw, nil
@@ -85,7 +85,7 @@ func (a *app) callAction(w http.ResponseWriter, r *http.Request) {
 	switch body.Action {
 	case "dial":
 		if !regexp.MustCompile(`^\+?[0-9]{1,20}$`).MatchString(body.Number) {
-			writeError(w, 400, "请输入有效电话号码")
+			writeError(w, 400, "請輸入有效電話號碼")
 			return
 		}
 		command = "ATD" + body.Number + ";"
@@ -95,12 +95,12 @@ func (a *app) callAction(w http.ResponseWriter, r *http.Request) {
 		command = "AT+CHUP"
 	case "dtmf":
 		if !regexp.MustCompile(`^[0-9*#A-D]$`).MatchString(body.Digit) {
-			writeError(w, 400, "无效按键")
+			writeError(w, 400, "無效按鍵")
 			return
 		}
 		command = `AT+VTS="` + body.Digit + `"`
 	default:
-		writeError(w, 400, "未知电话操作")
+		writeError(w, 400, "未知電話操作")
 		return
 	}
 	identity := ""
@@ -126,7 +126,7 @@ func (a *app) callAction(w http.ResponseWriter, r *http.Request) {
 		}
 		message := err.Error()
 		if detail != "" {
-			message += "；语音诊断：" + detail + "。音频待机不代表 IMS 已注册或通话可用。"
+			message += "；語音診斷：" + detail + "。音訊待機不代表 IMS 已註冊或通話可用。"
 		}
 		writeError(w, 502, message)
 		return
@@ -157,7 +157,7 @@ func (a *app) saveAPN(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !regexp.MustCompile(`^[A-Za-z0-9.-]{1,100}$`).MatchString(body.APN) || (body.PDN != "IP" && body.PDN != "IPV4V6" && body.PDN != "IPV6") {
-		writeError(w, 400, "APN 或 IP 类型无效")
+		writeError(w, 400, "APN 或 IP 型別無效")
 		return
 	}
 	raw, err := a.phoneCommand("AT+CLCC")
@@ -166,7 +166,7 @@ func (a *app) saveAPN(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if len(parseVoiceCalls(raw)) > 0 {
-		writeError(w, 409, "请在通话结束后修改 APN")
+		writeError(w, 409, "請在通話結束後修改 APN")
 		return
 	}
 	if _, err = a.phoneCommand(fmt.Sprintf(`AT+CGDCONT=1,"%s","%s"`, body.PDN, body.APN)); err != nil {
@@ -175,14 +175,14 @@ func (a *app) saveAPN(w http.ResponseWriter, r *http.Request) {
 	}
 	raw, err = a.phoneCommand("AT+CGDCONT?")
 	if err != nil {
-		writeError(w, 502, "写入后无法确认 APN，请刷新检查")
+		writeError(w, 502, "寫入後無法確認 APN，請重新整理檢查")
 		return
 	}
 	for _, ctx := range parsePDPContexts(raw) {
 		if ctx.ID == 1 && ctx.APN == body.APN && ctx.PDN == body.PDN {
-			writeJSON(w, 200, map[string]string{"summary": "APN 已保存，下次数据连接时生效"})
+			writeJSON(w, 200, map[string]string{"summary": "APN 已儲存，下次資料連線時生效"})
 			return
 		}
 	}
-	writeError(w, 502, "模块未返回预期 APN，请刷新检查")
+	writeError(w, 502, "模組未返回預期 APN，請重新整理檢查")
 }

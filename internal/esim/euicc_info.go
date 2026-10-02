@@ -25,14 +25,14 @@ func (m *Manager) enrichEUICCInfo(reader euiccInfoReader, euicc *EUICCInfo) {
 		applyEUICCInfoTLV(euicc, "euicc_info2", tlv)
 	} else {
 		euicc.InfoError = err.Error()
-		logger.Warn("获取 EUICCInfo2 失败，尝试降级 EUICCInfo1",
+		logger.Warn("取得 EUICCInfo2 失敗，嘗試降級 EUICCInfo1",
 			"device", m.deviceID,
 			"EID", euicc.EID,
 			"err", err)
 		if tlv1, err1 := reader.EUICCInfo1(); err1 == nil {
 			applyEUICCInfoTLV(euicc, "euicc_info1", tlv1)
 		} else {
-			logger.Debug("获取 EUICCInfo1 也失败",
+			logger.Debug("取得 EUICCInfo1 也失敗",
 				"device", m.deviceID,
 				"EID", euicc.EID,
 				"err", err1)
@@ -43,7 +43,7 @@ func (m *Manager) enrichEUICCInfo(reader euiccInfoReader, euicc *EUICCInfo) {
 		euicc.DefaultSMDPAddress = addresses.DefaultSMDPAddress
 		euicc.RootSMDSAddress = addresses.RootSMDSAddress
 	} else if err != nil {
-		logger.Debug("获取 eUICC 配置地址失败",
+		logger.Debug("取得 eUICC 配置位址失敗",
 			"device", m.deviceID,
 			"EID", euicc.EID,
 			"err", err)
@@ -72,7 +72,7 @@ func applyEUICCInfoTLV(euicc *EUICCInfo, source string, tlv *bertlv.TLV) {
 					euicc.FreeNvram = formatBytes(int64(euicc.FreeNvramBytes))
 				}
 			} else {
-				logger.Debug("解析 extResource 失败", "err", err)
+				logger.Debug("解析 extResource 失敗", "err", err)
 			}
 		}
 	}

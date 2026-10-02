@@ -78,8 +78,8 @@ func makeCommandDoneFragmentFor(tx uint32, service UUID, cid uint32, info []byte
 	return b
 }
 
-// proxyOrderTransport 模拟一个走 mbim-proxy 的传输:实现 proxyConfigurer,
-// 并按 tx 回复 PROXY_CONFIG 的 COMMAND_DONE 与 OPEN_DONE,同时记录写入顺序。
+// proxyOrderTransport 模擬一個走 mbim-proxy 的傳輸:實現 proxyConfigurer,
+// 並按 tx 回覆 PROXY_CONFIG 的 COMMAND_DONE 與 OPEN_DONE,同時記錄寫入順序。
 type proxyOrderTransport struct {
 	*fakeTransport
 }

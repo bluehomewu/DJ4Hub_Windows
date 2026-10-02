@@ -12,8 +12,8 @@ import (
 	qmiq "github.com/iniwex5/quectel-qmi-go/pkg/qmi"
 )
 
-// QMIUIMTransport 提供独立于 qmicore.Manager 的 QMI UIM APDU 传输实现。
-// 仅负责 eUICC APDU，不负责网络拨号。
+// QMIUIMTransport 提供獨立於 qmicore.Manager 的 QMI UIM APDU 傳輸實現。
+// 僅負責 eUICC APDU，不負責網路撥號。
 type QMIUIMTransport struct {
 	controlDevice string
 	clientOptions qmiq.ClientOptions
@@ -33,7 +33,7 @@ func NewQMIUIMTransportWithOptions(controlDevice string, clientOptions qmiq.Clie
 	}
 }
 
-// getOrCreateChanMu 返回指定 channel 对应的互斥锁（懒创建，线程安全）
+// getOrCreateChanMu 返回指定 channel 對應的互斥鎖（懶建立，執行緒安全）
 func (t *QMIUIMTransport) getOrCreateChanMu(channel byte) *sync.Mutex {
 	return t.coord.getOrCreateChanMu(channel)
 }
@@ -69,14 +69,14 @@ func (t *QMIUIMTransport) Start() error {
 
 	t.client = client
 	t.uim = uim
-	logger.Info("独立 QMI UIM transport 启动成功",
+	logger.Info("獨立 QMI UIM transport 啟動成功",
 		"transport", transportQMI,
 		"control_device", controlDevice)
 	return nil
 }
 
 func (t *QMIUIMTransport) Stop() error {
-	// 清理所有 per-channel 锁，保证没有飞行中的 Transmit
+	// 清理所有 per-channel 鎖，保證沒有飛行中的 Transmit
 	t.releaseAllAPDULeases("stop")
 	t.coord.resetChanMu()
 
@@ -113,8 +113,8 @@ func (t *QMIUIMTransport) OpenEUICCLogicalChannel(ctx context.Context, slot byte
 		defer lease.Release()
 		lease.Touch()
 	}
-	// Open 操作就用 getOrCreateChanMu(0) 也就是 channel 0 锁来串行化
-	// （Open 频率远低，通道 0 正常不会被用于应用层 APDU）
+	// Open 操作就用 getOrCreateChanMu(0) 也就是 channel 0 鎖來序列化
+	// （Open 頻率遠低，通道 0 正常不會被用於應用層 APDU）
 	openMu := t.getOrCreateChanMu(0)
 	openMu.Lock()
 	defer openMu.Unlock()
@@ -145,7 +145,7 @@ func (t *QMIUIMTransport) CloseEUICCLogicalChannel(ctx context.Context, slot byt
 		defer lease.Release()
 		lease.Touch()
 	}
-	// Close 也用 channel 0 锁串行化（与 Open 的锁相同）
+	// Close 也用 channel 0 鎖序列化（與 Open 的鎖相同）
 	closeMu := t.getOrCreateChanMu(0)
 	closeMu.Lock()
 	defer closeMu.Unlock()
@@ -184,7 +184,7 @@ func (t *QMIUIMTransport) TransmitEUICCAPDU(ctx context.Context, slot byte, chan
 		lease.Touch()
 	}
 
-	// per-channel 互斥：同一通道内 APDU 顺序执行，不同通道可并发
+	// per-channel 互斥：同一通道內 APDU 順序執行，不同通道可併發
 	chanMu := t.getOrCreateChanMu(channel)
 	chanMu.Lock()
 	defer chanMu.Unlock()
@@ -194,8 +194,8 @@ func (t *QMIUIMTransport) TransmitEUICCAPDU(ctx context.Context, slot byte, chan
 		return nil, err
 	}
 
-	// 使用上层传入的 ctx（通常来自 DownloadProfile），不再创建固定 10 秒超时的内部 ctx。
-	// 这样 BPP 安装期间 eUICC 加解密+NVRAM 写入导致的长时回应就不会触发超时错误。
+	// 使用上層傳入的 ctx（通常來自 DownloadProfile），不再建立固定 10 秒超時的內部 ctx。
+	// 這樣 BPP 安裝期間 eUICC 加解密+NVRAM 寫入導致的長時回應就不會觸發超時錯誤。
 	resp, err := uim.SendAPDU(ctx, slot, channel, command)
 	if lease != nil {
 		lease.Touch()

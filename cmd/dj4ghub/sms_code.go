@@ -3,8 +3,8 @@ package main
 import "regexp"
 
 var smsCodePatterns = []*regexp.Regexp{
-	regexp.MustCompile(`(?i)(?:验证码|校验码|动态码|验证代码|verification\s*code|security\s*code|one[-\s]?time\s*(?:password|code)|otp|passcode|login\s*code|code)\D{0,12}([0-9]{4,8})`),
-	regexp.MustCompile(`(?i)([0-9]{4,8})\D{0,12}(?:验证码|校验码|动态码|verification\s*code|security\s*code|one[-\s]?time\s*(?:password|code)|otp|passcode|login\s*code)`),
+	regexp.MustCompile(`(?i)(?:驗證碼|校驗碼|動態碼|驗證程式碼|verification\s*code|security\s*code|one[-\s]?time\s*(?:password|code)|otp|passcode|login\s*code|code)\D{0,12}([0-9]{4,8})`),
+	regexp.MustCompile(`(?i)([0-9]{4,8})\D{0,12}(?:驗證碼|校驗碼|動態碼|verification\s*code|security\s*code|one[-\s]?time\s*(?:password|code)|otp|passcode|login\s*code)`),
 }
 
 // extractSMSCode only accepts a short number adjacent to an OTP-style keyword.

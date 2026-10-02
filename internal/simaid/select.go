@@ -4,7 +4,7 @@ import "fmt"
 
 func SelectAIDWithTransmit(aids [][]byte, match func([]byte) bool, transmit func([]byte) ([]byte, error)) ([]byte, bool, error) {
 	if transmit == nil {
-		return nil, false, fmt.Errorf("transmit 为空")
+		return nil, false, fmt.Errorf("transmit 為空")
 	}
 	var lastErr error
 	for _, aid := range aids {
@@ -23,7 +23,7 @@ func SelectAIDWithTransmit(aids [][]byte, match func([]byte) bool, transmit func
 			}
 			sw1, sw2, ok := APDUStatus(rsp)
 			if !ok {
-				lastErr = fmt.Errorf("APDU 响应过短: %X", rsp)
+				lastErr = fmt.Errorf("APDU 響應過短: %X", rsp)
 				continue
 			}
 			if IsSelectSuccess(sw1, sw2) {

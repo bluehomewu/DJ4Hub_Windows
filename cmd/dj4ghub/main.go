@@ -241,7 +241,7 @@ func runServer(args []string) error {
 	preferredATPort = strings.ToUpper(strings.TrimSpace(port))
 	usbDevice := discoverDJIUSBDevice()
 	instance := &app{
-		port:             "未发现 AT 串口",
+		port:             "未發現 AT 串列埠",
 		usbDevice:        usbDevice,
 		smsPollInterval:  8 * time.Second,
 		smsAutoCleanupME: true,
@@ -365,7 +365,7 @@ func newDemoApp() *app {
 		sms: []receivedSMS{
 			{
 				Sender:    "10086",
-				Content:   "【DJ 4G Hub 演示】本月套餐剩余流量 18.6GB。",
+				Content:   "【DJ 4G Hub 示範】本月套餐剩餘流量 18.6GB。",
 				Timestamp: now.Add(-18 * time.Minute),
 			},
 			{
@@ -497,7 +497,7 @@ func (a *app) ensureUSBAT() error {
 		return nil
 	}
 	if a.currentUSBDevice() == nil {
-		a.port = "未检测到 DJI USB 设备"
+		a.port = "未偵測到 DJI USB 裝置"
 		a.discoveryError = "DJI USB device is not connected"
 		return errors.New("DJI USB device is not connected")
 	}
@@ -546,7 +546,7 @@ func (a *app) markUSBATDetached(reason string) {
 		a.usbAT = nil
 	}
 	a.usbDevice = nil
-	a.port = "未检测到 DJI USB 设备"
+	a.port = "未偵測到 DJI USB 裝置"
 	a.discoveryError = "DJI USB device is not connected"
 	a.usbATBackoffUntil = time.Now().Add(2 * time.Second)
 	a.usbATBackoffErr = reason
@@ -634,7 +634,7 @@ func (a *app) status(w http.ResponseWriter, _ *http.Request) {
 			SignalRSRP:    -96,
 			SignalRSRQ:    -9,
 			RegStatus:     1,
-			RegStatusText: "已注册",
+			RegStatusText: "已註冊",
 			NetworkMode:   "LTE",
 			NetworkDuplex: "FDD",
 			RadioBand:     "B3",
@@ -661,12 +661,12 @@ func (a *app) status(w http.ResponseWriter, _ *http.Request) {
 			log.Printf("USB AT status failed: %v", err)
 		}
 		usbDevice := a.currentUSBDevice()
-		summary := "未发现 AT 串口"
-		operator := "未连接"
+		summary := "未發現 AT 串列埠"
+		operator := "未連線"
 		network := "不可用"
 		if usbDevice != nil {
 			summary = fmt.Sprintf("%s %s (%s:%s)", usbDevice.Vendor, usbDevice.Product, usbDevice.VendorID, usbDevice.ProductID)
-			operator = "已检测到 USB 设备"
+			operator = "已偵測到 USB 裝置"
 			network = usbDevice.Mode
 		}
 		writeJSON(w, http.StatusOK, map[string]any{
@@ -827,15 +827,15 @@ func firstNonZeroRegistration(responses ...string) int {
 func registrationText(status int) string {
 	switch status {
 	case 1:
-		return "已注册"
+		return "已註冊"
 	case 5:
-		return "漫游注册"
+		return "漫遊註冊"
 	case 2:
-		return "搜索中"
+		return "搜尋中"
 	case 3:
-		return "注册被拒绝"
+		return "註冊被拒絕"
 	default:
-		return "未注册"
+		return "未註冊"
 	}
 }
 
@@ -910,7 +910,7 @@ func (a *app) readUSBATSMSFromMemory(memory string) ([]receivedSMS, error) {
 		if err != nil {
 			messages = append(messages, receivedSMS{
 				Sender:    "PDU",
-				Content:   fmt.Sprintf("[短信解析失败] %v\n%s", err, item.pdu),
+				Content:   fmt.Sprintf("[簡訊解析失敗] %v\n%s", err, item.pdu),
 				Timestamp: time.Now(),
 			})
 			continue
@@ -1137,7 +1137,7 @@ func (a *app) sendSMS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if a.demo {
-		a.recordSMS("已发送至 "+body.Phone, body.Message, time.Now())
+		a.recordSMS("已傳送至 "+body.Phone, body.Message, time.Now())
 		writeJSON(w, http.StatusOK, map[string]any{"sent": true, "segments": 1})
 		return
 	}
@@ -1149,7 +1149,7 @@ func (a *app) sendSMS(w http.ResponseWriter, r *http.Request) {
 		state = "failed_or_partial"
 	}
 	if archiveErr := a.appendHistory(historyRecord{Kind: "sms", Direction: "outgoing", ICCID: identity, Number: body.Phone, Content: body.Message, State: state, Started: time.Now()}); archiveErr != nil {
-		writeError(w, http.StatusInternalServerError, "发送操作已执行，但记录保存失败；请勿直接重试发送")
+		writeError(w, http.StatusInternalServerError, "傳送操作已執行，但記錄儲存失敗；請勿直接重試傳送")
 		return
 	}
 	if err != nil {
@@ -1299,18 +1299,18 @@ func (a *app) networkDiagnostic(w http.ResponseWriter, _ *http.Request) {
 func (a *app) enableNetworkService(w http.ResponseWriter, _ *http.Request) {
 	device := a.currentUSBDevice()
 	if device == nil {
-		writeError(w, http.StatusConflict, "未检测到兼容 USB 设备")
+		writeError(w, http.StatusConflict, "未偵測到相容 USB 裝置")
 		return
 	}
 	service := currentDJINetworkService(device, discoverHostNetworkInterfaces())
 	if service == nil {
-		writeError(w, http.StatusConflict, "未找到当前模块对应的 Windows 网卡；请确认已安装模块网卡驱动")
+		writeError(w, http.StatusConflict, "未找到目前模組對應的 Windows 網卡；請確認已安裝模組網卡驅動")
 		return
 	}
 	if networkServiceReady(service) {
 		writeJSON(w, http.StatusOK, networkServiceRepairResult{
 			Ready:          true,
-			Summary:        fmt.Sprintf("%s 已经可用", service.Name),
+			Summary:        fmt.Sprintf("%s 已經可用", service.Name),
 			NetworkService: service,
 		})
 		return
@@ -1323,7 +1323,7 @@ func (a *app) enableNetworkService(w http.ResponseWriter, _ *http.Request) {
 		demoService.IPv4 = "10.18.22.217"
 		writeJSON(w, http.StatusOK, networkServiceRepairResult{
 			Ready:          true,
-			Summary:        "演示：行动宽带已连接并取得地址",
+			Summary:        "示範：行動寬頻已連線並取得位址",
 			NetworkService: &demoService,
 		})
 		return
@@ -1336,14 +1336,14 @@ func (a *app) enableNetworkService(w http.ResponseWriter, _ *http.Request) {
 	if networkServiceReady(service) {
 		writeJSON(w, http.StatusOK, networkServiceRepairResult{
 			Ready:          true,
-			Summary:        fmt.Sprintf("%s 已连接，已获取 IP %s", service.Name, service.IPv4),
+			Summary:        fmt.Sprintf("%s 已連線，已取得 IP %s", service.Name, service.IPv4),
 			NetworkService: service,
 		})
 		return
 	}
 	writeJSON(w, http.StatusOK, networkServiceRepairResult{
 		Ready:          false,
-		Summary:        "已请求 Windows 连接，网卡仍在等待地址",
+		Summary:        "已請求 Windows 連線，網卡仍在等待位址",
 		NetworkService: service,
 	})
 }
@@ -1442,8 +1442,8 @@ func (a *app) check4GRoute(w http.ResponseWriter, r *http.Request) {
 	if device == nil {
 		writeJSON(w, http.StatusOK, networkCheckResult{
 			OK:      false,
-			Summary: "未检测到 4G 模块",
-			Detail:  "请连接兼容 USB 设备后再检测公网连接",
+			Summary: "未偵測到 4G 模組",
+			Detail:  "請連線相容 USB 裝置後再檢測公網連線",
 		})
 		return
 	}
@@ -1451,16 +1451,16 @@ func (a *app) check4GRoute(w http.ResponseWriter, r *http.Request) {
 	if !networkServiceReady(service) {
 		writeJSON(w, http.StatusOK, networkCheckResult{
 			OK:      false,
-			Summary: "4G 网卡尚未就绪",
-			Detail:  "Windows 尚未在模块网卡上取得可用 IPv4 地址",
+			Summary: "4G 網卡尚未就緒",
+			Detail:  "Windows 尚未在模組網卡上取得可用 IPv4 位址",
 		})
 		return
 	}
 	if a.demo {
 		writeJSON(w, http.StatusOK, networkCheckResult{
 			OK:      true,
-			Summary: "演示：4G 公网连接正常",
-			Detail:  fmt.Sprintf("已通过 %s 模拟公网验证", service.Device),
+			Summary: "示範：4G 公網連線正常",
+			Detail:  fmt.Sprintf("已透過 %s 模擬公網驗證", service.Device),
 		})
 		return
 	}
@@ -1469,9 +1469,9 @@ func (a *app) check4GRoute(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), cellularProbeTimeout)
 	defer cancel()
 	target, dnsOK, err := probeCellularInternet(ctx, service.Device, service.IPv4)
-	routeDetail := "Windows 未返回系统出口"
+	routeDetail := "Windows 未返回系統出口"
 	if route.Interface != "" {
-		routeDetail = fmt.Sprintf("Windows 系统出口为 %s", route.Interface)
+		routeDetail = fmt.Sprintf("Windows 系統出口為 %s", route.Interface)
 		if route.Gateway != "" {
 			routeDetail += " -> " + route.Gateway
 		}
@@ -1479,8 +1479,8 @@ func (a *app) check4GRoute(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		writeJSON(w, http.StatusOK, networkCheckResult{
 			OK:      false,
-			Summary: "4G 网卡已就绪，但公网不可达",
-			Detail:  fmt.Sprintf("已强制通过 %s（%s）请求公网但未收到响应；%s。请检查 APN、SIM 漫游权限或套餐状态", service.Device, service.IPv4, routeDetail),
+			Summary: "4G 網卡已就緒，但公網不可達",
+			Detail:  fmt.Sprintf("已強制透過 %s（%s）請求公網但未收到響應；%s。請檢查 APN、SIM 漫遊權限或套餐狀態", service.Device, service.IPv4, routeDetail),
 		})
 		log.Printf("cellular internet probe failed on %s (%s): %v", service.Device, service.IPv4, err)
 		return
@@ -1488,19 +1488,19 @@ func (a *app) check4GRoute(w http.ResponseWriter, r *http.Request) {
 	if !dnsOK {
 		writeJSON(w, http.StatusOK, networkCheckResult{
 			OK:      false,
-			Summary: "4G 公网可达，但域名访问失败",
-			Detail:  fmt.Sprintf("%s（%s）可访问 %s，但域名检测未通过；请检查 DNS 设置", service.Device, service.IPv4, target),
+			Summary: "4G 公網可達，但域名訪問失敗",
+			Detail:  fmt.Sprintf("%s（%s）可訪問 %s，但域名檢測未透過；請檢查 DNS 設定", service.Device, service.IPv4, target),
 		})
 		return
 	}
-	summary := "4G 公网连接正常"
+	summary := "4G 公網連線正常"
 	if route.Interface != service.Device {
-		summary = "4G 公网可达，但不是 Windows 系统出口"
+		summary = "4G 公網可達，但不是 Windows 系統出口"
 	}
 	writeJSON(w, http.StatusOK, networkCheckResult{
 		OK:      true,
 		Summary: summary,
-		Detail:  fmt.Sprintf("已强制通过 %s（%s）访问 %s；%s", service.Device, service.IPv4, target, routeDetail),
+		Detail:  fmt.Sprintf("已強制透過 %s（%s）訪問 %s；%s", service.Device, service.IPv4, target, routeDetail),
 	})
 }
 
@@ -1514,7 +1514,7 @@ func (a *app) checkProxyRoute(w http.ResponseWriter, _ *http.Request) {
 	}
 	req, err := http.NewRequest(http.MethodHead, "https://www.google.com/generate_204", nil)
 	if err != nil {
-		writeJSON(w, http.StatusOK, networkCheckResult{OK: false, Summary: "代理检测请求创建失败", Detail: err.Error()})
+		writeJSON(w, http.StatusOK, networkCheckResult{OK: false, Summary: "代理檢測請求建立失敗", Detail: err.Error()})
 		return
 	}
 	resp, err := client.Do(req)
@@ -1522,7 +1522,7 @@ func (a *app) checkProxyRoute(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, networkCheckResult{
 			OK:      false,
 			Summary: "代理未打通",
-			Detail:  "127.0.0.1:7890 代理访问失败：" + err.Error(),
+			Detail:  "127.0.0.1:7890 代理訪問失敗：" + err.Error(),
 		})
 		return
 	}
@@ -1537,7 +1537,7 @@ func (a *app) checkProxyRoute(w http.ResponseWriter, _ *http.Request) {
 	}
 	writeJSON(w, http.StatusOK, networkCheckResult{
 		OK:      false,
-		Summary: "代理响应异常",
+		Summary: "代理響應異常",
 		Detail:  fmt.Sprintf("127.0.0.1:7890 返回 %s", resp.Status),
 	})
 }
@@ -1546,7 +1546,7 @@ func (a *app) setUSBNetMode(w http.ResponseWriter, r *http.Request) {
 	a.audioMu.Lock()
 	defer a.audioMu.Unlock()
 	if a.audioSession != nil && time.Since(a.audioSession.lastLease) < 50*time.Second {
-		writeError(w, http.StatusConflict, "请先停止模块音频并恢复 USB，再切换网络模式")
+		writeError(w, http.StatusConflict, "請先停止模組音訊並恢復 USB，再切換網路模式")
 		return
 	}
 	var body struct {
@@ -1576,7 +1576,7 @@ func (a *app) rebootModule(w http.ResponseWriter, _ *http.Request) {
 	a.audioMu.Lock()
 	defer a.audioMu.Unlock()
 	if a.audioSession != nil && time.Since(a.audioSession.lastLease) < 50*time.Second {
-		writeError(w, http.StatusConflict, "请先停止模块音频并恢复 USB，再重启模块")
+		writeError(w, http.StatusConflict, "請先停止模組音訊並恢復 USB，再重啟模組")
 		return
 	}
 	response, err := a.runATCommand("AT+CFUN=1,1", 3*time.Second)
@@ -1721,7 +1721,7 @@ func (a *app) saveESIMNote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if len(body.Label) > 80 || len(body.Phone) > 80 || len(body.Tags) > 200 {
-		writeError(w, http.StatusBadRequest, "本地备注字段过长")
+		writeError(w, http.StatusBadRequest, "本地備註欄位過長")
 		return
 	}
 	a.profileNotesMu.Lock()
@@ -1739,7 +1739,7 @@ func (a *app) saveESIMNote(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"message": "本地备注已保存", "note": a.profileNotes[body.ICCID]})
+	writeJSON(w, http.StatusOK, map[string]any{"message": "本地備註已儲存", "note": a.profileNotes[body.ICCID]})
 }
 
 func atCommandSucceeded(response string) bool {
@@ -1807,14 +1807,14 @@ func encodeModuleProfileNote(note moduleProfileNote) (string, error) {
 		return "", errors.New("iccid is required")
 	}
 	if len(note.Label) > 48 || len(note.Phone) > 40 || len(note.Tags) > 48 {
-		return "", errors.New("模块资料名称、手机号或标签过长")
+		return "", errors.New("模組資料名稱、手機號或標籤過長")
 	}
 	encode := func(value string) string {
 		return base64.RawURLEncoding.EncodeToString([]byte(value))
 	}
 	encoded := strings.Join([]string{moduleNotePrefix[:len(moduleNotePrefix)-1], note.ICCID, encode(note.Label), encode(note.Phone), encode(note.Tags)}, "|")
 	if len(encoded) > 255 {
-		return "", errors.New("模块通讯录记录超过容量")
+		return "", errors.New("模組通訊錄記錄超過容量")
 	}
 	return encoded, nil
 }
@@ -1852,7 +1852,7 @@ func parseMEPhonebookStatus(response string) (used, total int, err error) {
 	re := regexp.MustCompile(`\+CPBS:\s*"ME",(\d+),(\d+)`)
 	match := re.FindStringSubmatch(response)
 	if len(match) != 3 {
-		return 0, 0, errors.New("ME 通讯录容量未返回")
+		return 0, 0, errors.New("ME 通訊錄容量未返回")
 	}
 	used, err = strconv.Atoi(match[1])
 	if err != nil {
@@ -1909,7 +1909,7 @@ func (a *app) listModuleESIMNotes(w http.ResponseWriter, _ *http.Request) {
 	defer a.moduleNotesMu.Unlock()
 	notes, _, used, total, err := a.readModuleESIMNotes()
 	if err != nil {
-		writeError(w, http.StatusBadGateway, fmt.Sprintf("读取模块资料库失败: %v", err))
+		writeError(w, http.StatusBadGateway, fmt.Sprintf("讀取模組資料庫失敗: %v", err))
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"notes": notes, "used": used, "total": total})
@@ -1924,20 +1924,20 @@ func (a *app) saveModuleESIMNote(w http.ResponseWriter, r *http.Request) {
 	defer a.moduleNotesMu.Unlock()
 	notes, occupied, _, total, err := a.readModuleESIMNotes()
 	if err != nil {
-		writeError(w, http.StatusBadGateway, fmt.Sprintf("读取模块资料库失败: %v", err))
+		writeError(w, http.StatusBadGateway, fmt.Sprintf("讀取模組資料庫失敗: %v", err))
 		return
 	}
 	current, exists := notes[strings.TrimSpace(body.ICCID)]
 	if strings.TrimSpace(body.Label) == "" && strings.TrimSpace(body.Phone) == "" && strings.TrimSpace(body.Tags) == "" {
 		if !exists {
-			writeJSON(w, http.StatusOK, map[string]string{"message": "模块资料库中没有此记录"})
+			writeJSON(w, http.StatusOK, map[string]string{"message": "模組資料庫中沒有此記錄"})
 			return
 		}
 		if _, err := a.runATOK(fmt.Sprintf("AT+CPBW=%d", current.Index), 8*time.Second); err != nil {
-			writeError(w, http.StatusBadGateway, fmt.Sprintf("删除模块资料失败: %v", err))
+			writeError(w, http.StatusBadGateway, fmt.Sprintf("刪除模組資料失敗: %v", err))
 			return
 		}
-		writeJSON(w, http.StatusOK, map[string]string{"message": "模块资料已删除"})
+		writeJSON(w, http.StatusOK, map[string]string{"message": "模組資料已刪除"})
 		return
 	}
 	encoded, err := encodeModuleProfileNote(body)
@@ -1955,15 +1955,15 @@ func (a *app) saveModuleESIMNote(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if index == 0 {
-		writeError(w, http.StatusConflict, "模块通讯录已满")
+		writeError(w, http.StatusConflict, "模組通訊錄已滿")
 		return
 	}
 	command := fmt.Sprintf(`AT+CPBW=%d,"00000000000",129,"%s"`, index, encoded)
 	if _, err := a.runATOK(command, 8*time.Second); err != nil {
-		writeError(w, http.StatusBadGateway, fmt.Sprintf("写入模块资料失败: %v", err))
+		writeError(w, http.StatusBadGateway, fmt.Sprintf("寫入模組資料失敗: %v", err))
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"message": "模块资料已保存", "index": index})
+	writeJSON(w, http.StatusOK, map[string]any{"message": "模組資料已儲存", "index": index})
 }
 
 func (a *app) esimOverview(w http.ResponseWriter, _ *http.Request) {
@@ -1983,15 +1983,15 @@ func (a *app) esimOverview(w http.ResponseWriter, _ *http.Request) {
 				"aid_hex": "A0000005591010FFFFFFFF8900000100",
 				"profiles": []map[string]any{
 					{
-						"iccid": "89860123456789012345", "name": "中国移动",
+						"iccid": "89860123456789012345", "name": "中國移動",
 						"service_provider_name": "China Mobile", "state": 1, "state_text": "enabled",
 					},
 					{
-						"iccid": "8944100000000000001", "name": "英国旅行卡",
+						"iccid": "8944100000000000001", "name": "英國旅行卡",
 						"service_provider_name": "giffgaff UK", "state": 0, "state_text": "disabled",
 					},
 					{
-						"iccid": "8949020000000000002", "name": "欧洲数据卡",
+						"iccid": "8949020000000000002", "name": "歐洲資料卡",
 						"service_provider_name": "Travel Europe", "state": 0, "state_text": "disabled",
 					},
 				},
@@ -2009,7 +2009,7 @@ func (a *app) esimOverview(w http.ResponseWriter, _ *http.Request) {
 		if isPhysicalSIMESIMProbeError(err) {
 			writeJSON(w, http.StatusOK, map[string]any{
 				"card_type": "physical_sim",
-				"message":   "当前卡片为实体卡，非 eSIM 卡片",
+				"message":   "目前卡片為實體卡，非 eSIM 卡片",
 			})
 			return
 		}
@@ -2028,7 +2028,7 @@ func isPhysicalSIMESIMProbeError(err error) bool {
 		return false
 	}
 	message := strings.ToLower(err.Error())
-	return strings.Contains(message, "未发现任何 euicc") &&
+	return strings.Contains(message, "未發現任何 euicc") &&
 		strings.Contains(message, "at+ccho") &&
 		strings.Contains(message, "error")
 }
@@ -2062,7 +2062,7 @@ func (a *app) esimHealth(w http.ResponseWriter, _ *http.Request) {
 		}
 	}
 	if active == nil {
-		writeJSON(w, http.StatusOK, map[string]any{"ok": false, "message": "eSIM 卡片已识别，但没有已启用的 Profile"})
+		writeJSON(w, http.StatusOK, map[string]any{"ok": false, "message": "eSIM 卡片已識別，但沒有已啟用的 Profile"})
 		return
 	}
 
@@ -2116,7 +2116,7 @@ func (a *app) switchESIM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !switchAllowed && a.modem == nil {
-		writeError(w, http.StatusServiceUnavailable, "USB AT eSIM/卡片当前暂不允许切换 Profile")
+		writeError(w, http.StatusServiceUnavailable, "USB AT eSIM/卡片目前暫不允許切換 Profile")
 		return
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Minute)
@@ -2178,14 +2178,14 @@ func (a *app) renameESIMProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if a.demo {
-		writeJSON(w, http.StatusOK, map[string]string{"message": "Profile 名称修改成功"})
+		writeJSON(w, http.StatusOK, map[string]string{"message": "Profile 名稱修改成功"})
 		return
 	}
 	if err := esimManager.RenameProfile(body.ICCID, body.Name, body.AID); err != nil {
-		writeError(w, http.StatusBadGateway, fmt.Sprintf("修改 Profile 名称失败: %v", err))
+		writeError(w, http.StatusBadGateway, fmt.Sprintf("修改 Profile 名稱失敗: %v", err))
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]string{"message": "Profile 名称修改成功"})
+	writeJSON(w, http.StatusOK, map[string]string{"message": "Profile 名稱修改成功"})
 }
 
 func (a *app) deleteESIMProfile(w http.ResponseWriter, r *http.Request) {
@@ -2207,12 +2207,12 @@ func (a *app) deleteESIMProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if a.demo {
-		writeJSON(w, http.StatusOK, map[string]string{"message": "Profile 已删除"})
+		writeJSON(w, http.StatusOK, map[string]string{"message": "Profile 已刪除"})
 		return
 	}
 	result, err := esimManager.DeleteProfile(body.ICCID, body.AID)
 	if err != nil {
-		writeError(w, http.StatusBadGateway, fmt.Sprintf("删除 Profile 失败: %v", err))
+		writeError(w, http.StatusBadGateway, fmt.Sprintf("刪除 Profile 失敗: %v", err))
 		return
 	}
 	writeJSON(w, http.StatusOK, result)
@@ -2244,7 +2244,7 @@ func (a *app) downloadESIMProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if a.demo {
-		writeJSON(w, http.StatusOK, map[string]string{"message": "演示：Profile 下载完成"})
+		writeJSON(w, http.StatusOK, map[string]string{"message": "示範：Profile 下載完成"})
 		return
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Minute)
@@ -2253,7 +2253,7 @@ func (a *app) downloadESIMProfile(w http.ResponseWriter, r *http.Request) {
 		log.Printf("eSIM download %d%% %s", event.Pct, event.Msg)
 	})
 	if err != nil {
-		writeError(w, http.StatusBadGateway, fmt.Sprintf("下载 Profile 失败: %v", err))
+		writeError(w, http.StatusBadGateway, fmt.Sprintf("下載 Profile 失敗: %v", err))
 		return
 	}
 	writeJSON(w, http.StatusOK, result)

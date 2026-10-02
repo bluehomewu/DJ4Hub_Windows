@@ -86,7 +86,7 @@ func (b *MBIMBackend) GetSignalInfo(ctx context.Context) (*SignalInfo, error) {
 	if !s.Unknown {
 		info.RSSI = s.DBM
 	}
-	// MBIMEx 2.0 信号:RSRP/SINR(SNR)。RSRQ 在 MBIM(Ex) 协议中无对应字段,保持空。
+	// MBIMEx 2.0 訊號:RSRP/SINR(SNR)。RSRQ 在 MBIM(Ex) 協議中無對應欄位,保持空。
 	if s.HasRSRP {
 		info.RSRP = s.RSRP
 	}
@@ -128,9 +128,9 @@ func mbimOperatorDisplay(name, mcc, mnc string) string {
 	return plmn
 }
 
-// mbimDataClassToNetworkMode 把 MBIM_DATA_CLASS 位掩码映射为面板用的接入技术字符串,
-// 取已就绪的最高制式。频段/信道(RadioBand/RadioChannel)在标准 MBIM/MBIMEx 里
-// 没有承载 CID,故此处不填,保持空。
+// mbimDataClassToNetworkMode 把 MBIM_DATA_CLASS 位掩碼對映為面板用的接入技術字串,
+// 取已就緒的最高制式。頻段/通道(RadioBand/RadioChannel)在標準 MBIM/MBIMEx 裡
+// 沒有承載 CID,故此處不填,保持空。
 func mbimDataClassToNetworkMode(dataClass uint32) string {
 	const (
 		dcGPRS  = 0x00000001
@@ -157,15 +157,15 @@ func mbimDataClassToNetworkMode(dataClass uint32) string {
 }
 
 func (b *MBIMBackend) GetNativeMCCMNC(ctx context.Context) (string, string, error) {
-	// 优先用 HomeProvider 的 PLMN:模组按正确的 MNC 长度给出(5 或 6 位)。
+	// 優先用 HomeProvider 的 PLMN:模組按正確的 MNC 長度給出(5 或 6 位)。
 	if hp, err := b.source.HomeProvider(ctx); err == nil {
 		if mcc, mnc, ok := splitMBIMPLMN(hp.PLMN); ok {
 			return mcc, mnc, nil
 		}
 	}
-	// 兜底:与 QMI 同一套规则——IMSI + EF_AD 的 MNC 长度;EF_AD 读不到(如此固件
-	// USIM ADF 逻辑通道开不了)时,HomeMCCMNCFromIMSIAndEFAD 会用 IMSI+MCC 表
-	// 推断 MNC 长度(如 310→3 位),避免把 3 位 MNC 截成 2 位。
+	// 兜底:與 QMI 同一套規則——IMSI + EF_AD 的 MNC 長度;EF_AD 讀不到(如此韌體
+	// USIM ADF 邏輯通道開不了)時,HomeMCCMNCFromIMSIAndEFAD 會用 IMSI+MCC 表
+	// 推斷 MNC 長度(如 310→3 位),避免把 3 位 MNC 截成 2 位。
 	sub, err := b.source.SubscriberReady(ctx)
 	if err != nil {
 		return "", "", err
@@ -178,7 +178,7 @@ func (b *MBIMBackend) GetNativeMCCMNC(ctx context.Context) (string, string, erro
 	return mcc, mnc, nil
 }
 
-// splitMBIMPLMN 把 MBIM ProviderId(PLMN 字符串)拆成 MCC + 变长 MNC。
+// splitMBIMPLMN 把 MBIM ProviderId(PLMN 字串)拆成 MCC + 變長 MNC。
 func splitMBIMPLMN(plmn string) (mcc, mnc string, ok bool) {
 	if len(plmn) < 5 || len(plmn) > 6 {
 		return "", "", false

@@ -49,7 +49,7 @@ func (e *DownloadProfileError) Error() string {
 	if e.Err != nil {
 		return e.Err.Error()
 	}
-	return "下载 profile 失败"
+	return "下載 profile 失敗"
 }
 
 func (e *DownloadProfileError) Unwrap() error {
@@ -63,13 +63,13 @@ func ClassifyDownloadError(err error) DownloadErrorInfo {
 	if err == nil {
 		return DownloadErrorInfo{
 			Code:    DownloadErrorGeneric,
-			Message: "下载 profile 失败",
+			Message: "下載 profile 失敗",
 		}
 	}
 
 	info := DownloadErrorInfo{
 		Code:            DownloadErrorGeneric,
-		Message:         fmt.Sprintf("下载 profile 失败: %v", err),
+		Message:         fmt.Sprintf("下載 profile 失敗: %v", err),
 		OriginalMessage: err.Error(),
 	}
 
@@ -115,20 +115,20 @@ func classifyBPPErrorCode(err sgp22.LoadBoundProfilePackageError) string {
 
 func downloadBPPErrorMessage(err sgp22.LoadBoundProfilePackageError) string {
 	if err.BPPCommandID != sgp22.BPPCommandIDLoadProfileElements {
-		return fmt.Sprintf("eUICC 安装 profile 失败（%s）", err.Error())
+		return fmt.Sprintf("eUICC 安裝 profile 失敗（%s）", err.Error())
 	}
 	switch err.ErrorReason {
 	case sgp22.BPPErrorReasonInstallFailedDueToICCIDAlreadyExistsOnEUICC:
 		return "eUICC 已存在相同 ICCID 的 profile"
 	case sgp22.BPPErrorReasonInstallFailedDueToInsufficientMemoryForProfile:
-		return "eUICC 安装 profile 时空间不足，请删除未使用的 profile 后重试"
+		return "eUICC 安裝 profile 時空間不足，請刪除未使用的 profile 後重試"
 	case sgp22.BPPErrorReasonInstallFailedDueToInterruption:
-		return "eUICC 安装 profile 时被中断，请稍后重试"
+		return "eUICC 安裝 profile 時被中斷，請稍後重試"
 	case sgp22.BPPErrorReasonInstallFailedDueToDataMismatch:
-		return "eUICC 安装 profile 时数据校验不匹配"
+		return "eUICC 安裝 profile 時資料校驗不匹配"
 	case sgp22.BPPErrorReasonPPRNotAllowed:
-		return "eUICC 策略规则不允许安装该 profile"
+		return "eUICC 策略規則不允許安裝該 profile"
 	default:
-		return fmt.Sprintf("eUICC 安装 profile 失败（%s）", err.Error())
+		return fmt.Sprintf("eUICC 安裝 profile 失敗（%s）", err.Error())
 	}
 }

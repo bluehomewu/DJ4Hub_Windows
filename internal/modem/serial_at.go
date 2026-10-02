@@ -8,12 +8,12 @@ import (
 	"go.bug.st/serial"
 )
 
-// SerialAT 是一个轻量级的串口包装器，用于在不实例化整个 Manager 的情况下执行简单的 AT 命令
+// SerialAT 是一個輕量級的串列埠包裝器，用於在不例項化整個 Manager 的情況下執行簡單的 AT 命令
 type SerialAT struct {
 	port serial.Port
 }
 
-// NewSerialAT 打开串口并返回 SerialAT 实例
+// NewSerialAT 開啟串列埠並返回 SerialAT 例項
 func NewSerialAT(portName string, baudRate int, dataBits int, stopBits int, parity string) (*SerialAT, error) {
 	mode := &serial.Mode{
 		BaudRate: baudRate,
@@ -45,7 +45,7 @@ func NewSerialAT(portName string, baudRate int, dataBits int, stopBits int, pari
 		return nil, err
 	}
 
-	// 设置默认超时
+	// 設定預設超時
 	if err := port.SetReadTimeout(time.Second); err != nil {
 		port.Close()
 		return nil, err
@@ -54,23 +54,23 @@ func NewSerialAT(portName string, baudRate int, dataBits int, stopBits int, pari
 	return &SerialAT{port: port}, nil
 }
 
-// Close 关闭串口
+// Close 關閉串列埠
 func (s *SerialAT) Close() error {
 	return s.port.Close()
 }
 
-// Execute 发送 AT 命令并等待响应
+// Execute 傳送 AT 命令並等待響應
 func (s *SerialAT) Execute(cmd string, timeout time.Duration) (string, error) {
 	if timeout <= 0 {
 		timeout = 2 * time.Second
 	}
 
-	// 临时调整超时
+	// 臨時調整超時
 	if err := s.port.SetReadTimeout(100 * time.Millisecond); err != nil {
 		return "", err
 	}
 
-	// 清空缓冲区
+	// 清空緩衝區
 	buf := make([]byte, 1024)
 	for {
 		n, _ := s.port.Read(buf)

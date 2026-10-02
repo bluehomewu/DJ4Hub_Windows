@@ -78,7 +78,7 @@ func TestQueryHomeProviderParsesFullLengthMNC(t *testing.T) {
 			if le.Uint32(w[36:]) != CIDBasicConnectHomeProvider {
 				t.Fatalf("CID = %d, want HomeProvider %d", le.Uint32(w[36:]), CIDBasicConnectHomeProvider)
 			}
-			// 3 位 MNC 的家网络 PLMN(美国 310/840)。
+			// 3 位 MNC 的家網路 PLMN(美國 310/840)。
 			info := buildSingleProviderInfoForTest(Provider{PLMN: "310840", Name: "Home", State: 1, CellularClass: CellularClassGSM})
 			return makeCommandDoneFragmentFor(h.TransactionID, UUIDBasicConnect, CIDBasicConnectHomeProvider, info), true
 		}
@@ -99,7 +99,7 @@ func TestQueryHomeProviderParsesFullLengthMNC(t *testing.T) {
 	}
 }
 
-// buildSingleProviderInfoForTest 构造一个裸 MBIM_PROVIDER 结构(HomeProvider 的 InfoBuffer 形态)。
+// buildSingleProviderInfoForTest 構造一個裸 MBIM_PROVIDER 結構(HomeProvider 的 InfoBuffer 形態)。
 func buildSingleProviderInfoForTest(p Provider) []byte {
 	const providerFixedLen = 32
 	plmn := encodeUTF16(p.PLMN)

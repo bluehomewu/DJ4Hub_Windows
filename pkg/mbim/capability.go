@@ -7,7 +7,7 @@ type Capabilities struct {
 	MBIMExOK      bool
 	QMIOverMBIMOK bool
 	UICCReadOK    bool // READ_BINARY(透明 EF,如 EF_ICCID)
-	UICCRecordOK  bool // READ_RECORD(线性记录 EF,如 EF_DIR——AID 解析关键路径)
+	UICCRecordOK  bool // READ_RECORD(線性記錄 EF,如 EF_DIR——AID 解析關鍵路徑)
 	UICCChannelOK bool
 	AppListOK     bool
 	authAKADead   atomic.Bool
@@ -42,10 +42,10 @@ func (c *Capabilities) DeviceResetUsable() bool {
 	return c != nil && c.Services.Supports(UUIDMSBasicConnectExtensions, CIDMSBasicConnectExtDeviceReset)
 }
 
-// AppListKnownUnsupported 报告 APPLICATION_LIST 是否"确知不支持":仅当 UICC 服务
-// 已宣告(init 探针确实跑过)但探针失败时为真。此时 AID 解析应直接走 EF_DIR 直读,
-// 跳过注定失败的 APPLICATION_LIST。未宣告/未探(unknown)时返回 false,保留原有
-// "先试再回退"行为,不引入回归。
+// AppListKnownUnsupported 報告 APPLICATION_LIST 是否"確知不支援":僅當 UICC 服務
+// 已宣告(init 探針確實跑過)但探針失敗時為真。此時 AID 解析應直接走 EF_DIR 直讀,
+// 跳過註定失敗的 APPLICATION_LIST。未宣告/未探(unknown)時返回 false,保留原有
+// "先試再回退"行為,不引入迴歸。
 func (c *Capabilities) AppListKnownUnsupported() bool {
 	return c != nil && c.Services.HasService(UUIDMSUICCLowLevelAccess) && !c.AppListOK
 }

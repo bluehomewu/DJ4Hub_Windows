@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// 各种 SIM 卡基本数据文件 (EF) 的文件 ID 常量
+// 各種 SIM 卡基本資料檔案 (EF) 的檔案 ID 常量
 const (
 	efIMSI = 0x6F07 // IMSI
 	efAD   = 0x6FAD // Administrative Data, byte 4 carries MNC length
@@ -24,15 +24,15 @@ const (
 	PLMNSourceIMSIHeuristic = "imsi_heuristic"
 )
 
-// SIMMetadata 封装了解析出来的 SIM 卡元数据，用于运营商特征识别。
+// SIMMetadata 封裝瞭解析出來的 SIM 卡後設資料，用於電信業者特徵識別。
 type SIMMetadata struct {
-	NativeMCC       string           // SIM 卡内置的移动国家代码
-	NativeMNC       string           // SIM 卡内置的移动网络代码
-	GID1            string           // 组标识符 1 的十六进制字符串
-	GID2            string           // 组标识符 2 的十六进制字符串
-	PNN             []PNNRecord      // PLMN 名字记录列表
-	OPL             []OPLRecord      // 运营商 PLMN 与小区 LAC 关联记录列表
-	SIMServiceTable *SIMServiceTable // 包含该卡片使能的增值服务表
+	NativeMCC       string           // SIM 卡內建的移動國家程式碼
+	NativeMNC       string           // SIM 卡內建的行動網路程式碼
+	GID1            string           // 組識別符號 1 的十六進位制字串
+	GID2            string           // 組識別符號 2 的十六進位制字串
+	PNN             []PNNRecord      // PLMN 名字記錄列表
+	OPL             []OPLRecord      // 電信業者 PLMN 與小區 LAC 關聯記錄列表
+	SIMServiceTable *SIMServiceTable // 包含該卡片使能的增值服務表
 }
 
 func MNCLengthFromEFAD(efAD []byte) (int, bool) {
@@ -50,18 +50,18 @@ func MNCLengthFromEFAD(efAD []byte) (int, bool) {
 func HomeMCCMNCFromIMSIAndEFAD(imsi string, efAD []byte) (mcc, mnc string, mncLen int, source string, err error) {
 	imsi = strings.TrimSpace(imsi)
 	if len(imsi) < 5 {
-		return "", "", 0, "", fmt.Errorf("IMSI 长度不足")
+		return "", "", 0, "", fmt.Errorf("IMSI 長度不足")
 	}
 	if resolvedLen, ok := MNCLengthFromEFAD(efAD); ok {
 		if len(imsi) < 3+resolvedLen {
-			return "", "", 0, "", fmt.Errorf("IMSI 与 EF-AD MNC 长度不匹配")
+			return "", "", 0, "", fmt.Errorf("IMSI 與 EF-AD MNC 長度不匹配")
 		}
 		return imsi[:3], imsi[3 : 3+resolvedLen], resolvedLen, PLMNSourceIMSI_EFAD, nil
 	}
 
 	mcc, mnc = parseMCCMNCFromIMSI(imsi)
 	if mcc == "" || mnc == "" {
-		return "", "", 0, "", fmt.Errorf("无法从 IMSI 解析 MCC/MNC")
+		return "", "", 0, "", fmt.Errorf("無法從 IMSI 解析 MCC/MNC")
 	}
 	return mcc, mnc, len(mnc), PLMNSourceIMSIHeuristic, nil
 }
@@ -91,7 +91,7 @@ func parseMCCMNCFromIMSI(imsi string) (mcc, mnc string) {
 	return mcc, imsi[3 : 3+mncLen]
 }
 
-// trimSIMPadding 辅助去除 SIM 二进制块末尾的无效填充字符 (0xFF 或 0x00)
+// trimSIMPadding 輔助去除 SIM 二進位塊末尾的無效填充字元 (0xFF 或 0x00)
 func trimSIMPadding(data []byte) []byte {
 	end := len(data)
 	for end > 0 && (data[end-1] == 0xFF || data[end-1] == 0x00) {
@@ -100,7 +100,7 @@ func trimSIMPadding(data []byte) []byte {
 	return data[:end]
 }
 
-// simRawHex 将数据去除填充并转换为大写十六进制字符串
+// simRawHex 將資料去除填充並轉換為大寫十六進位制字串
 func simRawHex(data []byte) string {
 	data = trimSIMPadding(data)
 	if len(data) == 0 {
@@ -109,8 +109,8 @@ func simRawHex(data []byte) string {
 	return strings.ToUpper(hex.EncodeToString(data))
 }
 
-// DecodePNNRecord 解码 EF_PNN (PLMN Network Name) 单条 TLV 格式的记录内容。
-// tag 0x43 对应网络全名，tag 0x45 对应网络缩写
+// DecodePNNRecord 解碼 EF_PNN (PLMN Network Name) 單條 TLV 格式的記錄內容。
+// tag 0x43 對應網路全名，tag 0x45 對應網路縮寫
 func DecodePNNRecord(record int, data []byte) (PNNRecord, bool) {
 	data = trimPNNTLVRecord(data)
 	raw := simRawHex(data)
@@ -141,7 +141,7 @@ func DecodePNNRecord(record int, data []byte) (PNNRecord, bool) {
 	return out, out.FullName != "" || out.ShortName != "" || out.RawHex != ""
 }
 
-// trimPNNTLVRecord 获取并裁剪有效的 TLV 记录边界，防止数据越界
+// trimPNNTLVRecord 取得並裁剪有效的 TLV 記錄邊界，防止資料越界
 func trimPNNTLVRecord(data []byte) []byte {
 	length := pnnTLVLength(data)
 	if length == 0 {
@@ -150,7 +150,7 @@ func trimPNNTLVRecord(data []byte) []byte {
 	return data[:length]
 }
 
-// pnnTLVLength 探测 PNN 中 TLV 字段的物理总长度
+// pnnTLVLength 探測 PNN 中 TLV 欄位的物理總長度
 func pnnTLVLength(data []byte) int {
 	data = trimSIMPadding(data)
 	end := 0
@@ -172,7 +172,7 @@ func pnnTLVLength(data []byte) int {
 	return end
 }
 
-// DecodeOPLRecord 解码单条 EF_OPL (Operator PLMN List) 定长数据记录
+// DecodeOPLRecord 解碼單條 EF_OPL (Operator PLMN List) 定長資料記錄
 func DecodeOPLRecord(record int, data []byte) (OPLRecord, bool) {
 	raw := simRawHex(data)
 	data = trimSIMPadding(data)
@@ -190,7 +190,7 @@ func DecodeOPLRecord(record int, data []byte) (OPLRecord, bool) {
 	return out, out.PLMN != "" || out.RawHex != ""
 }
 
-// NativeMCCMNCFromOPLRecords 从已解码的 OPL 列表中提取第一条有效的运营商 HPLMN (MCC + MNC)
+// NativeMCCMNCFromOPLRecords 從已解碼的 OPL 列表中提取第一條有效的電信業者 HPLMN (MCC + MNC)
 func NativeMCCMNCFromOPLRecords(records []OPLRecord) (mcc string, mnc string, ok bool) {
 	for _, rec := range records {
 		plmn := strings.TrimSpace(rec.PLMN)
@@ -205,7 +205,7 @@ func NativeMCCMNCFromOPLRecords(records []OPLRecord) (mcc string, mnc string, ok
 	return "", "", false
 }
 
-// isExactDecimalPLMN 判断 PLMN 是否纯粹由 0-9 数字字符串构成
+// isExactDecimalPLMN 判斷 PLMN 是否純粹由 0-9 數字字串構成
 func isExactDecimalPLMN(plmn string) bool {
 	for i := 0; i < len(plmn); i++ {
 		if plmn[i] < '0' || plmn[i] > '9' {
@@ -215,7 +215,7 @@ func isExactDecimalPLMN(plmn string) bool {
 	return true
 }
 
-// DecodeSIMServiceTable 解密并解码 SIM/USIM 服务使能表数据，解析哪些特性编号被使能（按字节位 1-based 计算位置）
+// DecodeSIMServiceTable 解密並解碼 SIM/USIM 服務使能表資料，解析哪些特性編號被使能（按位元組位 1-based 計算位置）
 func DecodeSIMServiceTable(kind string, data []byte) *SIMServiceTable {
 	raw := simRawHex(data)
 	data = trimSIMPadding(data)
@@ -233,7 +233,7 @@ func DecodeSIMServiceTable(kind string, data []byte) *SIMServiceTable {
 	return &SIMServiceTable{Kind: kind, RawHex: raw, EnabledServices: enabled}
 }
 
-// decodeSIMAlphaIdentifier 包含解码常见各种字符标志符（如 SPN，APN 等）的复合解码函数，支持 GSM, UCS2, ASCII 格式
+// decodeSIMAlphaIdentifier 包含解碼常見各種字元標誌符（如 SPN，APN 等）的複合解碼函式，支援 GSM, UCS2, ASCII 格式
 func decodeSIMAlphaIdentifier(data []byte) (string, error) {
 	data = trimSIMPadding(data)
 	if len(data) == 0 {
@@ -254,7 +254,7 @@ func decodeSIMAlphaIdentifier(data []byte) (string, error) {
 	}
 }
 
-// decodePNNNetworkName 根据 3GPP TS 31.102 规范解码 PNN 中的网络名称字符串，支持 GSM7 压缩格式与 UCS2 格式
+// decodePNNNetworkName 根據 3GPP TS 31.102 規範解碼 PNN 中的網路名稱字串，支援 GSM7 壓縮格式與 UCS2 格式
 func decodePNNNetworkName(data []byte) (string, error) {
 	data = trimSIMPadding(data)
 	if len(data) == 0 {
@@ -266,17 +266,17 @@ func decodePNNNetworkName(data []byte) (string, error) {
 		payload := data[1:]
 		switch coding {
 		case 0:
-			// coding = 000 表示 GSM 7-bit 压缩格式，同时备用位通过低3位传递
+			// coding = 000 表示 GSM 7-bit 壓縮格式，同時備用位透過低3位傳遞
 			return decodePackedGSM7(payload, int(info&0x07))
 		case 1:
-			// coding = 001 表示标准双字节 UCS2
+			// coding = 001 表示標準雙位元組 UCS2
 			return decodeSPNUCS2(payload)
 		}
 	}
 	return decodeSIMAlphaIdentifier(data)
 }
 
-// decodePackedGSM7 解密 GSM 7-bit 压缩排列的 Septets 并还原成普通 UTF-8 字符串
+// decodePackedGSM7 解密 GSM 7-bit 壓縮排列的 Septets 並還原成普通 UTF-8 字串
 func decodePackedGSM7(data []byte, spareBits int) (string, error) {
 	if spareBits < 0 || spareBits > 7 {
 		spareBits = 0
@@ -308,7 +308,7 @@ func decodePackedGSM7(data []byte, spareBits int) (string, error) {
 	return decoded, nil
 }
 
-// decodeOPLPLMN 将 OPL 记录中保存的前 3 字节的 BCD 格式 PLMN 转换为 "46000" 或 "46001" 等十进制字符串（若第3个半字节为F即表示5位格式的卡片）
+// decodeOPLPLMN 將 OPL 記錄中儲存的前 3 位元組的 BCD 格式 PLMN 轉換為 "46000" 或 "46001" 等十進位制字串（若第3個半位元組為F即表示5位格式的卡片）
 func decodeOPLPLMN(data []byte) string {
 	if len(data) < 3 {
 		return ""

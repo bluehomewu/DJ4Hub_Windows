@@ -6,15 +6,15 @@ import (
 	"fmt"
 )
 
-// UICCAppInfo 包含了从卡槽中读出的独立应用的信息
+// UICCAppInfo 包含了從卡槽中讀出的獨立應用的資訊
 type UICCAppInfo struct {
-	Type uint8 // QMI 定义: 1=SIM, 2=USIM, 3=RUIM, 4=CSIM, 5=ISIM, 6=Unknown
+	Type uint8 // QMI 定義: 1=SIM, 2=USIM, 3=RUIM, 4=CSIM, 5=ISIM, 6=Unknown
 	AID  []byte
 }
 
-// QMIUIMApplicationList 封装了一套极致轻量的、无需完整状态机的 QMI over MBIM 隧道逻辑。
-// 它通过向 CTL 申请 UIM client ID，然后发送 UIM_GET_CARD_STATUS，最后按照标准的 QMI 报文结构
-// 解析出所有卡槽中注册的全部应用(USIM, ISIM, CSIM等)的信息(含类型和长AID)。
+// QMIUIMApplicationList 封裝了一套極致輕量的、無需完整狀態機的 QMI over MBIM 隧道邏輯。
+// 它透過向 CTL 申請 UIM client ID，然後傳送 UIM_GET_CARD_STATUS，最後按照標準的 QMI 報文結構
+// 解析出所有卡槽中註冊的全部應用(USIM, ISIM, CSIM等)的資訊(含型別和長AID)。
 func (d *Device) QMIUIMApplicationList(ctx context.Context) ([]UICCAppInfo, error) {
 	clientID, err := d.allocUIMClient(ctx)
 	if err != nil {
@@ -22,15 +22,15 @@ func (d *Device) QMIUIMApplicationList(ctx context.Context) ([]UICCAppInfo, erro
 	}
 	defer d.releaseUIMClient(context.Background(), clientID)
 
-	// 2. 发送 UIM_GET_CARD_STATUS (Service=0x0B, MsgId=0x002F)
-	// 这是一个无参数的查询，直接给一个空 TLV 即可
+	// 2. 傳送 UIM_GET_CARD_STATUS (Service=0x0B, MsgId=0x002F)
+	// 這是一個無引數的查詢，直接給一個空 TLV 即可
 	uimReq := buildQMIMessage(0x0B, clientID, 3, 0x002F, nil)
 	uimResp, err := d.SendQMI(ctx, uimReq)
 	if err != nil {
 		return nil, fmt.Errorf("qmi uim get_card_status failed: %w", err)
 	}
 
-	// 3. 从庞大的 Card Status TLV (0x10) 中按照规范解析出所有的长 AID
+	// 3. 從龐大的 Card Status TLV (0x10) 中按照規範解析出所有的長 AID
 	return parseAllAIDs(uimResp)
 }
 
@@ -52,8 +52,8 @@ func (d *Device) releaseUIMClient(ctx context.Context, clientID uint8) {
 	_, _ = d.SendQMI(ctx, relReq)
 }
 
-// SendQMI 专门用于通过 QMI over MBIM 隧道发送底层的 QMUX 报文，并返回响应的 QMUX 报文。
-// 此方法要求外部已经完全构建好 QMI 的报文头(包含 IFType 等)，它将其作为透明负载下发。
+// SendQMI 專門用於透過 QMI over MBIM 隧道傳送底層的 QMUX 報文，並返回響應的 QMUX 報文。
+// 此方法要求外部已經完全構建好 QMI 的報文頭(包含 IFType 等)，它將其作為透明負載下發。
 func (d *Device) SendQMI(ctx context.Context, payload []byte) ([]byte, error) {
 	// QMI over MBIM 固定使用 CommandTypeSet
 	res, err := d.Command(ctx, UUIDQMI, CIDQMIMsg, CommandTypeSet, payload)
@@ -63,7 +63,7 @@ func (d *Device) SendQMI(ctx context.Context, payload []byte) ([]byte, error) {
 	return res.InfoBuffer, nil
 }
 
-// buildQMIMessage 将参数组装为一个原生的、带 QMUX 头和 SDU 头的完整二进制 QMI 帧。
+// buildQMIMessage 將引數組裝為一個原生的、帶 QMUX 頭和 SDU 頭的完整二進位 QMI 幀。
 func buildQMIMessage(service, clientID uint8, txID uint16, msgID uint16, tlvs []byte) []byte {
 	isCTL := service == 0x00
 	var sduLen int
@@ -104,7 +104,7 @@ func buildQMIMessage(service, clientID uint8, txID uint16, msgID uint16, tlvs []
 	return buf
 }
 
-// extractClientID 从 CTL Response 中解出分配到的 Client ID
+// extractClientID 從 CTL Response 中解出分配到的 Client ID
 func extractClientID(data []byte) (uint8, error) {
 	if len(data) < 12 {
 		return 0, fmt.Errorf("ctl resp too short")
@@ -128,8 +128,8 @@ func extractClientID(data []byte) (uint8, error) {
 	return 0, fmt.Errorf("client id tlv not found")
 }
 
-// parseAllAIDs 按照 QMI UIM GET_CARD_STATUS 规范解析 Card Status TLV (0x10)。
-// 结构：[8 bytes idx] + num_slots
+// parseAllAIDs 按照 QMI UIM GET_CARD_STATUS 規範解析 Card Status TLV (0x10)。
+// 結構：[8 bytes idx] + num_slots
 // 每 slot: [5 bytes slot_info] + num_apps
 // 每 app: [6 bytes app_info] + aid_len + aid_value + [7 bytes pin_info]
 func parseAllAIDs(data []byte) ([]UICCAppInfo, error) {
@@ -149,7 +149,7 @@ func parseAllAIDs(data []byte) ([]UICCAppInfo, error) {
 		val := tlvs[idx+3 : idx+3+int(l)]
 
 		if typ == 0x10 {
-			// 开始线性解析 Card Status
+			// 開始線性解析 Card Status
 			vIdx := 0
 			if vIdx+8 > len(val) {
 				goto nextTlv
@@ -206,5 +206,5 @@ func parseAllAIDs(data []byte) ([]UICCAppInfo, error) {
 	nextTlv:
 		idx += 3 + int(l)
 	}
-	return apps, nil // 就算没找到 TLV，或者 TLV 为空，也返回当前收集到的 apps
+	return apps, nil // 就算沒找到 TLV，或者 TLV 為空，也返回目前收集到的 apps
 }

@@ -1,6 +1,6 @@
-// Package pki 提供 eUICC 芯片的 PKI 公开数据查询能力
-// 数据来源：https://euicc-manual.osmocom.org
-// 使用 go:generate 更新内嵌的 JSON 字典：
+// Package pki 提供 eUICC 晶片的 PKI 公開資料查詢能力
+// 資料來源：https://euicc-manual.osmocom.org
+// 使用 go:generate 更新內嵌的 JSON 字典：
 //
 //go:generate curl -sL -o ci.json https://euicc-manual.osmocom.org/docs/pki/ci/manifest.json
 //go:generate curl -sL -o accredited.json https://euicc-manual.osmocom.org/docs/pki/eum/accredited.json
@@ -23,20 +23,20 @@ var ciData []byte
 //go:embed accredited.json
 var accreditedData []byte
 
-// CertificateIssuer eSIM 证书签发机构
+// CertificateIssuer eSIM 證書籤發機構
 type CertificateIssuer struct {
 	KeyID   string `json:"key-id"`
 	Country string `json:"country"`
 	Name    string `json:"name"`
 }
 
-// Accredited 认证供应商字典
+// Accredited 認證供應商字典
 type Accredited struct {
 	Version   uint8      `json:"version"`
 	Suppliers []Supplier `json:"suppliers"`
 }
 
-// Supplier eUICC 芯片供应商
+// Supplier eUICC 晶片供應商
 type Supplier struct {
 	Name      string            `json:"name"`
 	Abbr      string            `json:"abbr,omitempty"`
@@ -52,14 +52,14 @@ var (
 
 func init() {
 	if err := json.Unmarshal(ciData, &issuers); err != nil {
-		logger.Error("解析 CI 证书签发机构数据失败", "err", err)
+		logger.Error("解析 CI 證書籤發機構資料失敗", "err", err)
 	}
 	if err := json.Unmarshal(accreditedData, &sites); err != nil {
-		logger.Error("解析 Accredited 供应商数据失败", "err", err)
+		logger.Error("解析 Accredited 供應商資料失敗", "err", err)
 	}
 }
 
-// LookupCertificateIssuer 根据 keyID（hex 字符串）查找证书签发机构名称
+// LookupCertificateIssuer 根據 keyID（hex 字串）查詢證書籤發機構名稱
 func LookupCertificateIssuer(keyID string) string {
 	for _, ci := range issuers {
 		if strings.HasPrefix(keyID, ci.KeyID) {
@@ -69,8 +69,8 @@ func LookupCertificateIssuer(keyID string) string {
 	return keyID
 }
 
-// LookupCertificateIssuers 从 EUICCInfo2 中的 euiccCiPKIdListForSigning 字段批量查询
-// 入参是原始二进制 keyID 列表，返回人类可读的签发机构名称列表
+// LookupCertificateIssuers 從 EUICCInfo2 中的 euiccCiPKIdListForSigning 欄位批次查詢
+// 入參是原始二進位 keyID 列表，返回人類可讀的簽發機構名稱列表
 func LookupCertificateIssuers(keyIDs [][]byte) []string {
 	result := make([]string, 0, len(keyIDs))
 	for _, kid := range keyIDs {
@@ -79,8 +79,8 @@ func LookupCertificateIssuers(keyIDs [][]byte) []string {
 	return result
 }
 
-// LookupManufacturer 根据 EID 前 8 位（EUM 前缀）查找芯片制造商名称
-// sasAccreditationNumber 可选，来自 EUICCInfo2 中的 sasAccreditationNumber 字段
+// LookupManufacturer 根據 EID 前 8 位（EUM 字首）查詢晶片製造商名稱
+// sasAccreditationNumber 可選，來自 EUICCInfo2 中的 sasAccreditationNumber 欄位
 // 返回格式如 "Kigen 🇬🇧" 或 "Thales 🇫🇷"
 func LookupManufacturer(eid string, sasAccreditationNumber string) string {
 	if len(eid) < 8 {
@@ -103,7 +103,7 @@ func LookupManufacturer(eid string, sasAccreditationNumber string) string {
 	return ""
 }
 
-// regionFlag 将两字母国家代码转换为 emoji 国旗
+// regionFlag 將兩字母國家程式碼轉換為 emoji 國旗
 func regionFlag(code string) string {
 	if len(code) < 2 {
 		return ""

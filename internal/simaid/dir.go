@@ -4,7 +4,7 @@ import "fmt"
 
 func ReadDirectoryAIDs(transmit func([]byte) ([]byte, error)) ([][]byte, error) {
 	if transmit == nil {
-		return nil, fmt.Errorf("transmit 为空")
+		return nil, fmt.Errorf("transmit 為空")
 	}
 	if err := selectFileWithTransmit(transmit, "MF", []byte{0x00, 0xA4, 0x00, 0x04, 0x02, 0x3F, 0x00}); err != nil {
 		return nil, err
@@ -21,7 +21,7 @@ func ReadDirectoryAIDs(transmit func([]byte) ([]byte, error)) ([][]byte, error) 
 	}
 	fcpData, err := ExtractSuccessData(efDIRSelectRsp)
 	if err != nil {
-		return nil, fmt.Errorf("选择 EF_DIR 失败: %w", err)
+		return nil, fmt.Errorf("選擇 EF_DIR 失敗: %w", err)
 	}
 	recordLen, recordCount := ParseLinearFixedMetaFromFCP(fcpData)
 	if recordLen < 0 || recordLen > 0xFF {
@@ -43,23 +43,23 @@ func ReadDirectoryAIDs(transmit func([]byte) ([]byte, error)) ([][]byte, error) 
 		}
 		sw1, sw2, ok := APDUStatus(rsp)
 		if !ok {
-			lastErr = fmt.Errorf("EF_DIR 记录 %d 响应过短: %X", record, rsp)
+			lastErr = fmt.Errorf("EF_DIR 記錄 %d 響應過短: %X", record, rsp)
 			continue
 		}
 		if sw1 == 0x6A && (sw2 == 0x83 || sw2 == 0x82) {
 			break
 		}
 		if !IsSuccess(sw1, sw2) {
-			lastErr = fmt.Errorf("读取 EF_DIR 记录 %d 失败: SW=%02X%02X", record, sw1, sw2)
+			lastErr = fmt.Errorf("讀取 EF_DIR 記錄 %d 失敗: SW=%02X%02X", record, sw1, sw2)
 			continue
 		}
 		aids = AppendUniqueAIDs(aids, CollectTLVValues(rsp[:len(rsp)-2], 0x4F)...)
 	}
 	if len(aids) == 0 {
 		if lastErr != nil {
-			return nil, fmt.Errorf("EF_DIR 未发现 AID: %w", lastErr)
+			return nil, fmt.Errorf("EF_DIR 未發現 AID: %w", lastErr)
 		}
-		return nil, fmt.Errorf("EF_DIR 未发现 AID")
+		return nil, fmt.Errorf("EF_DIR 未發現 AID")
 	}
 	return aids, nil
 }
@@ -67,14 +67,14 @@ func ReadDirectoryAIDs(transmit func([]byte) ([]byte, error)) ([][]byte, error) 
 func selectFileWithTransmit(transmit func([]byte) ([]byte, error), name string, apdu []byte) error {
 	rsp, err := transmit(apdu)
 	if err != nil {
-		return fmt.Errorf("选择 %s 失败: %w", name, err)
+		return fmt.Errorf("選擇 %s 失敗: %w", name, err)
 	}
 	sw1, sw2, ok := APDUStatus(rsp)
 	if !ok {
-		return fmt.Errorf("选择 %s 失败: APDU 响应过短: %X", name, rsp)
+		return fmt.Errorf("選擇 %s 失敗: APDU 響應過短: %X", name, rsp)
 	}
 	if !IsSelectSuccess(sw1, sw2) {
-		return fmt.Errorf("选择 %s 失败: SW=%02X%02X", name, sw1, sw2)
+		return fmt.Errorf("選擇 %s 失敗: SW=%02X%02X", name, sw1, sw2)
 	}
 	return nil
 }

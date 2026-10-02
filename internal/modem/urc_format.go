@@ -36,7 +36,7 @@ func urcKey(line string) string {
 		}
 		return s
 	}
-	// 无前缀但含空格的标准 URC，需要返回完整字符串作为 Key
+	// 無字首但含空格的標準 URC，需要返回完整字串作為 Key
 	switch s {
 	case "NO CARRIER", "NO ANSWER", "SMS Ready", "Call Ready", "NORMAL POWER DOWN":
 		return s
@@ -102,14 +102,14 @@ func (m *Manager) formatURC(line string) urcFormatResult {
 		st, idx, ok := parseCMTI(s)
 		if ok {
 			out.Level = urcLogInfo
-			out.Msg = "URC: 新短信通知"
+			out.Msg = "URC: 新簡訊通知"
 			out.Fields = append(out.Fields, "storage", st, "index", idx)
 			out.CMTIIndex = idx
 			out.CMTIStorage = st
 			return out
 		}
 		out.Level = urcLogInfo
-		out.Msg = "URC: 新短信通知"
+		out.Msg = "URC: 新簡訊通知"
 		out.Fields = append(out.Fields, "raw", s)
 		return out
 
@@ -123,7 +123,7 @@ func (m *Manager) formatURC(line string) urcFormatResult {
 			}
 		}
 		out.Level = urcLogInfo
-		out.Msg = "URC: 注册状态变更"
+		out.Msg = "URC: 註冊狀態變更"
 		out.Fields = append(out.Fields, "domain", strings.TrimPrefix(key, "+"), "stat", stat)
 		if stat >= 0 && key == "+CREG" {
 			out.Fields = append(out.Fields, "stat_text", m.getRegStatusText(stat))
@@ -139,7 +139,7 @@ func (m *Manager) formatURC(line string) urcFormatResult {
 	case "+CPIN":
 		rest := parseURCAfterColon(s)
 		out.Level = urcLogInfo
-		out.Msg = "URC: SIM 状态"
+		out.Msg = "URC: SIM 狀態"
 		out.Fields = append(out.Fields, "state", strings.Trim(strings.TrimSpace(rest), "\""))
 		return out
 
@@ -200,7 +200,7 @@ func (m *Manager) formatURC(line string) urcFormatResult {
 			number = fields[0]
 		}
 		out.Level = urcLogInfo
-		out.Msg = "URC: 来电显示"
+		out.Msg = "URC: 來電顯示"
 		if number != "" {
 			out.Fields = append(out.Fields, "number", number)
 		}
@@ -223,7 +223,7 @@ func (m *Manager) formatURC(line string) urcFormatResult {
 			return out
 		}
 		out.Level = urcLogDebug
-		out.Msg = "URC: 未分类"
+		out.Msg = "URC: 未分類"
 		out.Fields = append(out.Fields, "raw", s)
 		return out
 	}

@@ -317,7 +317,7 @@ func (a *app) monitorCallHistory(ctx context.Context) {
 func (a *app) listHistory(w http.ResponseWriter, r *http.Request) {
 	h := a.historyStore()
 	if h == nil {
-		writeError(w, 503, "记录存储未初始化")
+		writeError(w, 503, "記錄儲存未初始化")
 		return
 	}
 	h.mu.Lock()
@@ -336,7 +336,7 @@ func (a *app) listHistory(w http.ResponseWriter, r *http.Request) {
 	if h.db != nil {
 		result, err := h.queryDatabase(r.Context(), card, all, r.URL.Query().Get("kind"), r.URL.Query().Get("offset"))
 		if err != nil {
-			writeError(w, 500, "读取通信记录失败")
+			writeError(w, 500, "讀取通訊記錄失敗")
 			return
 		}
 		writeJSON(w, 200, result)

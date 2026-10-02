@@ -63,7 +63,7 @@ func ResolveIPFamily(in string) (enableV4 bool, enableV6 bool, err error) {
 	case "v4v6", "v6v4", "dual", "ipv4v6":
 		return true, true, nil
 	default:
-		return false, false, fmt.Errorf("无效的 ip_version: %q (允许 v4|v6|v4v6)", in)
+		return false, false, fmt.Errorf("無效的 ip_version: %q (允許 v4|v6|v4v6)", in)
 	}
 }
 
@@ -82,20 +82,20 @@ type Config struct {
 	Proxy    ProxyConfig    `mapstructure:"proxy"`
 }
 
-// ProxyConfig 定义代理服务配置
+// ProxyConfig 定義代理服務配置
 type ProxyConfig struct {
-	Instances []ProxyInstance `mapstructure:"instances"` // 代理实例列表
+	Instances []ProxyInstance `mapstructure:"instances"` // 代理例項列表
 }
 
-// ProxyInstance 定义一个代理实例配置
+// ProxyInstance 定義一個代理例項配置
 type ProxyInstance struct {
-	ID          string `mapstructure:"id" json:"id"`                   // 实例唯一标识
-	Name        string `mapstructure:"name" json:"name"`               // 显示名称
-	DeviceID    string `mapstructure:"device_id" json:"device_id"`     // 绑定设备 ID（强制绑定对应网卡）
-	Enabled     bool   `mapstructure:"enabled" json:"enabled"`         // 是否启用
+	ID          string `mapstructure:"id" json:"id"`                   // 例項唯一標識
+	Name        string `mapstructure:"name" json:"name"`               // 顯示名稱
+	DeviceID    string `mapstructure:"device_id" json:"device_id"`     // 繫結裝置 ID（強制繫結對應網卡）
+	Enabled     bool   `mapstructure:"enabled" json:"enabled"`         // 是否啟用
 	Mode        string `mapstructure:"mode" json:"mode"`               // 代理模式: socks5|http
-	ListenAddr  string `mapstructure:"listen_addr" json:"listen_addr"` // 监听地址
-	ListenPort  int    `mapstructure:"listen_port" json:"listen_port"` // 监听端口
+	ListenAddr  string `mapstructure:"listen_addr" json:"listen_addr"` // 監聽位址
+	ListenPort  int    `mapstructure:"listen_port" json:"listen_port"` // 監聽埠
 	AuthEnabled bool   `mapstructure:"auth_enabled" json:"auth_enabled"`
 	Username    string `mapstructure:"username" json:"username"`
 	Password    string `mapstructure:"password" json:"password"`
@@ -129,23 +129,23 @@ type ESIMSwitchConfig struct {
 
 type DeviceConfig struct {
 	ID            string `mapstructure:"id"`
-	Name          string `mapstructure:"name"` // 设备显示名称
+	Name          string `mapstructure:"name"` // 裝置顯示名稱
 	ModemIMEI     string `mapstructure:"modem_imei"`
-	USBPath       string `mapstructure:"-"` // Deprecated: 运行时按 IMEI 现解析,绝不从文件读取
-	ATPort        string `mapstructure:"-"` // Deprecated: 运行时解析;AT 终端用 Worker.ResolvedATPort()
+	USBPath       string `mapstructure:"-"` // Deprecated: 執行時按 IMEI 現解析,絕不從檔案讀取
+	ATPort        string `mapstructure:"-"` // Deprecated: 執行時解析;AT 終端用 Worker.ResolvedATPort()
 	ProxyPort     int    `mapstructure:"proxy_port"`
-	ManagePort    string `mapstructure:"-"`              // Deprecated: 运行时解析,绝不从文件读取
-	Interface     string `mapstructure:"-"`              // Deprecated: 运行时解析,绝不从文件读取
-	QMIDevice     string `mapstructure:"-"`              // Deprecated: 运行时解析,绝不从文件读取
-	ControlDevice string `mapstructure:"-"`              // Deprecated: 运行时按 IMEI 现解析,绝不从文件读取
-	MBIMTransport string `mapstructure:"mbim_transport"` // MBIM 传输: auto|proxy|direct，默认 auto
-	QMIUseProxy   bool   `mapstructure:"qmi_use_proxy"`  // 是否通过 libqmi qmi-proxy 打开 QMI 控制口
-	// 可选：qmi-proxy abstract socket 名称和可执行文件路径。留空使用 quectel-qmi-go 默认值。
+	ManagePort    string `mapstructure:"-"`              // Deprecated: 執行時解析,絕不從檔案讀取
+	Interface     string `mapstructure:"-"`              // Deprecated: 執行時解析,絕不從檔案讀取
+	QMIDevice     string `mapstructure:"-"`              // Deprecated: 執行時解析,絕不從檔案讀取
+	ControlDevice string `mapstructure:"-"`              // Deprecated: 執行時按 IMEI 現解析,絕不從檔案讀取
+	MBIMTransport string `mapstructure:"mbim_transport"` // MBIM 傳輸: auto|proxy|direct，預設 auto
+	QMIUseProxy   bool   `mapstructure:"qmi_use_proxy"`  // 是否透過 libqmi qmi-proxy 開啟 QMI 控制口
+	// 可選：qmi-proxy abstract socket 名稱和可執行檔案路徑。留空使用 quectel-qmi-go 預設值。
 	QMIProxyPath       string `mapstructure:"qmi_proxy_path"`
 	QMIProxyExecutable string `mapstructure:"qmi_proxy_executable"`
-	ESIMTransport      string `mapstructure:"esim_transport"` // eSIM 传输通道: at|qmi|mbim，默认 at
-	DeviceBackend      string `mapstructure:"device_backend"` // 设备后端模式: at|qmi|mbim|auto，默认 at
-	USBNetMode         *int   `mapstructure:"usbnet_mode"`    // 可选：用于校验/设置 Quectel USBNET 模式
+	ESIMTransport      string `mapstructure:"esim_transport"` // eSIM 傳輸通道: at|qmi|mbim，預設 at
+	DeviceBackend      string `mapstructure:"device_backend"` // 裝置後端模式: at|qmi|mbim|auto，預設 at
+	USBNetMode         *int   `mapstructure:"usbnet_mode"`    // 可選：用於校驗/設定 Quectel USBNET 模式
 	// ESIMSwitch controls deterministic eSIM switch behavior. Zero values preserve current behavior.
 	ESIMSwitch ESIMSwitchConfig `mapstructure:"esim_switch"`
 
@@ -159,15 +159,15 @@ type DeviceConfig struct {
 	StopBits int    `mapstructure:"stop_bits"`
 	Parity   string `mapstructure:"parity"`
 
-	// 以下为运行时有效策略（投影自 card_policies，按 ICCID），不再从配置文件加载
+	// 以下為執行時有效策略（投影自 card_policies，按 ICCID），不再從配置檔案載入
 	APN             string `mapstructure:"-"`
 	NetworkEnabled  bool   `mapstructure:"-"`
 	IPVersion       string `mapstructure:"-"`
 	AirplaneEnabled bool   `mapstructure:"-"`
-	SMSEnabled      bool   `mapstructure:"-"` // SMS 恒开，运行时强制 true
+	SMSEnabled      bool   `mapstructure:"-"` // SMS 恆開，執行時強制 true
 
-	// USB Audio (自动发现，无需手动配置)
-	AudioDevice string `mapstructure:"-"` // Deprecated: 运行时解析,绝不从文件读取
+	// USB Audio (自動發現，無需手動配置)
+	AudioDevice string `mapstructure:"-"` // Deprecated: 執行時解析,絕不從檔案讀取
 }
 
 type TelegramConfig struct {
@@ -175,25 +175,25 @@ type TelegramConfig struct {
 	BotToken string `mapstructure:"bot_token"`
 	ChatID   int64  `mapstructure:"chat_id"`
 	AdminID  int64  `mapstructure:"admin_id"`
-	BaseURL  string `mapstructure:"base_url"` // 反向代理地址 (例如 https://api.telegram.org/bot%s/%s)
-	Proxy    string `mapstructure:"proxy"`    // HTTP 代理地址 (例如 http://127.0.0.1:7890)
+	BaseURL  string `mapstructure:"base_url"` // 反向代理位址 (例如 https://api.telegram.org/bot%s/%s)
+	Proxy    string `mapstructure:"proxy"`    // HTTP 代理位址 (例如 http://127.0.0.1:7890)
 }
 
-// FeishuConfig 飞书通知配置
+// FeishuConfig 飛書通知配置
 type FeishuConfig struct {
 	Enabled   bool     `mapstructure:"enabled"`
-	AppID     string   `mapstructure:"app_id"`     // 飞书开放平台应用 App ID
-	AppSecret string   `mapstructure:"app_secret"` // 飞书开放平台应用 App Secret
-	ChatIDs   []string `mapstructure:"chat_ids"`   // 飞书群聊 chat_id 列表
-	ChatID    string   `mapstructure:"chat_id"`    // 兼容旧配置：单个 chat_id
+	AppID     string   `mapstructure:"app_id"`     // 飛書開放平臺應用 App ID
+	AppSecret string   `mapstructure:"app_secret"` // 飛書開放平臺應用 App Secret
+	ChatIDs   []string `mapstructure:"chat_ids"`   // 飛書群聊 chat_id 列表
+	ChatID    string   `mapstructure:"chat_id"`    // 相容舊配置：單個 chat_id
 }
 
 type QQConfig struct {
 	Enabled   bool   `mapstructure:"enabled"`
 	AppID     string `mapstructure:"app_id"`
 	AppSecret string `mapstructure:"app_secret"`
-	GroupIDs  string `mapstructure:"group_ids"`  // 逗号分隔的群组 OpenID
-	DirectIDs string `mapstructure:"direct_ids"` // 逗号分隔的私聊 OpenID
+	GroupIDs  string `mapstructure:"group_ids"`  // 逗號分隔的群組 OpenID
+	DirectIDs string `mapstructure:"direct_ids"` // 逗號分隔的私聊 OpenID
 }
 
 type WebhookConfig struct {
@@ -236,7 +236,7 @@ func Load(path string) (*Config, error) {
 	viper.SetConfigFile(path)
 	viper.SetConfigType("yaml")
 
-	// 默认值设置
+	// 預設值設定
 	viper.SetDefault("server.port", 7575)
 	viper.SetDefault("webhook.timeout_ms", 5000)
 	viper.SetDefault("webhook.retry_max", 3)
@@ -250,26 +250,26 @@ func Load(path string) (*Config, error) {
 	viper.SetDefault("pushplus.enabled", false)
 	viper.SetDefault("web.username", "admin")
 	viper.SetDefault("web.password", "admin")
-	// 环境变量覆盖支持 (例如 PROXY_DEVICES_0_APN)
+	// 環境變數覆蓋支援 (例如 PROXY_DEVICES_0_APN)
 	viper.SetEnvPrefix("PROXY")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("读取配置文件失败: %w", err)
+		return nil, fmt.Errorf("讀取配置檔案失敗: %w", err)
 	}
 
 	var cfg Config
 	if err := viper.Unmarshal(&cfg); err != nil {
-		return nil, fmt.Errorf("解析配置文件失败: %w", err)
+		return nil, fmt.Errorf("解析配置檔案失敗: %w", err)
 	}
 
-	// 兼容旧版单值配置: feishu.chat_id
+	// 相容舊版單值配置: feishu.chat_id
 	if len(cfg.Feishu.ChatIDs) == 0 && strings.TrimSpace(cfg.Feishu.ChatID) != "" {
 		cfg.Feishu.ChatIDs = []string{strings.TrimSpace(cfg.Feishu.ChatID)}
 	}
 
-	// 兼容 server.port 格式 (例如: 7575 和 :7575)
+	// 相容 server.port 格式 (例如: 7575 和 :7575)
 	if cfg.Server.Port != "" && !strings.Contains(cfg.Server.Port, ":") {
 		cfg.Server.Port = ":" + cfg.Server.Port
 	}

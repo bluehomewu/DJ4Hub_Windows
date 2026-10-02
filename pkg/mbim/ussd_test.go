@@ -46,7 +46,7 @@ func TestEncodeUSSDRequestRoundTripGSM7(t *testing.T) {
 }
 
 func TestEncodeUSSDRequestFallsBackToUCS2(t *testing.T) {
-	dcs, payload := EncodeUSSDRequest("*余额#")
+	dcs, payload := EncodeUSSDRequest("*餘額#")
 
 	if dcs != 0x48 {
 		t.Fatalf("DCS = 0x%02x, want 0x48", dcs)
@@ -54,8 +54,8 @@ func TestEncodeUSSDRequestFallsBackToUCS2(t *testing.T) {
 	if len(payload) == 0 {
 		t.Fatal("payload is empty")
 	}
-	if got := DecodeUSSDText(dcs, payload); got != "*余额#" {
-		t.Fatalf("DecodeUSSDText() = %q, want %q", got, "*余额#")
+	if got := DecodeUSSDText(dcs, payload); got != "*餘額#" {
+		t.Fatalf("DecodeUSSDText() = %q, want %q", got, "*餘額#")
 	}
 }
 

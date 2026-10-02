@@ -21,16 +21,16 @@ func activateDJINetwork(out io.Writer) error {
 	}
 	device := discoverDJIUSBDevice()
 	if device == nil {
-		return errors.New("未检测到受支持的 DJI 4G 模块（USB 2ca3:4006）")
+		return errors.New("未偵測到受支援的 DJI 4G 模組（USB 2ca3:4006）")
 	}
-	fmt.Fprintf(out, "已检测到模块：%s（%s:%s）\n", device.Product, device.VendorID, device.ProductID)
+	fmt.Fprintf(out, "已偵測到模組：%s（%s:%s）\n", device.Product, device.VendorID, device.ProductID)
 	for _, issue := range device.DriverIssues {
-		fmt.Fprintf(out, "驱动提示：%s\n", issue)
+		fmt.Fprintf(out, "驅動提示：%s\n", issue)
 	}
 
 	service := currentDJINetworkService(device, discoverHostNetworkInterfaces())
 	if networkServiceReady(service) {
-		fmt.Fprintf(out, "上网网卡已经可用：%s，IP %s\n", service.Name, service.IPv4)
+		fmt.Fprintf(out, "上網網卡已經可用：%s，IP %s\n", service.Name, service.IPv4)
 		return nil
 	}
 	if service == nil {
@@ -43,21 +43,21 @@ func activateDJINetwork(out io.Writer) error {
 			}
 			at.Close()
 		}
-		return fmt.Errorf("Windows 没有识别到模块网卡（usbnet=%s）。usbnet=0 需要 Quectel NDIS 或 MBIM 驱动，usbnet=1 需要 ECM 驱动", mode)
+		return fmt.Errorf("Windows 沒有偵測到模組網卡（usbnet=%s）。usbnet=0 需要 Quectel NDIS 或 MBIM 驅動，usbnet=1 需要 ECM 驅動", mode)
 	}
 
 	if service.Disabled {
-		fmt.Fprintf(out, "%s 已在 Windows 中停用，正在请求管理员权限启用...\n", service.Name)
+		fmt.Fprintf(out, "%s 已在 Windows 中停用，正在請求管理員權限啟用...\n", service.Name)
 	} else {
-		fmt.Fprintf(out, "%s 尚未连接，正在请求 Windows 连接行动宽带...\n", service.Name)
+		fmt.Fprintf(out, "%s 尚未連線，正在請求 Windows 連線行動寬頻...\n", service.Name)
 	}
 	if err := enableDJINetworkService(service); err != nil {
 		return err
 	}
 	service = waitForDJINetworkService(device, activationWaitTimeout)
 	if networkServiceReady(service) {
-		fmt.Fprintf(out, "激活完成：%s，IP %s\n", service.Name, service.IPv4)
+		fmt.Fprintf(out, "啟用完成：%s，IP %s\n", service.Name, service.IPv4)
 		return nil
 	}
-	return fmt.Errorf("已请求连接，但 %s 内网卡没有取得可用 IPv4 地址；请检查 APN 与 SIM 数据权限", activationWaitTimeout)
+	return fmt.Errorf("已請求連線，但 %s 內網卡沒有取得可用 IPv4 位址；請檢查 APN 與 SIM 資料權限", activationWaitTimeout)
 }

@@ -25,7 +25,7 @@ func TestUpdateDeviceIMEIInFileWritesOnlyIMEI(t *testing.T) {
 	if got.ModemIMEI != "867383058993207" {
 		t.Fatalf("ModemIMEI = %q, want 867383058993207", got.ModemIMEI)
 	}
-	// 零路径架构: Load() 绝不从文件回填运行时路径字段(mapstructure:"-")。
+	// 零路徑架構: Load() 絕不從檔案回填執行時路徑欄位(mapstructure:"-")。
 	if got.ControlDevice != "" || got.Interface != "" || got.ATPort != "" {
 		t.Fatalf("runtime path fields must not be loaded from file, got: %+v", got)
 	}

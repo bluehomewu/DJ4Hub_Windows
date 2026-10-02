@@ -202,7 +202,7 @@ func (m *Manager) SMSDeleteAll() error {
 	return err
 }
 
-// QuerySMSC 查询短信中心号码 (AT+CSCA?)
+// QuerySMSC 查詢簡訊中心號碼 (AT+CSCA?)
 func (m *Manager) QuerySMSC() (string, error) {
 	resp, err := m.ExecuteATSilent("AT+CSCA?", 2*time.Second)
 	if err != nil {
@@ -211,7 +211,7 @@ func (m *Manager) QuerySMSC() (string, error) {
 	return parseCSCA(resp), nil
 }
 
-// QueryMSISDN 查询本机号码 (AT+CNUM)
+// QueryMSISDN 查詢本機號碼 (AT+CNUM)
 func (m *Manager) QueryMSISDN() (string, error) {
 	resp, err := m.ExecuteATSilent("AT+CNUM", 2*time.Second)
 	if err != nil {
@@ -220,7 +220,7 @@ func (m *Manager) QueryMSISDN() (string, error) {
 	return parseCNUM(resp), nil
 }
 
-// QueryUSBNetMode 查询 USBNET 模式
+// QueryUSBNetMode 查詢 USBNET 模式
 func (m *Manager) QueryUSBNetMode() (int, error) {
 	resp, err := m.ExecuteATSilent("AT+QCFG=\"usbnet\"?", 2*time.Second)
 	if err != nil {
@@ -233,28 +233,28 @@ func (m *Manager) QueryUSBNetMode() (int, error) {
 	return mode, nil
 }
 
-// SetUSBNetMode 设置 USBNET 模式并重启
+// SetUSBNetMode 設定 USBNET 模式並重啟
 func (m *Manager) SetUSBNetMode(mode int) error {
 	cmd := fmt.Sprintf("AT+QCFG=\"usbnet\",%d", mode)
 	_, err := m.ExecuteAT(cmd, 5*time.Second)
 	if err != nil {
-		return fmt.Errorf("设置 USBNET 模式失败: %w", err)
+		return fmt.Errorf("設定 USBNET 模式失敗: %w", err)
 	}
 
-	// 重启模组以生效
+	// 重啟模組以生效
 	if _, err := m.ExecuteAT("AT+CFUN=1,1", 5*time.Second); err != nil {
-		return fmt.Errorf("重启模组失败: %w", err)
+		return fmt.Errorf("重啟模組失敗: %w", err)
 	}
 
 	return nil
 }
 
-// OpenLogicalChannel 通过 AT+CCHO 打开 eUICC 的 logical channel
+// OpenLogicalChannel 透過 AT+CCHO 開啟 eUICC 的 logical channel
 func (m *Manager) OpenLogicalChannel(aid string) (int, error) {
 	return m.openLogicalChannel(aid, "esim_session_open", "esim", apduarbiter.APDUClassEUICCWrite)
 }
 
-// OpenSIMAuthLogicalChannel 通过 AT+CCHO 打开 USIM/ISIM 鉴权 logical channel。
+// OpenSIMAuthLogicalChannel 透過 AT+CCHO 開啟 USIM/ISIM 鑑權 logical channel。
 func (m *Manager) OpenSIMAuthLogicalChannel(aid string) (int, error) {
 	return m.openLogicalChannel(aid, "sim_aka_open", "sim_aka", apduarbiter.APDUClassUSIMAKA)
 }
@@ -304,11 +304,11 @@ func (m *Manager) openLogicalChannel(aid, leaseOwner, sessionOwner string, class
 	cmd := fmt.Sprintf("AT+CCHO=\"%s\"", aid)
 	resp, err := m.ExecuteAT(cmd, 5*time.Second)
 	if err != nil {
-		return -1, fmt.Errorf("打开 logical channel 失败: %w", err)
+		return -1, fmt.Errorf("開啟 logical channel 失敗: %w", err)
 	}
 	channel, ok := parseCCHO(resp)
 	if !ok {
-		return -1, fmt.Errorf("解析 logical channel 响应失败: %s", resp)
+		return -1, fmt.Errorf("解析 logical channel 響應失敗: %s", resp)
 	}
 	if lease != nil {
 		lease.Touch()
@@ -317,7 +317,7 @@ func (m *Manager) openLogicalChannel(aid, leaseOwner, sessionOwner string, class
 	return channel, nil
 }
 
-// TransmitAPDU 通过 AT+CGLA 在 logical channel 上透传 APDU
+// TransmitAPDU 透過 AT+CGLA 在 logical channel 上透傳 APDU
 func (m *Manager) TransmitAPDU(channel int, apduHex string) (string, error) {
 	owner := "esim_apdu"
 	class := apduarbiter.APDUClassEUICCWrite
@@ -346,11 +346,11 @@ func (m *Manager) TransmitAPDU(channel int, apduHex string) (string, error) {
 	cmd := fmt.Sprintf("AT+CGLA=%d,%d,\"%s\"", channel, len(apduHex), apduHex)
 	resp, err := m.ExecuteATSilent(cmd, 10*time.Second)
 	if err != nil {
-		return "", fmt.Errorf("APDU 透传失败: %w", err)
+		return "", fmt.Errorf("APDU 透傳失敗: %w", err)
 	}
 	apduResp, ok := parseCGLA(resp)
 	if !ok {
-		return "", fmt.Errorf("解析 APDU 响应失败: %s", resp)
+		return "", fmt.Errorf("解析 APDU 響應失敗: %s", resp)
 	}
 	if lease != nil {
 		lease.Touch()
@@ -358,12 +358,12 @@ func (m *Manager) TransmitAPDU(channel int, apduHex string) (string, error) {
 	return apduResp, nil
 }
 
-// CloseLogicalChannel 通过 AT+CCHC 关闭 logical channel
+// CloseLogicalChannel 透過 AT+CCHC 關閉 logical channel
 func (m *Manager) CloseLogicalChannel(channel int) error {
 	return m.closeLogicalChannel(channel, "esim_session_close", apduarbiter.APDUClassEUICCWrite)
 }
 
-// CloseSIMAuthLogicalChannel 通过 AT+CCHC 清理 USIM/ISIM 鉴权 logical channel。
+// CloseSIMAuthLogicalChannel 透過 AT+CCHC 清理 USIM/ISIM 鑑權 logical channel。
 func (m *Manager) CloseSIMAuthLogicalChannel(channel int) error {
 	return m.closeLogicalChannel(channel, "sim_aka_close", apduarbiter.APDUClassRecovery)
 }
@@ -393,7 +393,7 @@ func (m *Manager) closeLogicalChannel(channel int, defaultOwner string, defaultC
 	cmd := fmt.Sprintf("AT+CCHC=%d", channel)
 	_, err = m.ExecuteAT(cmd, 5*time.Second)
 	if err != nil {
-		return fmt.Errorf("关闭 logical channel %d 失败: %w", channel, err)
+		return fmt.Errorf("關閉 logical channel %d 失敗: %w", channel, err)
 	}
 	if lease != nil {
 		lease.Touch()
@@ -401,8 +401,8 @@ func (m *Manager) closeLogicalChannel(channel int, defaultOwner string, defaultC
 	return nil
 }
 
-// ClearLogicalChannels 尝试关闭所有可能的逻辑通道 (1-4)
-// 忽略执行结果，用于异常恢复和状态清理
+// ClearLogicalChannels 嘗試關閉所有可能的邏輯通道 (1-4)
+// 忽略執行結果，用於異常恢復和狀態清理
 func (m *Manager) ClearLogicalChannels() {
 	for i := 1; i <= 4; i++ {
 		m.takeAPDUSession(i)
@@ -422,7 +422,7 @@ func (m *Manager) ClearLogicalChannels() {
 	}
 }
 
-// TransmitBasicAPDU 通过 AT+CSIM 在基本通道（Channel 0）上发送 APDU。
+// TransmitBasicAPDU 透過 AT+CSIM 在基本通道（Channel 0）上傳送 APDU。
 func (m *Manager) TransmitBasicAPDU(apduHex string) (string, error) {
 	lease, err := m.acquireAPDUTransportLease(8*time.Second, "sim_aka", apduarbiter.APDUClassUSIMAKA, 0)
 	if err != nil {
@@ -436,7 +436,7 @@ func (m *Manager) TransmitBasicAPDU(apduHex string) (string, error) {
 	send := func(currentAPDUHex string) (string, error) {
 		apduBytes, err := hex.DecodeString(currentAPDUHex)
 		if err != nil {
-			return "", fmt.Errorf("APDU hex 解码失败: %w", err)
+			return "", fmt.Errorf("APDU hex 解碼失敗: %w", err)
 		}
 		try := func(length int) (string, bool, error) {
 			cmd := fmt.Sprintf("AT+CSIM=%d,\"%s\"", length, currentAPDUHex)
@@ -446,7 +446,7 @@ func (m *Manager) TransmitBasicAPDU(apduHex string) (string, error) {
 			}
 			parsed, ok := parseCSIM(resp)
 			if !ok {
-				return "", false, fmt.Errorf("解析 CSIM 响应失败: %s", resp)
+				return "", false, fmt.Errorf("解析 CSIM 響應失敗: %s", resp)
 			}
 			return parsed, false, nil
 		}
@@ -470,9 +470,9 @@ func (m *Manager) TransmitBasicAPDU(apduHex string) (string, error) {
 			return parsed, nil
 		}
 		if hexErr != nil {
-			return "", fmt.Errorf("CSIM 执行失败: hexlen_err=%v bytelen_err=%v", hexErr, byteErr)
+			return "", fmt.Errorf("CSIM 執行失敗: hexlen_err=%v bytelen_err=%v", hexErr, byteErr)
 		}
-		return "", fmt.Errorf("CSIM 执行失败: hexlen_resp=%s bytelen_err=%v", parsed, byteErr)
+		return "", fmt.Errorf("CSIM 執行失敗: hexlen_resp=%s bytelen_err=%v", parsed, byteErr)
 	}
 
 	parsed, err := send(apduHex)
@@ -486,7 +486,7 @@ func followUpBasicAPDU(send func(string) (string, error), originalAPDUHex string
 	rspHex = strings.TrimSpace(rspHex)
 	rsp, err := hex.DecodeString(rspHex)
 	if err != nil {
-		return "", fmt.Errorf("APDU hex 解码失败: %w", err)
+		return "", fmt.Errorf("APDU hex 解碼失敗: %w", err)
 	}
 	if len(rsp) < 2 || remaining <= 0 {
 		return rspHex, nil
@@ -505,10 +505,10 @@ func followUpBasicAPDU(send func(string) (string, error), originalAPDUHex string
 	case 0x6C:
 		original, err := hex.DecodeString(originalAPDUHex)
 		if err != nil {
-			return "", fmt.Errorf("APDU hex 解码失败: %w", err)
+			return "", fmt.Errorf("APDU hex 解碼失敗: %w", err)
 		}
 		if len(original) < 5 {
-			return "", fmt.Errorf("APDU 收到 6C%02X 但原命令无 Le: %s", sw2, originalAPDUHex)
+			return "", fmt.Errorf("APDU 收到 6C%02X 但原命令無 Le: %s", sw2, originalAPDUHex)
 		}
 		original[len(original)-1] = sw2
 		nextAPDU := strings.ToLower(hex.EncodeToString(original))
@@ -522,7 +522,7 @@ func followUpBasicAPDU(send func(string) (string, error), originalAPDUHex string
 	}
 }
 
-// QueryNativeSPN 读取 SIM EF_SPN 服务提供商名称。
+// QueryNativeSPN 讀取 SIM EF_SPN 服務提供商名稱。
 func (m *Manager) QueryNativeSPN() (string, error) {
 	spnBytes, err := m.readSIMTransparentEF(28486, 17)
 	if err != nil {

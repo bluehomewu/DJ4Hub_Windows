@@ -5,20 +5,20 @@ import (
 	"fmt"
 )
 
-// qmiSessionTLV 构造 QMI UIM Session Information TLV(0x01)：
+// qmiSessionTLV 構造 QMI UIM Session Information TLV(0x01)：
 // session_type + aid_len(1) + aid。
 //
-// session_type 的选择规则（真机验证，EM7430 QMI-over-MBIM 隧道）：
-//   - aid 为 nil/空 → session_type=0x00 (Primary GW Provisioning)：
-//     用于 MF 级别文件（如 EF_DIR），此时必须在 file TLV 里提供从 MF 到父级的路径。
+// session_type 的選擇規則（真機驗證，EM7430 QMI-over-MBIM 隧道）：
+//   - aid 為 nil/空 → session_type=0x00 (Primary GW Provisioning)：
+//     用於 MF 級別檔案（如 EF_DIR），此時必須在 file TLV 裡提供從 MF 到父級的路徑。
 //   - aid 非空 → session_type=0x04 (Non-provisioning on slot 1)：
-//     用于 ADF 子文件（如 ADF_USIM 下的 EF_SPN/EF_AD 等）；
-//     session_type=0x00 在 QMI-over-MBIM 隧道里不被 EM7430 支持——无论 AID
-//     是否提供，都会被以 qmi_error=0x0030 (INVALID_ARGUMENT) 拒绝。
+//     用於 ADF 子檔案（如 ADF_USIM 下的 EF_SPN/EF_AD 等）；
+//     session_type=0x00 在 QMI-over-MBIM 隧道里不被 EM7430 支援——無論 AID
+//     是否提供，都會被以 qmi_error=0x0030 (INVALID_ARGUMENT) 拒絕。
 func qmiSessionTLV(aid []byte) []byte {
-	sessionType := byte(0x00) // Primary GW Provisioning（MF 级文件，path 指明位置）
+	sessionType := byte(0x00) // Primary GW Provisioning（MF 級檔案，path 指明位置）
 	if len(aid) > 0 {
-		sessionType = 0x04 // Non-provisioning on slot 1（ADF 子文件，AID 指明应用）
+		sessionType = 0x04 // Non-provisioning on slot 1（ADF 子檔案，AID 指明應用）
 	}
 	val := append([]byte{sessionType, byte(len(aid))}, aid...)
 	tlv := []byte{0x01, byte(len(val)), byte(len(val) >> 8)}
@@ -50,7 +50,7 @@ func buildQMIReadRecord(clientID uint8, txID uint16, fileID uint16, aid, path []
 
 func parseQMIReadResult(frame []byte) (data []byte, sw1, sw2 byte, err error) {
 	if len(frame) < 13 {
-		return nil, 0, 0, fmt.Errorf("qmi read: 响应过短 %d", len(frame))
+		return nil, 0, 0, fmt.Errorf("qmi read: 響應過短 %d", len(frame))
 	}
 	tlvs := frame[13:]
 	have := false
@@ -65,8 +65,8 @@ func parseQMIReadResult(frame []byte) (data []byte, sw1, sw2 byte, err error) {
 		val := tlvs[idx+3 : idx+3+l]
 		switch typ {
 		case 0x02:
-			// QMI 标准强制 Result Code TLV：result(2,LE) + error(2,LE)。
-			// result!=0 时模组只会回这个 TLV，不会带 0x10/0x11。
+			// QMI 標準強制 Result Code TLV：result(2,LE) + error(2,LE)。
+			// result!=0 時模組只會回這個 TLV，不會帶 0x10/0x11。
 			if len(val) >= 4 && le.Uint16(val[0:2]) != 0 {
 				qmiFailed = true
 				qmiErrorCode = le.Uint16(val[2:4])
@@ -86,16 +86,16 @@ func parseQMIReadResult(frame []byte) (data []byte, sw1, sw2 byte, err error) {
 		idx += 3 + l
 	}
 	if qmiFailed {
-		return nil, 0, 0, fmt.Errorf("qmi read: 请求被模组拒绝，qmi_error=0x%04X", qmiErrorCode)
+		return nil, 0, 0, fmt.Errorf("qmi read: 請求被模組拒絕，qmi_error=0x%04X", qmiErrorCode)
 	}
 	if !have && data == nil {
-		return nil, 0, 0, fmt.Errorf("qmi read: 响应缺少 card_result/read_result TLV")
+		return nil, 0, 0, fmt.Errorf("qmi read: 響應缺少 card_result/read_result TLV")
 	}
 	return data, sw1, sw2, nil
 }
 
-// QMIReadTransparentEF 读取一个透明 EF。aid 应是目标文件所属应用(如 ADF_USIM)
-// 的完整 AID；文件直接挂在 MF 下(如 EF_DIR)时传 nil。
+// QMIReadTransparentEF 讀取一個透明 EF。aid 應是目標檔案所屬應用(如 ADF_USIM)
+// 的完整 AID；檔案直接掛在 MF 下(如 EF_DIR)時傳 nil。
 func (d *Device) QMIReadTransparentEF(ctx context.Context, fileID uint16, aid, path []byte, offset, length uint16) ([]byte, byte, byte, error) {
 	clientID, err := d.allocUIMClient(ctx)
 	if err != nil {
@@ -109,7 +109,7 @@ func (d *Device) QMIReadTransparentEF(ctx context.Context, fileID uint16, aid, p
 	return parseQMIReadResult(resp)
 }
 
-// QMIReadRecordEF 读取一条线性记录 EF。aid 含义同 QMIReadTransparentEF。
+// QMIReadRecordEF 讀取一條線性記錄 EF。aid 含義同 QMIReadTransparentEF。
 func (d *Device) QMIReadRecordEF(ctx context.Context, fileID uint16, aid, path []byte, record, length uint16) ([]byte, byte, byte, error) {
 	clientID, err := d.allocUIMClient(ctx)
 	if err != nil {

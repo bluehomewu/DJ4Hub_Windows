@@ -35,30 +35,30 @@ document.querySelectorAll("[data-theme-option]").forEach((button) => {
 });
 
 const operatorNames = new Map([
-  ["CHN-UNICOM", "中国联通"],
-  ["CHINA UNICOM", "中国联通"],
-  ["UNICOM", "中国联通"],
-  ["46001", "中国联通"],
-  ["46006", "中国联通"],
-  ["46009", "中国联通"],
-  ["CHINA MOBILE", "中国移动"],
-  ["CMCC", "中国移动"],
-  ["CHN-CMCC", "中国移动"],
-  ["46000", "中国移动"],
-  ["46002", "中国移动"],
-  ["46004", "中国移动"],
-  ["46007", "中国移动"],
-  ["46008", "中国移动"],
-  ["CHINA TELECOM", "中国电信"],
-  ["CHN-CT", "中国电信"],
-  ["CTCC", "中国电信"],
-  ["46003", "中国电信"],
-  ["46005", "中国电信"],
-  ["46011", "中国电信"],
-  ["CBN", "中国广电"],
-  ["CHN-CBN", "中国广电"],
-  ["CHINA BROADNET", "中国广电"],
-  ["46015", "中国广电"],
+  ["CHN-UNICOM", "中國聯通"],
+  ["CHINA UNICOM", "中國聯通"],
+  ["UNICOM", "中國聯通"],
+  ["46001", "中國聯通"],
+  ["46006", "中國聯通"],
+  ["46009", "中國聯通"],
+  ["CHINA MOBILE", "中國移動"],
+  ["CMCC", "中國移動"],
+  ["CHN-CMCC", "中國移動"],
+  ["46000", "中國移動"],
+  ["46002", "中國移動"],
+  ["46004", "中國移動"],
+  ["46007", "中國移動"],
+  ["46008", "中國移動"],
+  ["CHINA TELECOM", "中國電信"],
+  ["CHN-CT", "中國電信"],
+  ["CTCC", "中國電信"],
+  ["46003", "中國電信"],
+  ["46005", "中國電信"],
+  ["46011", "中國電信"],
+  ["CBN", "中國廣電"],
+  ["CHN-CBN", "中國廣電"],
+  ["CHINA BROADNET", "中國廣電"],
+  ["46015", "中國廣電"],
 ]);
 
 async function api(path, options = {}) {
@@ -92,7 +92,7 @@ function closeModal(result = null) {
   }
 }
 
-function showModal({ title, message = "", fields = [], confirmLabel = "确定", danger = false }) {
+function showModal({ title, message = "", fields = [], confirmLabel = "確定", danger = false }) {
   if (modalResolve) closeModal(null);
   const modal = $("#app-modal");
   const messageElement = $("#modal-message");
@@ -144,9 +144,9 @@ document.addEventListener("keydown", (event) => {
 async function copySMSCode(code) {
   try {
     await navigator.clipboard.writeText(code);
-    notice(`验证码 ${code} 已复制`);
+    notice(`驗證碼 ${code} 已複製`);
   } catch (error) {
-    notice("复制失败，请手动复制验证码");
+    notice("複製失敗，請手動複製驗證碼");
   }
 }
 
@@ -160,27 +160,27 @@ function renderHardwareDetails(status) {
   }
 
   const title = document.createElement("strong");
-  title.textContent = device ? "已检测到兼容 USB 设备" : "未检测到可用硬件";
+  title.textContent = device ? "已偵測到相容 USB 裝置" : "未偵測到可用硬體";
 
   const detail = document.createElement("p");
   if (device) {
     const interfaceText = Array.isArray(device.interfaces)
-      ? `${device.interfaces.length} 个 USB interface`
+      ? `${device.interfaces.length} 個 USB interface`
       : "interface 未知";
     detail.textContent = [
-      `${device.vendor || "兼容设备"} ${device.product || ""}`.trim(),
+      `${device.vendor || "相容裝置"} ${device.product || ""}`.trim(),
       `${device.vendor_id}:${device.product_id}`,
       device.mode,
       interfaceText,
     ].filter(Boolean).join(" · ");
   } else {
-    detail.textContent = status.discovery_error || "设备未枚举";
+    detail.textContent = status.discovery_error || "裝置未列舉";
   }
 
   const hint = document.createElement("small");
   hint.textContent = status.discovery_error
-    ? `当前限制：${status.discovery_error}`
-    : "AT 串口可用后，短信和 eSIM/卡片操作会自动启用。";
+    ? `目前限制：${status.discovery_error}`
+    : "AT 串列埠可用後，簡訊和 eSIM/卡片操作會自動啟用。";
 
   panel.hidden = false;
   panel.replaceChildren(title, detail, hint);
@@ -190,9 +190,9 @@ function setSidebarDeviceState(connected, device = null) {
   const panel = $("#sidebar-device");
   panel.classList.toggle("is-offline", !connected);
   $("#sidebar-device-name").textContent = connected
-    ? (device?.product || "4G 模块")
-    : "等待设备";
-  $("#sidebar-device-state").textContent = connected ? "USB" : "未连接";
+    ? (device?.product || "4G 模組")
+    : "等待裝置";
+  $("#sidebar-device-state").textContent = connected ? "USB" : "未連線";
 }
 
 function setValue(id, text, tone = "") {
@@ -209,14 +209,14 @@ function displayOperatorName(value) {
 
 function displayWorkMode(value) {
 	if (value === null || value === undefined || value === "") {
-	  return { label: "待读取", tone: "muted" };
+	  return { label: "待讀取", tone: "muted" };
 	}
   switch (Number(value)) {
-    case 0: return { label: "短信模式", tone: "neutral" };
-    case 1: return { label: "上网模式", tone: "neutral" };
-    case 2: return { label: "实验模式 2", tone: "warn" };
-    case 3: return { label: "实验模式 3", tone: "warn" };
-    default: return { label: "待读取", tone: "muted" };
+    case 0: return { label: "簡訊模式", tone: "neutral" };
+    case 1: return { label: "上網模式", tone: "neutral" };
+    case 2: return { label: "實驗模式 2", tone: "warn" };
+    case 3: return { label: "實驗模式 3", tone: "warn" };
+    default: return { label: "待讀取", tone: "muted" };
   }
 }
 
@@ -235,7 +235,7 @@ function setUSBNetModeSelector(value) {
   });
 }
 
-function setHeaderDeviceState(connected, label = "设备在线") {
+function setHeaderDeviceState(connected, label = "裝置線上") {
   const indicator = $("#header-device-state");
   indicator.classList.toggle("is-online", connected);
   indicator.classList.toggle("is-offline", !connected);
@@ -252,7 +252,7 @@ async function loadSidebarConnection() {
     }
     $("#sidebar-connection-detail").textContent = [connection.interface, connection.ipv4].filter(Boolean).join(" · ");
     const state = $("#sidebar-connection-state");
-    state.textContent = connection.is_default ? "Windows 出口" : "已连接";
+    state.textContent = connection.is_default ? "Windows 出口" : "已連線";
     state.classList.toggle("is-secondary", !connection.is_default);
     panel.hidden = false;
   } catch (_) {
@@ -280,7 +280,7 @@ function renderSIMPhoneNumber(value, simInserted) {
   if (!phoneNumber) {
     currentSIMPhoneNumber = "";
     simPhoneNumberRevealed = false;
-    empty.textContent = simInserted ? "SIM 未存储号码" : "卡片状态";
+    empty.textContent = simInserted ? "SIM 未儲存號碼" : "卡片狀態";
     empty.hidden = false;
     actions.hidden = true;
     toggle.textContent = "--";
@@ -295,7 +295,7 @@ function renderSIMPhoneNumber(value, simInserted) {
   empty.hidden = true;
   actions.hidden = false;
   toggle.textContent = simPhoneNumberRevealed ? phoneNumber : maskPhoneNumber(phoneNumber);
-  toggle.title = simPhoneNumberRevealed ? "隐藏本机号码" : "显示完整本机号码";
+  toggle.title = simPhoneNumberRevealed ? "隱藏本機號碼" : "顯示完整本機號碼";
   copy.disabled = false;
 }
 
@@ -303,14 +303,14 @@ async function loadStatus() {
   try {
     const status = await api("/api/status");
     const connected = Boolean(status.usb_device || status.imei || status.firmware);
-    setHeaderDeviceState(connected, connected ? "设备在线" : "等待设备");
+    setHeaderDeviceState(connected, connected ? "裝置線上" : "等待裝置");
     setSidebarDeviceState(connected, status.usb_device);
     setValue("#operator", displayOperatorName(status.operator), status.operator ? "neutral" : "muted");
     setValue("#signal", status.signal_dbm ? `${status.signal_dbm} dBm` : "--", signalTone(status.signal_dbm));
     setValue("#network-mode", status.network_mode || status.reg_status_text || "--", status.network_mode ? "neutral" : "muted");
     setValue(
       "#sim",
-      status.sim_inserted ? "已插入" : (status.usb_device ? "待读取" : "未检测到"),
+      status.sim_inserted ? "已插入" : (status.usb_device ? "待讀取" : "未偵測到"),
       status.sim_inserted ? "good" : (status.usb_device ? "warn" : "bad"),
     );
     renderSIMPhoneNumber(status.phone_number, status.sim_inserted);
@@ -321,12 +321,12 @@ async function loadStatus() {
     setWorkModeControl(status.usbnet_mode);
     setUSBNetModeSelector(status.usbnet_mode);
     $("#device-summary").textContent = connected
-      ? (status.hardware_status || [status.imei, status.firmware].filter(Boolean).join(" · ") || "模块初始化中")
-      : "等待连接 4G 模块";
+      ? (status.hardware_status || [status.imei, status.firmware].filter(Boolean).join(" · ") || "模組初始化中")
+      : "等待連線 4G 模組";
     renderHardwareDetails(status);
   } catch (error) {
     $("#device-summary").textContent = error.message;
-    setHeaderDeviceState(false, "设备离线");
+    setHeaderDeviceState(false, "裝置離線");
     setSidebarDeviceState(false);
     renderSIMPhoneNumber("", false);
     setWorkModeControl(null);
@@ -341,18 +341,18 @@ async function loadSMS() {
       api("/api/sms/status"),
     ]);
     const pollText = status.polling
-      ? `自动轮询 ${status.poll_interval_s || 8}s`
-      : "自动轮询未启用";
-    const cleanupText = status.auto_cleanup_me ? "自动清理 ME 已开启" : "自动清理 ME 未开启";
-    const errorText = status.last_poll_error ? ` · 最近错误：${status.last_poll_error}` : "";
-    $("#sms-status").textContent = `当前缓存 ${messages.length} 条短信 · ${pollText} · ${cleanupText}${errorText}`;
+      ? `自動輪詢 ${status.poll_interval_s || 8}s`
+      : "自動輪詢未啟用";
+    const cleanupText = status.auto_cleanup_me ? "自動清理 ME 已開啟" : "自動清理 ME 未開啟";
+    const errorText = status.last_poll_error ? ` · 最近錯誤：${status.last_poll_error}` : "";
+    $("#sms-status").textContent = `目前快取 ${messages.length} 條簡訊 · ${pollText} · ${cleanupText}${errorText}`;
     if (lastSMSCount !== null && messages.length > lastSMSCount) {
-      notice(`收到 ${messages.length - lastSMSCount} 条新短信`);
+      notice(`收到 ${messages.length - lastSMSCount} 條新簡訊`);
     }
     lastSMSCount = messages.length;
     if (!messages.length) {
       list.className = "list empty";
-      list.textContent = "暂无短信";
+      list.textContent = "暫無簡訊";
       return;
     }
     list.className = "list";
@@ -360,7 +360,7 @@ async function loadSMS() {
       const row = document.createElement("article");
       row.className = "item";
       const sender = document.createElement("strong");
-      sender.textContent = message.sender || "未知号码";
+      sender.textContent = message.sender || "未知號碼";
       const content = document.createElement("p");
       content.textContent = message.content;
       const time = document.createElement("time");
@@ -370,11 +370,11 @@ async function loadSMS() {
         actions.className = "sms-actions";
         const badge = document.createElement("span");
         badge.className = "code-badge";
-        badge.textContent = `验证码 ${message.code}`;
+        badge.textContent = `驗證碼 ${message.code}`;
         const copy = document.createElement("button");
         copy.className = "secondary compact";
         copy.type = "button";
-        copy.textContent = "复制";
+        copy.textContent = "複製";
         copy.addEventListener("click", () => copySMSCode(message.code));
         actions.append(badge, copy, time);
         row.append(sender, content, actions);
@@ -384,7 +384,7 @@ async function loadSMS() {
       return row;
     }));
   } catch (error) {
-    $("#sms-status").textContent = `读取列表失败：${error.message}`;
+    $("#sms-status").textContent = `讀取列表失敗：${error.message}`;
     notice(error.message);
   }
 }
@@ -425,21 +425,21 @@ function maskPhoneNumber(value) {
 async function copyIdentifier(value, label) {
   try {
     await navigator.clipboard.writeText(value);
-    notice(`${label} 已复制`);
+    notice(`${label} 已複製`);
   } catch (error) {
-    notice(`复制 ${label} 失败，请手动复制`);
+    notice(`複製 ${label} 失敗，請手動複製`);
   }
 }
 
 async function editProfileNote(profile, note) {
   const values = await showModal({
-    title: "编辑模块资料",
-    message: "这些资料保存在兼容模块中，并按 ICCID 与当前 Profile 关联。",
-    confirmLabel: "保存",
+    title: "編輯模組資料",
+    message: "這些資料儲存在相容模組中，並按 ICCID 與目前 Profile 關聯。",
+    confirmLabel: "儲存",
     fields: [
-      { name: "label", label: "模块内名称", value: note.label || "", placeholder: "可选" },
-      { name: "phone", label: "模块号码", value: note.phone || "", placeholder: "可选" },
-      { name: "tags", label: "用途标签", value: note.tags || "", placeholder: "例如：英国验证码" },
+      { name: "label", label: "模組內名稱", value: note.label || "", placeholder: "可選" },
+      { name: "phone", label: "模組號碼", value: note.phone || "", placeholder: "可選" },
+      { name: "tags", label: "用途標籤", value: note.tags || "", placeholder: "例如：英國驗證碼" },
     ],
   });
   if (!values) return;
@@ -448,7 +448,7 @@ async function editProfileNote(profile, note) {
       method: "PUT",
       body: JSON.stringify({ iccid: profile.iccid, label: values.label, phone: values.phone, tags: values.tags }),
     });
-    notice("模块资料已保存");
+    notice("模組資料已儲存");
     await loadESIM();
   } catch (error) {
     notice(error.message);
@@ -471,25 +471,25 @@ async function probeESIMPhonebook() {
   const status = $("#esim-phonebook-status");
   const resultPanel = $("#esim-phonebook-result");
   button.disabled = true;
-  status.textContent = "正在检测卡内通讯录能力，不会写入联系人...";
+  status.textContent = "正在檢測卡內通訊錄能力，不會寫入聯絡人...";
   resultPanel.hidden = true;
   try {
     const result = await api("/api/esim/phonebook/probe", { method: "POST" });
     const supported = result.storage_supported && result.storage_selected;
     const portable = supported && result.read_supported && result.write_supported;
     status.textContent = portable
-      ? "已确认当前 Profile 支持卡内通讯录读写；尚未写入任何联系人。"
-      : "当前 Profile 未完整确认卡内通讯录读写能力；不会进行写入。";
+      ? "已確認目前 Profile 支援卡內通訊錄讀寫；尚未寫入任何聯絡人。"
+      : "目前 Profile 未完整確認卡內通訊錄讀寫能力；不會進行寫入。";
     resultPanel.replaceChildren(
-      phonebookCheck("SIM 通讯录", result.storage_supported, result.storage_supported ? "支持 SM 卡内存储" : "未发现 SM 卡内存储"),
-      phonebookCheck("当前卡片", result.storage_selected, result.storage_selected ? "已安全选中 SM 存储" : "无法选中 SM 存储"),
-      phonebookCheck("读取能力", result.read_supported, result.read_supported ? "模块支持读取卡内联系人" : "模块未确认读取命令"),
-      phonebookCheck("写入接口", result.write_supported, result.write_supported ? "模块声明支持写入接口" : "模块未确认写入命令"),
-      phonebookCheck("当前状态", supported, result.storage_status || "未返回容量信息"),
+      phonebookCheck("SIM 通訊錄", result.storage_supported, result.storage_supported ? "支援 SM 卡記憶體儲" : "未發現 SM 卡記憶體儲"),
+      phonebookCheck("目前卡片", result.storage_selected, result.storage_selected ? "已安全選中 SM 儲存" : "無法選中 SM 儲存"),
+      phonebookCheck("讀取能力", result.read_supported, result.read_supported ? "模組支援讀取卡內聯絡人" : "模組未確認讀取命令"),
+      phonebookCheck("寫入介面", result.write_supported, result.write_supported ? "模組宣告支援寫入介面" : "模組未確認寫入命令"),
+      phonebookCheck("目前狀態", supported, result.storage_status || "未返回容量資訊"),
     );
     resultPanel.hidden = false;
   } catch (error) {
-    status.textContent = `通讯录检测失败：${error.message}`;
+    status.textContent = `通訊錄檢測失敗：${error.message}`;
   } finally {
     button.disabled = false;
   }
@@ -511,8 +511,8 @@ function renderESIMChip(overview) {
   }
   panel.hidden = false;
   panel.replaceChildren(
-    diagnosticCard("卡类型", chip.sku_name || "eUICC/eSIM 卡片"),
-    diagnosticCard("固件", chip.firmware || "--", chip.serial_number ? `序列号 ${chip.serial_number}` : ""),
+    diagnosticCard("卡型別", chip.sku_name || "eUICC/eSIM 卡片"),
+    diagnosticCard("韌體", chip.firmware || "--", chip.serial_number ? `序列號 ${chip.serial_number}` : ""),
     diagnosticCard("EID", eids.map((item) => item.eid).filter(Boolean).join(" · ") || "--"),
   );
 }
@@ -524,13 +524,13 @@ function renderESIMEIDList(overview) {
     const row = document.createElement("article");
     row.className = "item esim-info-row";
     const name = document.createElement("strong");
-    name.textContent = "已识别 eUICC";
+    name.textContent = "已識別 eUICC";
     const detail = document.createElement("p");
     detail.textContent = [
       item.eid ? `EID ${item.eid}` : "",
       item.aid ? `AID ${item.aid}` : "",
-      item.free_nvram ? `可用空间 ${item.free_nvram}` : "",
-      item.firmware ? `固件 ${item.firmware}` : "",
+      item.free_nvram ? `可用空間 ${item.free_nvram}` : "",
+      item.firmware ? `韌體 ${item.firmware}` : "",
     ].filter(Boolean).join("\n");
     const status = document.createElement("small");
     status.textContent = item.spec || item.spec_guess || "eSIM";
@@ -546,9 +546,9 @@ function renderESIMEIDPanel(rows) {
   const heading = document.createElement("summary");
   heading.className = "esim-euicc-heading";
   const title = document.createElement("strong");
-  title.textContent = "已识别 eUICC";
+  title.textContent = "已識別 eUICC";
   const hint = document.createElement("small");
-  hint.textContent = rows.length > 1 ? `${rows.length} 张 eSIM 卡片` : "卡片信息";
+  hint.textContent = rows.length > 1 ? `${rows.length} 張 eSIM 卡片` : "卡片資訊";
   heading.append(title, hint);
   panel.append(heading, ...rows);
   return panel;
@@ -560,7 +560,7 @@ async function loadESIMHealth() {
   const section = $("#esim-runtime-section");
   const panel = $("#esim-runtime");
   section.hidden = false;
-  panel.replaceChildren(diagnosticCard("Profile 检查", "正在检测"));
+  panel.replaceChildren(diagnosticCard("Profile 檢查", "正在檢測"));
   try {
     const health = await api("/api/esim/health");
     if (health.card_type === "physical_sim") {
@@ -568,19 +568,19 @@ async function loadESIMHealth() {
       return;
     }
     if (!health.active_profile) {
-      panel.replaceChildren(diagnosticCard("Profile 检查", health.message || "未发现已启用 Profile"));
+      panel.replaceChildren(diagnosticCard("Profile 檢查", health.message || "未發現已啟用 Profile"));
       return;
     }
     const profile = health.active_profile;
     const signal = Number.isFinite(health.signal_dbm) ? `${health.signal_dbm} dBm` : "--";
     panel.replaceChildren(
-      diagnosticCard("当前启用", profileDisplayName(profile), profile.iccid ? `ICCID ${maskIdentifier(profile.iccid)}` : ""),
-      diagnosticCard("模块实际卡", health.module_iccid ? maskIdentifier(health.module_iccid) : "--", health.imsi ? `IMSI ${health.imsi}` : ""),
-      diagnosticCard("蜂窝注册", health.registration || "未注册", [displayOperatorName(health.operator), health.network_mode].filter(Boolean).join(" · ")),
-      diagnosticCard("信号", signal, health.registered ? "模块已接管当前 Profile" : "等待网络注册"),
+      diagnosticCard("目前啟用", profileDisplayName(profile), profile.iccid ? `ICCID ${maskIdentifier(profile.iccid)}` : ""),
+      diagnosticCard("模組實際卡", health.module_iccid ? maskIdentifier(health.module_iccid) : "--", health.imsi ? `IMSI ${health.imsi}` : ""),
+      diagnosticCard("蜂窩註冊", health.registration || "未註冊", [displayOperatorName(health.operator), health.network_mode].filter(Boolean).join(" · ")),
+      diagnosticCard("訊號", signal, health.registered ? "模組已接管目前 Profile" : "等待網路註冊"),
     );
   } catch (error) {
-    panel.replaceChildren(diagnosticCard("Profile 检查", "暂时无法读取", error.message));
+    panel.replaceChildren(diagnosticCard("Profile 檢查", "暫時無法讀取", error.message));
   } finally {
     esimHealthInFlight = false;
   }
@@ -656,7 +656,7 @@ function renderNetworkCheck(label, result) {
   const detail = document.createElement("p");
   detail.textContent = result.detail || result.summary || "";
   const status = document.createElement("small");
-  status.textContent = result.ok ? "通过" : "未通过";
+  status.textContent = result.ok ? "透過" : "未透過";
   row.append(name, detail, status);
   const existing = [...list.querySelectorAll(".item")].filter((item) => item.dataset.label !== label);
   row.dataset.label = label;
@@ -668,9 +668,9 @@ async function runNetworkCheck(label, path, button) {
   try {
     const result = await api(path, { method: "POST" });
     renderNetworkCheck(label, result);
-    notice(result.summary || "检测完成");
+    notice(result.summary || "檢測完成");
   } catch (error) {
-    renderNetworkCheck(label, { ok: false, summary: "检测失败", detail: error.message });
+    renderNetworkCheck(label, { ok: false, summary: "檢測失敗", detail: error.message });
     notice(error.message);
   } finally {
     button.disabled = false;
@@ -689,21 +689,21 @@ function renderNetworkRecovery(diag) {
   const disabled = Boolean(service.disabled);
   const wwan = service.kind === "wwan";
   $("#network-recovery-title").textContent = disabled
-    ? "模块网卡已在 Windows 中停用"
-    : (wwan ? "Windows 行动宽带尚未连接" : "模块网卡尚未取得地址");
+    ? "模組網卡已在 Windows 中停用"
+    : (wwan ? "Windows 行動寬頻尚未連線" : "模組網卡尚未取得位址");
   $("#network-recovery-detail").textContent = disabled
-    ? `${identity} 已存在，但处于停用状态。启用需要 Windows 管理员授权。`
+    ? `${identity} 已存在，但處於停用狀態。啟用需要 Windows 管理員授權。`
     : (wwan
-      ? `${identity} 已识别，但当前没有可用 IPv4 地址。可以让 Windows 使用已保存的设定档连接。`
-      : `${identity} 已识别，但当前没有可用 IPv4 地址。请检查模块拨号状态或重新插拔。`);
-  $("#enable-network-service").textContent = disabled ? "启用网卡" : (wwan ? "连接行动宽带" : "重新检查");
+      ? `${identity} 已識別，但目前沒有可用 IPv4 位址。可以讓 Windows 使用已儲存的設定檔連線。`
+      : `${identity} 已識別，但目前沒有可用 IPv4 位址。請檢查模組撥號狀態或重新插拔。`);
+  $("#enable-network-service").textContent = disabled ? "啟用網卡" : (wwan ? "連線行動寬頻" : "重新檢查");
   panel.hidden = false;
 }
 
 async function loadNetwork() {
   const grid = $("#network-grid");
   const ifaceList = $("#network-interfaces");
-  $("#network-status").textContent = "正在读取网络诊断...";
+  $("#network-status").textContent = "正在讀取網路診斷...";
   try {
     const diag = await api("/api/network");
     setUSBNetModeSelector(diag.usbnet_mode);
@@ -714,65 +714,65 @@ async function loadNetwork() {
     const addresses = Array.isArray(diag.pdp_addresses) ? diag.pdp_addresses.join(" · ") : "";
     const usb = diag.usb_device
       ? `${diag.usb_device.vendor || ""} ${diag.usb_device.product || ""} (${diag.usb_device.vendor_id}:${diag.usb_device.product_id})`
-      : "未检测到";
+      : "未偵測到";
     const service = diag.network_service;
-    let usbNetworkValue = "未识别";
-    let usbNetworkDetail = "Windows 网络接口";
+    let usbNetworkValue = "未識別";
+    let usbNetworkDetail = "Windows 網路介面";
     let usbNetworkTone = "is-bad";
     if (service?.disabled) {
-      usbNetworkValue = "网卡已停用";
+      usbNetworkValue = "網卡已停用";
       usbNetworkDetail = [service.name, service.device].filter(Boolean).join(" · ");
     } else if (diag.usb_network_ready) {
-      usbNetworkValue = service?.device ? `${service.device} 已连接` : "已连接";
-      usbNetworkDetail = service?.ipv4 || "已取得地址";
+      usbNetworkValue = service?.device ? `${service.device} 已連線` : "已連線";
+      usbNetworkDetail = service?.ipv4 || "已取得位址";
       usbNetworkTone = "is-good";
     } else if (diag.usb_network_present) {
-      usbNetworkValue = service?.kind === "wwan" ? "行动宽带未连接" : "等待地址";
-      usbNetworkDetail = service?.device || "Windows 已识别接口";
+      usbNetworkValue = service?.kind === "wwan" ? "行動寬頻未連線" : "等待位址";
+      usbNetworkDetail = service?.device || "Windows 已識別介面";
       usbNetworkTone = "is-warn";
     }
     const route = diag.default_route || {};
     const routeText = route.interface || "未知";
     const routeUsesUSB = Boolean(service?.device && route.interface === service.device);
-    let routeDetail = route.gateway ? `网关 ${route.gateway}` : "Windows 当前默认路由";
+    let routeDetail = route.gateway ? `閘道器 ${route.gateway}` : "Windows 目前預設路由";
     if (routeUsesUSB) {
-      routeDetail += " · 公网尚未验证";
+      routeDetail += " · 公網尚未驗證";
     }
     const path = document.createElement("div");
     path.className = "network-path";
     path.append(
-      networkPathStep("蜂窝数据", active ? `已激活 ${active}` : "未激活", addresses || "等待分配蜂窝 IP", active ? "is-good" : "is-warn"),
-      networkPathStep("模块网卡", usbNetworkValue, usbNetworkDetail, usbNetworkTone),
+      networkPathStep("蜂窩資料", active ? `已啟用 ${active}` : "未啟用", addresses || "等待分配蜂窩 IP", active ? "is-good" : "is-warn"),
+      networkPathStep("模組網卡", usbNetworkValue, usbNetworkDetail, usbNetworkTone),
       networkPathStep("Windows 出口", routeText, routeDetail, routeUsesUSB ? "is-good" : "is-warn"),
     );
     const facts = document.createElement("dl");
     facts.className = "network-facts";
     facts.append(
       networkFact("USBNET", diag.usbnet_mode ?? "未知"),
-      networkFact("APN", apns || "无"),
-      networkFact("Windows 网卡", service ? `${service.name} · ${service.disabled ? "已停用" : (service.kind === "wwan" ? "行动宽带" : "以太网")}` : "未识别"),
-      networkFact("USB 设备", usb),
+      networkFact("APN", apns || "無"),
+      networkFact("Windows 網卡", service ? `${service.name} · ${service.disabled ? "已停用" : (service.kind === "wwan" ? "行動寬頻" : "乙太網")}` : "未識別"),
+      networkFact("USB 裝置", usb),
     );
     grid.className = "network-summary";
     grid.replaceChildren(path, facts);
 
-    const errorText = diag.errors ? ` · 错误：${Object.values(diag.errors).join("；")}` : "";
+    const errorText = diag.errors ? ` · 錯誤：${Object.values(diag.errors).join("；")}` : "";
     if (service?.disabled) {
-      $("#network-status").textContent = `模块网卡已在 Windows 中停用${errorText}`;
+      $("#network-status").textContent = `模組網卡已在 Windows 中停用${errorText}`;
     } else if (diag.usb_network_ready) {
-      $("#network-status").textContent = `模块网卡已连接并取得地址 · 公网尚未验证${errorText}`;
+      $("#network-status").textContent = `模組網卡已連線並取得位址 · 公網尚未驗證${errorText}`;
     } else if (diag.usb_network_present) {
-      $("#network-status").textContent = `Windows 已识别模块网卡，但尚未连接${errorText}`;
+      $("#network-status").textContent = `Windows 已識別模組網卡，但尚未連線${errorText}`;
     } else {
-      const driverHint = diag.usb_device?.driver_issues?.length ? `（${diag.usb_device.driver_issues.join("；")}）` : "，请确认已安装对应网卡驱动";
-      $("#network-status").textContent = `蜂窝侧可能已通，但 Windows 尚未识别模块网卡${driverHint}${errorText}`;
+      const driverHint = diag.usb_device?.driver_issues?.length ? `（${diag.usb_device.driver_issues.join("；")}）` : "，請確認已安裝對應網卡驅動";
+      $("#network-status").textContent = `蜂窩側可能已通，但 Windows 尚未識別模組網卡${driverHint}${errorText}`;
     }
     renderNetworkRecovery(diag);
 
     const interfaces = Array.isArray(diag.host_interfaces) ? diag.host_interfaces : [];
     if (!interfaces.length) {
       ifaceList.className = "list empty";
-      ifaceList.textContent = "未读取到网络接口";
+      ifaceList.textContent = "未讀取到網路介面";
       return;
     }
     ifaceList.className = "list";
@@ -789,11 +789,11 @@ async function loadNetwork() {
       return row;
     }));
   } catch (error) {
-    $("#network-status").textContent = `读取网络诊断失败：${error.message}`;
+    $("#network-status").textContent = `讀取網路診斷失敗：${error.message}`;
     grid.className = "network-summary network-summary-empty";
-    grid.textContent = "网络摘要暂不可用";
+    grid.textContent = "網路摘要暫不可用";
     ifaceList.className = "list empty";
-    ifaceList.textContent = "读取失败";
+    ifaceList.textContent = "讀取失敗";
     $("#network-recovery").hidden = true;
     notice(error.message);
   }
@@ -801,18 +801,18 @@ async function loadNetwork() {
 
 async function enableNetworkService() {
   const confirmed = await showModal({
-    title: "处理模块网卡",
-    message: "停用的网卡将请求管理员授权后启用；行动宽带会使用 Windows 已保存的设定档连接。",
-    confirmLabel: "继续",
+    title: "處理模組網卡",
+    message: "停用的網卡將請求管理員授權後啟用；行動寬頻會使用 Windows 已儲存的設定檔連線。",
+    confirmLabel: "繼續",
   });
   if (!confirmed) return;
   const button = $("#enable-network-service");
   const originalLabel = button.textContent;
   button.disabled = true;
-  button.textContent = "正在处理…";
+  button.textContent = "正在處理…";
   try {
     const result = await api("/api/network/enable-service", { method: "POST" });
-    notice(result.summary || "网络服务已处理");
+    notice(result.summary || "網路服務已處理");
     await Promise.all([loadNetwork(), loadSidebarConnection()]);
   } catch (error) {
     notice(error.message);
@@ -866,7 +866,7 @@ async function loadNetworkTraffic() {
     setValue("#traffic-session-rx", formatTrafficBytes(sample.session_rx_bytes), "neutral");
     setValue("#traffic-session-tx", formatTrafficBytes(sample.session_tx_bytes), "neutral");
     setValue("#traffic-session-total", formatTrafficBytes(sample.session_total_bytes), "neutral");
-    $("#traffic-session-total").title = "本次启动期间的下载与上传流量之和；关闭 DJ 4G Hub 后清零";
+    $("#traffic-session-total").title = "本次啟動期間的下載與上傳流量之和；關閉 DJ 4G Hub 後清零";
   } catch (error) {
     setValue("#traffic-rx-rate", "--", "muted");
     setValue("#traffic-tx-rate", "--", "muted");
@@ -895,8 +895,8 @@ function renderNetworkActivityCountdown() {
   const label = $("#activity-updated");
   if (!label) return;
   label.textContent = networkActivityInFlight
-    ? "正在刷新…"
-    : `${networkActivityCountdown} 秒后刷新`;
+    ? "正在重新整理…"
+    : `${networkActivityCountdown} 秒後重新整理`;
 }
 
 async function loadNetworkActivity() {
@@ -907,20 +907,20 @@ async function loadNetworkActivity() {
   try {
     const snapshot = await api("/api/network/activity");
     if (!snapshot.available) {
-      $("#activity-physical").textContent = "未检测到 4G 网卡";
+      $("#activity-physical").textContent = "未偵測到 4G 網卡";
       $("#activity-tunnel").textContent = "--";
-      $("#activity-count").textContent = "0 个连接";
+      $("#activity-count").textContent = "0 個連線";
       list.className = "activity-list empty";
-      list.textContent = "当前没有可展示的 4G 联网活动";
+      list.textContent = "目前沒有可展示的 4G 聯網活動";
       return;
     }
-    $("#activity-physical").textContent = `${snapshot.physical_interface}${snapshot.physical_ipv4 ? ` · ${snapshot.physical_ipv4}` : ""}${snapshot.physical_active ? " · 活跃" : ""}`;
-    $("#activity-tunnel").textContent = snapshot.tunnel_interface || "直连";
+    $("#activity-physical").textContent = `${snapshot.physical_interface}${snapshot.physical_ipv4 ? ` · ${snapshot.physical_ipv4}` : ""}${snapshot.physical_active ? " · 活躍" : ""}`;
+    $("#activity-tunnel").textContent = snapshot.tunnel_interface || "直連";
     const connections = Array.isArray(snapshot.connections) ? snapshot.connections : [];
-    $("#activity-count").textContent = `${connections.length} 个连接`;
+    $("#activity-count").textContent = `${connections.length} 個連線`;
     if (!connections.length) {
       list.className = "activity-list empty";
-      list.textContent = "当前没有活跃的应用连接";
+      list.textContent = "目前沒有活躍的應用連線";
       return;
     }
     list.className = "activity-list";
@@ -932,7 +932,7 @@ async function loadNetworkActivity() {
       const glyph = document.createElement("i");
       glyph.textContent = activityInitials(connection.process);
       const process = document.createElement("strong");
-      process.textContent = connection.process || "系统";
+      process.textContent = connection.process || "系統";
       app.append(glyph, process);
       const target = document.createElement("div");
       target.className = "activity-target";
@@ -941,7 +941,7 @@ async function loadNetworkActivity() {
       const detail = document.createElement("small");
       detail.textContent = connection.ip
         ? `${connection.ip}${connection.port ? `:${connection.port}` : ""}`
-        : (connection.port ? `端口 ${connection.port}` : "目标主机");
+        : (connection.port ? `埠 ${connection.port}` : "目標主機");
       target.append(host, detail);
       const protocol = document.createElement("span");
       protocol.className = "activity-protocol";
@@ -956,7 +956,7 @@ async function loadNetworkActivity() {
     }));
   } catch (error) {
     list.className = "activity-list empty";
-    list.textContent = `联网活动读取失败：${error.message}`;
+    list.textContent = `聯網活動讀取失敗：${error.message}`;
   } finally {
     networkActivityInFlight = false;
     networkActivityCountdown = 5;
@@ -987,9 +987,9 @@ function setNetworkActivityPolling(enabled) {
 async function setUSBNetMode(mode) {
   const label = `模式 ${mode}`;
   const confirmed = await showModal({
-    title: `切换到${label}`,
-    message: `将写入 usbnet=${mode}，重启模块后生效。`,
-    confirmLabel: "继续切换",
+    title: `切換到${label}`,
+    message: `將寫入 usbnet=${mode}，重啟模組後生效。`,
+    confirmLabel: "繼續切換",
   });
   if (!confirmed) return;
   try {
@@ -997,7 +997,7 @@ async function setUSBNetMode(mode) {
       method: "POST",
       body: JSON.stringify({ mode }),
     });
-    notice(`usbnet 已写入 ${result.mode}，请重启模块`);
+    notice(`usbnet 已寫入 ${result.mode}，請重啟模組`);
     await loadNetwork();
   } catch (error) {
     notice(error.message);
@@ -1010,42 +1010,42 @@ function wait(milliseconds) {
 
 async function waitForUSBNetwork(status, timeoutMilliseconds = 60000) {
   const startedAt = Date.now();
-  let lastState = "等待模块重新枚举";
+  let lastState = "等待模組重新列舉";
   while (Date.now() - startedAt < timeoutMilliseconds) {
     try {
       const diag = await api("/api/network");
       setUSBNetModeSelector(diag.usbnet_mode);
       if (diag.usb_network_ready) return diag;
       if (diag.network_service?.disabled) {
-        lastState = `${diag.network_service.name} 已识别，但网卡在 Windows 中处于停用状态`;
+        lastState = `${diag.network_service.name} 已識別，但網卡在 Windows 中處於停用狀態`;
       } else if (diag.usb_network_present) {
-        lastState = "模块网卡已出现，正在等待地址";
+        lastState = "模組網卡已出現，正在等待位址";
       } else if (diag.usb_device) {
-        lastState = "模块已重新连接，正在等待模块网卡出现";
+        lastState = "模組已重新連線，正在等待模組網卡出現";
       } else {
-        lastState = "USB 正在重新枚举";
+        lastState = "USB 正在重新列舉";
       }
     } catch (error) {
-      lastState = `等待设备恢复：${error.message}`;
+      lastState = `等待裝置恢復：${error.message}`;
     }
     const secondsLeft = Math.max(1, Math.ceil((timeoutMilliseconds - (Date.now() - startedAt)) / 1000));
-    status.textContent = `${lastState} · 最长等待 ${secondsLeft}s`;
+    status.textContent = `${lastState} · 最長等待 ${secondsLeft}s`;
     await wait(2500);
   }
-  throw new Error(`${lastState}，未能在 60 秒内完成上网准备`);
+  throw new Error(`${lastState}，未能在 60 秒內完成上網準備`);
 }
 
 async function switchWorkMode(mode, label, button) {
   if (button.getAttribute("aria-pressed") === "true") {
-    notice(`当前已是${label}`);
+    notice(`目前已是${label}`);
     return;
   }
   const confirmed = await showModal({
-    title: `切换到${label}`,
+    title: `切換到${label}`,
     message: mode === 1
-      ? "将写入 usbnet=1（ECM）并重启模块，需要已安装 ECM 驱动。Windows 在短信模式下已可通过 Quectel NDIS/MBIM 驱动的行动宽带上网，通常无需切换。"
-      : `将写入 usbnet=${mode} 并重启模块，USB 会短暂断开。`,
-    confirmLabel: "确认切换",
+      ? "將寫入 usbnet=1（ECM）並重啟模組，需要已安裝 ECM 驅動。Windows 在簡訊模式下已可透過 Quectel NDIS/MBIM 驅動的行動寬頻上網，通常無需切換。"
+      : `將寫入 usbnet=${mode} 並重啟模組，USB 會短暫斷開。`,
+    confirmLabel: "確認切換",
   });
   if (!confirmed) return;
   const status = $("#workmode-status");
@@ -1058,34 +1058,34 @@ async function switchWorkMode(mode, label, button) {
       method: "POST",
       body: JSON.stringify({ mode }),
     });
-    status.textContent = `usbnet 已写入 ${result.mode}，正在重启模块...`;
+    status.textContent = `usbnet 已寫入 ${result.mode}，正在重啟模組...`;
     await api("/api/network/reboot-module", { method: "POST" });
     if (mode === 1) {
-      status.textContent = "上网模式已写入，等待 USB 网卡和 DHCP...";
-      notice("正在准备上网模式");
+      status.textContent = "上網模式已寫入，等待 USB 網卡和 DHCP...";
+      notice("正在準備上網模式");
       const diag = await waitForUSBNetwork(status);
-      const interfaceName = diag.network_service?.device || "模块网卡";
-      status.textContent = `${interfaceName} 已取得地址，正在验证公网...`;
+      const interfaceName = diag.network_service?.device || "模組網卡";
+      status.textContent = `${interfaceName} 已取得位址，正在驗證公網...`;
       const connectivity = await api("/api/network/check-4g", { method: "POST" });
-      renderNetworkCheck("4G 公网", connectivity);
+      renderNetworkCheck("4G 公網", connectivity);
       await Promise.all([loadStatus(), loadNetwork(), loadSidebarConnection()]);
       if (connectivity.ok) {
-        status.textContent = `上网模式已就绪 · ${connectivity.summary}`;
-        notice("上网模式已就绪");
+        status.textContent = `上網模式已就緒 · ${connectivity.summary}`;
+        notice("上網模式已就緒");
       } else {
-        status.textContent = `上网模式已切换，但${connectivity.summary}`;
+        status.textContent = `上網模式已切換，但${connectivity.summary}`;
         notice(connectivity.summary);
       }
     } else {
-      status.textContent = `${label}已写入，等待模块重新枚举后自动刷新。`;
-      notice(`${label}切换中`);
+      status.textContent = `${label}已寫入，等待模組重新列舉後自動重新整理。`;
+      notice(`${label}切換中`);
       await wait(9000);
       await Promise.all([loadStatus(), loadNetwork(), loadSidebarConnection()]);
-      status.textContent = `${label}切换完成。`;
+      status.textContent = `${label}切換完成。`;
     }
   } catch (error) {
     status.hidden = false;
-    status.textContent = `${label}切换失败：${error.message}`;
+    status.textContent = `${label}切換失敗：${error.message}`;
     notice(error.message);
   } finally {
     buttons.forEach((item) => { item.disabled = false; });
@@ -1094,14 +1094,14 @@ async function switchWorkMode(mode, label, button) {
 
 async function rebootModule() {
   const confirmed = await showModal({
-    title: "重启模块",
-    message: "模块会重新枚举 USB，网页可能短暂断开。",
-    confirmLabel: "确认重启",
+    title: "重啟模組",
+    message: "模組會重新列舉 USB，網頁可能短暫斷開。",
+    confirmLabel: "確認重啟",
   });
   if (!confirmed) return;
   try {
     await api("/api/network/reboot-module", { method: "POST" });
-    notice("模块正在重启，稍后刷新状态");
+    notice("模組正在重啟，稍後重新整理狀態");
     setTimeout(loadStatus, 8000);
     setTimeout(loadNetwork, 12000);
   } catch (error) {
@@ -1123,17 +1123,17 @@ async function loadESIM() {
   profilePanel.hidden = true;
   phonebook.hidden = true;
   list.className = "list empty";
-  list.textContent = "正在读取 eUICC";
-  status.textContent = "正在通过 AT+CCHO/CGLA 读取 eUICC/eSIM 卡片";
-  showESIMCardState("正在识别卡片", "正在确认当前卡片是否支持 eUICC Profile 管理。");
+  list.textContent = "正在讀取 eUICC";
+  status.textContent = "正在透過 AT+CCHO/CGLA 讀取 eUICC/eSIM 卡片";
+  showESIMCardState("正在識別卡片", "正在確認目前卡片是否支援 eUICC Profile 管理。");
   try {
     const overview = await api("/api/esim");
     if (overview.card_type === "physical_sim") {
       status.textContent = overview.message;
       list.textContent = overview.message;
       showESIMCardState(
-        "当前是实体 SIM 卡",
-        "短信与蜂窝上网功能可以正常使用；这张卡不包含可管理的 eUICC Profile。",
+        "目前是實體 SIM 卡",
+        "簡訊與蜂窩上網功能可以正常使用；這張卡不包含可管理的 eUICC Profile。",
         "is-physical",
       );
       setESIMHealthPolling(false);
@@ -1153,15 +1153,15 @@ async function loadESIM() {
     const eidCount = esimEIDRows(overview).length;
     const active = activeProfile(profiles);
     status.textContent = active
-      ? `已读取：${eidCount} 个 eUICC，${profileCount} 个 Profile · 当前使用 ${profileDisplayName(active)}`
-      : `已读取：${eidCount} 个 eUICC，${profileCount} 个 Profile · 未发现已启用 Profile`;
+      ? `已讀取：${eidCount} 個 eUICC，${profileCount} 個 Profile · 目前使用 ${profileDisplayName(active)}`
+      : `已讀取：${eidCount} 個 eUICC，${profileCount} 個 Profile · 未發現已啟用 Profile`;
     if (!profiles.length) {
       if (eidRows.length) {
         list.className = "list";
         list.replaceChildren(eidPanel);
         return;
       }
-      list.textContent = "未发现 eUICC/eSIM 卡片参数";
+      list.textContent = "未發現 eUICC/eSIM 卡片引數";
       return;
     }
     list.className = "list";
@@ -1173,10 +1173,10 @@ async function loadESIM() {
       name.textContent = note.label || profileDisplayName(profile);
       const detail = document.createElement("p");
       detail.textContent = [
-        note.label && note.label !== profileDisplayName(profile) ? `卡内名称：${profileDisplayName(profile)}` : "",
-        profile.service_provider_name ? `服务商：${profile.service_provider_name}` : "",
-        profile.class_text ? `类型：${profile.class_text}` : "",
-        note.tags ? `标签：${note.tags}` : "",
+        note.label && note.label !== profileDisplayName(profile) ? `卡內名稱：${profileDisplayName(profile)}` : "",
+        profile.service_provider_name ? `服務商：${profile.service_provider_name}` : "",
+        profile.class_text ? `型別：${profile.class_text}` : "",
+        note.tags ? `標籤：${note.tags}` : "",
       ].filter(Boolean).join("\n");
       const metadata = document.createElement("div");
       metadata.className = "profile-metadata";
@@ -1185,21 +1185,21 @@ async function loadESIM() {
         phoneRow.className = "profile-identifier-row";
         const phone = document.createElement("code");
         phone.className = "profile-iccid";
-        phone.textContent = `模块号码 ${maskPhoneNumber(note.phone)}`;
+        phone.textContent = `模組號碼 ${maskPhoneNumber(note.phone)}`;
         const revealPhone = document.createElement("button");
         revealPhone.className = "secondary compact profile-toggle-button";
         revealPhone.type = "button";
-        revealPhone.textContent = "显示";
+        revealPhone.textContent = "顯示";
         revealPhone.addEventListener("click", () => {
-          const hidden = revealPhone.textContent === "显示";
-          phone.textContent = `模块号码 ${hidden ? note.phone : maskPhoneNumber(note.phone)}`;
-          revealPhone.textContent = hidden ? "隐藏" : "显示";
+          const hidden = revealPhone.textContent === "顯示";
+          phone.textContent = `模組號碼 ${hidden ? note.phone : maskPhoneNumber(note.phone)}`;
+          revealPhone.textContent = hidden ? "隱藏" : "顯示";
         });
         const copyPhone = document.createElement("button");
         copyPhone.className = "secondary compact profile-copy-button";
         copyPhone.type = "button";
-        copyPhone.textContent = "复制号码";
-        copyPhone.addEventListener("click", () => copyIdentifier(note.phone, "模块号码"));
+        copyPhone.textContent = "複製號碼";
+        copyPhone.addEventListener("click", () => copyIdentifier(note.phone, "模組號碼"));
         phoneRow.append(phone, revealPhone, copyPhone);
         metadata.append(phoneRow);
       }
@@ -1212,16 +1212,16 @@ async function loadESIM() {
         const reveal = document.createElement("button");
         reveal.className = "secondary compact profile-toggle-button";
         reveal.type = "button";
-        reveal.textContent = "显示";
+        reveal.textContent = "顯示";
         reveal.addEventListener("click", () => {
-          const hidden = reveal.textContent === "显示";
+          const hidden = reveal.textContent === "顯示";
           iccid.textContent = `ICCID ${hidden ? profile.iccid : maskIdentifier(profile.iccid)}`;
-          reveal.textContent = hidden ? "隐藏" : "显示";
+          reveal.textContent = hidden ? "隱藏" : "顯示";
         });
         const copy = document.createElement("button");
         copy.className = "secondary compact profile-copy-button";
         copy.type = "button";
-        copy.textContent = "复制 ICCID";
+        copy.textContent = "複製 ICCID";
         copy.addEventListener("click", () => copyIdentifier(profile.iccid, "ICCID"));
         iccidRow.append(iccid, reveal, copy);
         metadata.append(iccidRow);
@@ -1231,41 +1231,41 @@ async function loadESIM() {
       if (profile.state !== 1) {
         const button = document.createElement("button");
         button.className = "compact";
-        button.textContent = "启用";
+        button.textContent = "啟用";
         button.addEventListener("click", async () => {
           const label = profileDisplayName(profile);
           const confirmed = await showModal({
-            title: "启用 Profile",
-            message: `确定启用 ${label} 吗？当前正在使用的 eSIM Profile 会被切换。`,
-            confirmLabel: "启用",
+            title: "啟用 Profile",
+            message: `確定啟用 ${label} 嗎？目前正在使用的 eSIM Profile 會被切換。`,
+            confirmLabel: "啟用",
           });
           if (!confirmed) {
             return;
           }
           button.disabled = true;
-          button.textContent = "切换中";
+          button.textContent = "切換中";
           try {
             const result = await api("/api/esim/switch", {
               method: "POST",
               body: JSON.stringify({ iccid: profile.iccid, aid: profile.aid || "" }),
             });
             if (result.module_reboot_requested) {
-              status.textContent = `已切换到 ${label}；模块正在重启，等待新 Profile 接管（约 ${result.reconnect_wait_seconds || 10} 秒）`;
-              notice(`已切换 ${label}，模块正在重新读取新卡`);
+              status.textContent = `已切換到 ${label}；模組正在重啟，等待新 Profile 接管（約 ${result.reconnect_wait_seconds || 10} 秒）`;
+              notice(`已切換 ${label}，模組正在重新讀取新卡`);
               setTimeout(async () => {
                 await loadESIM();
                 await loadStatus();
               }, (result.reconnect_wait_seconds || 10) * 1000);
             } else {
-              status.textContent = `Profile 已切换到 ${label}，但模块重启未确认：${result.module_reboot_warning || "请手动重启后再读取号码"}`;
-              notice("Profile 已切换，模块重启未确认");
+              status.textContent = `Profile 已切換到 ${label}，但模組重啟未確認：${result.module_reboot_warning || "請手動重啟後再讀取號碼"}`;
+              notice("Profile 已切換，模組重啟未確認");
               await loadESIM();
             }
           } catch (error) {
-            status.textContent = `切换失败：${error.message}`;
+            status.textContent = `切換失敗：${error.message}`;
             notice(error.message);
             button.disabled = false;
-            button.textContent = "启用";
+            button.textContent = "啟用";
           }
         });
         actionBox.append(button);
@@ -1273,7 +1273,7 @@ async function loadESIM() {
         const button = document.createElement("button");
         button.className = "secondary compact";
         button.type = "button";
-        button.textContent = "启用";
+        button.textContent = "啟用";
         button.disabled = true;
         actionBox.append(button);
       }
@@ -1283,47 +1283,47 @@ async function loadESIM() {
       rename.textContent = "改名";
       rename.addEventListener("click", async () => {
         const values = await showModal({
-          title: "修改 Profile 名称",
-          message: "名称将写入 eUICC 卡片内部的 Profile nickname。",
-          confirmLabel: "保存",
-          fields: [{ name: "name", label: "Profile 名称", value: profileDisplayName(profile), required: true }],
+          title: "修改 Profile 名稱",
+          message: "名稱將寫入 eUICC 卡片內部的 Profile nickname。",
+          confirmLabel: "儲存",
+          fields: [{ name: "name", label: "Profile 名稱", value: profileDisplayName(profile), required: true }],
         });
         if (!values?.name) return;
         rename.disabled = true;
         try {
           await api("/api/esim/profile", { method: "PATCH", body: JSON.stringify({ iccid: profile.iccid, aid: profile.aid || "", name: values.name }) });
-          notice("Profile 名称已修改");
+          notice("Profile 名稱已修改");
           await loadESIM();
         } catch (error) { notice(error.message); } finally { rename.disabled = false; }
       });
       const localNote = document.createElement("button");
       localNote.className = "secondary compact";
       localNote.type = "button";
-      localNote.textContent = "模块资料";
+      localNote.textContent = "模組資料";
       localNote.addEventListener("click", () => editProfileNote(profile, note));
       const remove = document.createElement("button");
       remove.className = "secondary danger compact";
       remove.type = "button";
-      remove.textContent = "删除";
+      remove.textContent = "刪除";
       remove.disabled = profile.state === 1;
       remove.addEventListener("click", async () => {
         const last4 = String(profile.iccid || "").slice(-4);
         const values = await showModal({
-          title: "删除 Profile",
-          message: `删除不可恢复。请输入 ICCID 后四位 ${last4} 确认。`,
-          confirmLabel: "删除",
+          title: "刪除 Profile",
+          message: `刪除不可恢復。請輸入 ICCID 後四位 ${last4} 確認。`,
+          confirmLabel: "刪除",
           danger: true,
-          fields: [{ name: "confirmation", label: "ICCID 后四位", required: true }],
+          fields: [{ name: "confirmation", label: "ICCID 後四位", required: true }],
         });
         if (!values) return;
         if (values.confirmation !== last4) {
-          notice("ICCID 后四位不匹配，未执行删除");
+          notice("ICCID 後四位不匹配，未執行刪除");
           return;
         }
         remove.disabled = true;
         try {
           await api("/api/esim/profile", { method: "DELETE", body: JSON.stringify({ iccid: profile.iccid, aid: profile.aid || "" }) });
-          notice("Profile 已删除");
+          notice("Profile 已刪除");
           await loadESIM();
         } catch (error) { notice(error.message); } finally { remove.disabled = false; }
       });
@@ -1338,9 +1338,9 @@ async function loadESIM() {
     void loadESIMHealth();
     setESIMHealthPolling(true);
   } catch (error) {
-    status.textContent = `读取失败：${error.message}`;
+    status.textContent = `讀取失敗：${error.message}`;
     list.textContent = error.message;
-    showESIMCardState("暂时无法读取卡片", error.message, "is-error");
+    showESIMCardState("暫時無法讀取卡片", error.message, "is-error");
     setESIMHealthPolling(false);
   }
 }
@@ -1372,30 +1372,30 @@ document.querySelectorAll(".tab").forEach((tab) => {
 $("#esim-download-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const confirmed = await showModal({
-    title: "下载新的 Profile",
-    message: "将向 SM-DP+ 服务器下载并写入新的 eSIM Profile。写入期间请勿拔出模块。",
-    confirmLabel: "开始下载",
+    title: "下載新的 Profile",
+    message: "將向 SM-DP+ 伺服器下載並寫入新的 eSIM Profile。寫入期間請勿拔出模組。",
+    confirmLabel: "開始下載",
   });
   if (!confirmed) return;
   const button = event.currentTarget.querySelector("button[type=submit]");
   const status = $("#esim-download-status");
   button.disabled = true;
-  status.textContent = "正在下载并写入 Profile，请勿拔出模块...";
+  status.textContent = "正在下載並寫入 Profile，請勿拔出模組...";
   try {
     const result = await api("/api/esim/download", { method: "POST", body: JSON.stringify({
       smdp: $("#esim-smdp").value, matching_id: $("#esim-matching-id").value,
       confirmation_code: $("#esim-confirmation-code").value, imei: $("#esim-imei").value, aid: $("#esim-aid").value,
     }) });
-    status.textContent = result.message || "Profile 下载完成，正在重新读取卡片";
-    notice("Profile 下载完成");
+    status.textContent = result.message || "Profile 下載完成，正在重新讀取卡片";
+    notice("Profile 下載完成");
     await loadESIM();
-  } catch (error) { status.textContent = `下载失败：${error.message}`; notice(error.message); } finally { button.disabled = false; }
+  } catch (error) { status.textContent = `下載失敗：${error.message}`; notice(error.message); } finally { button.disabled = false; }
 });
 
 const messageInput = $("#message");
 const messageCounter = $("#message-counter");
 const updateMessageCounter = () => {
-  messageCounter.textContent = `${messageInput.value.length} 字 · 自动分片`;
+  messageCounter.textContent = `${messageInput.value.length} 字 · 自動分片`;
 };
 messageInput.addEventListener("input", updateMessageCounter);
 updateMessageCounter();
@@ -1405,7 +1405,7 @@ $("#send-form").addEventListener("submit", async (event) => {
   const button = event.submitter;
   const originalLabel = button.textContent;
   button.disabled = true;
-  button.textContent = "发送中";
+  button.textContent = "傳送中";
   try {
     const result = await api("/api/sms/send", {
       method: "POST",
@@ -1414,7 +1414,7 @@ $("#send-form").addEventListener("submit", async (event) => {
     messageInput.value = "";
     updateMessageCounter();
     const segments = Number(result.segments || 1);
-    notice(segments > 1 ? `短信已发送（${segments} 个分片）` : "短信已发送");
+    notice(segments > 1 ? `簡訊已傳送（${segments} 個分片）` : "簡訊已傳送");
   } catch (error) {
     notice(error.message);
   } finally {
@@ -1433,7 +1433,7 @@ $("#at-form").addEventListener("submit", async (event) => {
     input.focus();
     return;
   }
-  output.textContent = `› ${command}\n\n执行中...`;
+  output.textContent = `› ${command}\n\n執行中...`;
   input.value = "";
   input.focus();
   try {
@@ -1449,7 +1449,7 @@ $("#at-form").addEventListener("submit", async (event) => {
 
 $("#refresh").addEventListener("click", async () => {
   await Promise.all([loadStatus(), loadSMS(), loadSidebarConnection()]);
-  notice("状态已刷新");
+  notice("狀態已重新整理");
 });
 $("#sim-phone-toggle").addEventListener("click", () => {
   if (!currentSIMPhoneNumber) return;
@@ -1457,19 +1457,19 @@ $("#sim-phone-toggle").addEventListener("click", () => {
   renderSIMPhoneNumber(currentSIMPhoneNumber, true);
 });
 $("#sim-phone-copy").addEventListener("click", () => {
-  if (currentSIMPhoneNumber) copyIdentifier(currentSIMPhoneNumber, "本机号码");
+  if (currentSIMPhoneNumber) copyIdentifier(currentSIMPhoneNumber, "本機號碼");
 });
 $("#refresh-sms").addEventListener("click", async () => {
   const button = $("#refresh-sms");
   button.disabled = true;
-  $("#sms-status").textContent = "正在读取短信...";
+  $("#sms-status").textContent = "正在讀取簡訊...";
   try {
     const result = await api("/api/sms/refresh", { method: "POST" });
     await loadSMS();
-    $("#sms-status").textContent = `短信读取完成：${result.count ?? "未知"} 条`;
-    notice("短信读取完成");
+    $("#sms-status").textContent = `簡訊讀取完成：${result.count ?? "未知"} 條`;
+    notice("簡訊讀取完成");
   } catch (error) {
-    $("#sms-status").textContent = `读取短信失败：${error.message}`;
+    $("#sms-status").textContent = `讀取簡訊失敗：${error.message}`;
     notice(error.message);
   } finally {
     button.disabled = false;
@@ -1477,22 +1477,22 @@ $("#refresh-sms").addEventListener("click", async () => {
 });
 $("#clear-module-sms").addEventListener("click", async () => {
   const confirmed = await showModal({
-    title: "清空模块旧短信",
-    message: "只会清空模块内部 ME 存储里的旧短信，不会删除 SIM 卡短信。",
-    confirmLabel: "确认清空",
+    title: "清空模組舊簡訊",
+    message: "只會清空模組內部 ME 儲存裡的舊簡訊，不會刪除 SIM 卡簡訊。",
+    confirmLabel: "確認清空",
     danger: true,
   });
   if (!confirmed) return;
   const button = $("#clear-module-sms");
   button.disabled = true;
-  $("#sms-status").textContent = "正在清空模块内部旧短信...";
+  $("#sms-status").textContent = "正在清空模組內部舊簡訊...";
   try {
     const result = await api("/api/sms/clear-module", { method: "POST" });
-    $("#sms-status").textContent = `模块旧短信已清理：${result.before ?? 0} -> ${result.after ?? 0} 条`;
+    $("#sms-status").textContent = `模組舊簡訊已清理：${result.before ?? 0} -> ${result.after ?? 0} 條`;
     await loadSMS();
-    notice("模块旧短信已清理");
+    notice("模組舊簡訊已清理");
   } catch (error) {
-    $("#sms-status").textContent = `清理模块旧短信失败：${error.message}`;
+    $("#sms-status").textContent = `清理模組舊簡訊失敗：${error.message}`;
     notice(error.message);
   } finally {
     button.disabled = false;
@@ -1503,11 +1503,11 @@ $("#probe-esim-phonebook").addEventListener("click", probeESIMPhonebook);
 $("#refresh-network").addEventListener("click", loadNetwork);
 $("#enable-network-service").addEventListener("click", enableNetworkService);
 $("#workmode-sms").addEventListener("click", () =>
-  switchWorkMode(0, "短信模式", $("#workmode-sms")));
+  switchWorkMode(0, "簡訊模式", $("#workmode-sms")));
 $("#workmode-network").addEventListener("click", () =>
-  switchWorkMode(1, "上网模式", $("#workmode-network")));
+  switchWorkMode(1, "上網模式", $("#workmode-network")));
 $("#check-4g-route").addEventListener("click", () =>
-  runNetworkCheck("4G 公网", "/api/network/check-4g", $("#check-4g-route")));
+  runNetworkCheck("4G 公網", "/api/network/check-4g", $("#check-4g-route")));
 $("#check-proxy-route").addEventListener("click", () =>
   runNetworkCheck("代理", "/api/network/check-proxy", $("#check-proxy-route")));
 $("#usbnet-mode-0").addEventListener("click", () => setUSBNetMode(0));

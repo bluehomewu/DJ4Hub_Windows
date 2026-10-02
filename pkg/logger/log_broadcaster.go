@@ -8,7 +8,7 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// LogEntry 表示一条日志条目，用于 SSE 推送
+// LogEntry 表示一條日誌條目，用於 SSE 推送
 type LogEntry struct {
 	Time    string `json:"time"`
 	Level   string `json:"level"`
@@ -17,17 +17,17 @@ type LogEntry struct {
 	Fields  string `json:"fields,omitempty"`
 }
 
-// Broadcaster 日志广播器，将日志条目推送给所有订阅的客户端
+// Broadcaster 日誌廣播器，將日誌條目推送給所有訂閱的客戶端
 type Broadcaster struct {
 	clients map[chan LogEntry]struct{}
 	mu      sync.RWMutex
-	maxSize int // 每个客户端缓冲区大小
+	maxSize int // 每個客戶端緩衝區大小
 }
 
-// 全局广播器实例
+// 全域性廣播器例項
 var GlobalBroadcaster = NewBroadcaster(100)
 
-// NewBroadcaster 创建新的广播器
+// NewBroadcaster 建立新的廣播器
 func NewBroadcaster(bufferSize int) *Broadcaster {
 	return &Broadcaster{
 		clients: make(map[chan LogEntry]struct{}),
@@ -35,7 +35,7 @@ func NewBroadcaster(bufferSize int) *Broadcaster {
 	}
 }
 
-// Subscribe 订阅日志流，返回接收日志的通道
+// Subscribe 訂閱日誌流，返回接收日誌的通道
 func (b *Broadcaster) Subscribe() chan LogEntry {
 	ch := make(chan LogEntry, b.maxSize)
 	b.mu.Lock()
@@ -44,7 +44,7 @@ func (b *Broadcaster) Subscribe() chan LogEntry {
 	return ch
 }
 
-// Unsubscribe 取消订阅
+// Unsubscribe 取消訂閱
 func (b *Broadcaster) Unsubscribe(ch chan LogEntry) {
 	b.mu.Lock()
 	delete(b.clients, ch)
@@ -52,7 +52,7 @@ func (b *Broadcaster) Unsubscribe(ch chan LogEntry) {
 	close(ch)
 }
 
-// Broadcast 广播日志条目给所有订阅者
+// Broadcast 廣播日誌條目給所有訂閱者
 func (b *Broadcaster) Broadcast(entry LogEntry) {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
@@ -61,26 +61,26 @@ func (b *Broadcaster) Broadcast(entry LogEntry) {
 		select {
 		case ch <- entry:
 		default:
-			// 缓冲区满，丢弃旧日志（非阻塞）
+			// 緩衝區滿，丟棄舊日誌（非阻塞）
 		}
 	}
 }
 
-// ClientCount 返回当前订阅客户端数量
+// ClientCount 返回目前訂閱客戶端數量
 func (b *Broadcaster) ClientCount() int {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
 	return len(b.clients)
 }
 
-// SSECore 自定义 zapcore.Core，将日志发送到 Broadcaster
+// SSECore 自定義 zapcore.Core，將日誌傳送到 Broadcaster
 type SSECore struct {
 	zapcore.LevelEnabler
 	broadcaster *Broadcaster
 	fields      []zapcore.Field
 }
 
-// NewSSECore 创建 SSE 日志核心
+// NewSSECore 建立 SSE 日誌核心
 func NewSSECore(broadcaster *Broadcaster, level zapcore.LevelEnabler) zapcore.Core {
 	return &SSECore{
 		LevelEnabler: level,
@@ -108,17 +108,17 @@ func (c *SSECore) Check(entry zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.
 }
 
 func (c *SSECore) Write(entry zapcore.Entry, fields []zapcore.Field) error {
-	// 如果没有客户端订阅，直接返回
+	// 如果沒有客戶端訂閱，直接返回
 	if c.broadcaster.ClientCount() == 0 {
 		return nil
 	}
 
-	// 合并字段
+	// 合併欄位
 	allFields := make([]zapcore.Field, 0, len(c.fields)+len(fields))
 	allFields = append(allFields, c.fields...)
 	allFields = append(allFields, fields...)
 
-	// 序列化额外字段
+	// 序列化額外欄位
 	var fieldsJSON string
 	if len(allFields) > 0 {
 		enc := zapcore.NewMapObjectEncoder()

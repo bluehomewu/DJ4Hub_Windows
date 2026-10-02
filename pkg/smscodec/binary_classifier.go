@@ -8,12 +8,12 @@ import (
 	"github.com/warthog618/sms/encoding/tpdu"
 )
 
-// 常见 WAP Push / OTA 端口
+// 常見 WAP Push / OTA 埠
 const (
 	wapPushPort16 = 2948
 )
 
-// binaryKind 二进制短信分类类型
+// binaryKind 二進位簡訊分類型別
 type binaryKind string
 
 const (
@@ -25,8 +25,8 @@ const (
 	binaryKindSIMOTA          binaryKind = "sim_ota_23048"
 )
 
-// udhPorts 统一承载 UDH 端口寻址解析结果。
-// 16-bit (IEI 0x05) 和 8-bit (IEI 0x04) 可能同时存在，优先使用 16-bit。
+// udhPorts 統一承載 UDH 埠定址解析結果。
+// 16-bit (IEI 0x05) 和 8-bit (IEI 0x04) 可能同時存在，優先使用 16-bit。
 type udhPorts struct {
 	DestPort16 uint16
 	SrcPort16  uint16
@@ -87,7 +87,7 @@ func classifyBinarySMS(t *tpdu.TPDU, msg []byte) binarySMSClassification {
 
 	c := binarySMSClassification{
 		Kind:        binaryKindUnknown,
-		Label:       "二进制数据",
+		Label:       "二進位資料",
 		RawHex:      rawHex,
 		Payload:     msg,
 		DestPort:    destPort,
@@ -104,10 +104,10 @@ func classifyBinarySMS(t *tpdu.TPDU, msg []byte) binarySMSClassification {
 		c.SummaryLines = append(c.SummaryLines, fmt.Sprintf("wsp_tid=0x%02x pdu=0x%02x", wsp.TransactionID, wsp.PDUType))
 	}
 
-	// OMA CP：优先由端口识别，其次由 content-type 识别。
+	// OMA CP：優先由埠識別，其次由 content-type 識別。
 	if (hasDestPort && destPort == wapPushPort16) || isLikelyOMAContentType(c.ContentType) {
 		c.Kind = binaryKindOmaCP
-		c.Label = "OMA CP 运营商配置短信"
+		c.Label = "OMA CP 電信業者配置簡訊"
 		if cfg, err := DecodeOmaCPFromTPDU(c.Payload); err == nil {
 			summary := strings.Split(strings.TrimSpace(FormatOmaCPSummary(cfg)), "\n")
 			c.SummaryLines = append(c.SummaryLines, summary...)
@@ -140,7 +140,7 @@ func classifyBinarySMS(t *tpdu.TPDU, msg []byte) binarySMSClassification {
 		return c
 	}
 
-	// SIM OTA (23.048) 分类识别（不解密）
+	// SIM OTA (23.048) 分類識別（不解密）
 	if isLikelySIMOTA(t, c.Payload, c.ContentType, hasDestPort, destPort) {
 		c.Kind = binaryKindSIMOTA
 		c.Label = "SIM OTA 23.048"
@@ -190,7 +190,7 @@ type wspPush struct {
 }
 
 func parseWSPPush(data []byte) wspPush {
-	// 简化实现：按最常见 Push 结构解析
+	// 簡化實現：按最常見 Push 結構解析
 	// [TID][PDU Type][HeadersLen][Headers...][Body...]
 	if len(data) < 4 {
 		return wspPush{}
@@ -221,19 +221,19 @@ func parseWSPContentType(headers []byte) string {
 		return ""
 	}
 
-	// 常见短整型编码：bit7=1，value=低7位
+	// 常見短整型編碼：bit7=1，value=低7位
 	if headers[0]&0x80 != 0 {
 		return mapWSPContentTypeToken(headers[0] & 0x7F)
 	}
 
-	// 文本字符串 content-type（null 结尾）
+	// 文字字串 content-type（null 結尾）
 	if isLikelyASCII(headers[0]) {
 		ct := readCString(headers)
 		return normalizeContentType(ct)
 	}
 
 	// Value-length + media-type
-	// 这里仅做轻量容错解析，避免误判。
+	// 這裡僅做輕量容錯解析，避免誤判。
 	valueLen := int(headers[0])
 	if valueLen > 0 && 1+valueLen <= len(headers) {
 		v := headers[1 : 1+valueLen]
@@ -306,13 +306,13 @@ func wbxmlPublicID(data []byte) (uint32, bool) {
 
 func isLikelySIWBXML(data []byte) bool {
 	pid, ok := wbxmlPublicID(data)
-	// 常见 SI public id
+	// 常見 SI public id
 	return ok && (pid == 0x05 || pid == 0x06)
 }
 
 func isLikelySLWBXML(data []byte) bool {
 	pid, ok := wbxmlPublicID(data)
-	// 常见 SL public id
+	// 常見 SL public id
 	return ok && (pid == 0x06 || pid == 0x07)
 }
 
@@ -410,7 +410,7 @@ func extractTaggedUint(data []byte, tag byte) (uint32, bool) {
 }
 
 func isLikelySIMOTA(t *tpdu.TPDU, payload []byte, ct string, hasDestPort bool, destPort uint16) bool {
-	// 不把已识别的 WAP Push 家族误判成 SIM OTA
+	// 不把已識別的 WAP Push 家族誤判成 SIM OTA
 	if ct != "" {
 		if isLikelyOMAContentType(ct) || isLikelySIContentType(ct) || isLikelySLContentType(ct) || isLikelyMMSContentType(ct) {
 			return false
@@ -423,7 +423,7 @@ func isLikelySIMOTA(t *tpdu.TPDU, payload []byte, ct string, hasDestPort bool, d
 	pidVal := byte(t.PID)
 	dcsVal := byte(t.DCS)
 
-	// SMS-PP 下载常见 PID=0x7F；DCS class2 也常见于 SIM 下载。
+	// SMS-PP 下載常見 PID=0x7F；DCS class2 也常見於 SIM 下載。
 	if pidVal == 0x7f {
 		return true
 	}
@@ -437,20 +437,20 @@ func isLikelySIMOTA(t *tpdu.TPDU, payload []byte, ct string, hasDestPort bool, d
 }
 
 func isLikelyClass2(dcs byte) bool {
-	// 轻量判定：当 DCS 指示消息类且 class==2
-	// 对常见一般数据编码组生效，避免引入复杂 DCS 全解析。
+	// 輕量判定：當 DCS 指示訊息類且 class==2
+	// 對常見一般資料編碼組生效，避免引入複雜 DCS 全解析。
 	if dcs&0x10 == 0 {
 		return false
 	}
 	return dcs&0x03 == 0x02
 }
 
-// tryParseSIMOTAHeader 尝试解析 23.048 可见安全头字段（仅分类用途）。
+// tryParseSIMOTAHeader 嘗試解析 23.048 可見安全頭欄位（僅分類用途）。
 func tryParseSIMOTAHeader(payload []byte) (spi uint16, kic byte, kid byte, ok bool) {
 	if len(payload) < 6 {
 		return 0, 0, 0, false
 	}
-	// 常见首字节 CPL、次字节 CHL。CHL 至少应覆盖 SPI/KIC/KID。
+	// 常見首位元組 CPL、次位元組 CHL。CHL 至少應覆蓋 SPI/KIC/KID。
 	chl := int(payload[1])
 	if chl < 5 || 2+chl > len(payload) {
 		return 0, 0, 0, false

@@ -60,7 +60,7 @@ func (q *QMIBackend) ExecuteUSSD(ctx context.Context, command string, timeout ti
 	defer q.ussdMu.Unlock()
 	q.resetUSSDChannelsLocked()
 	if q.ussdAwaitRelease {
-		return nil, errors.New("上次 USSD 会话尚未释放，请稍后重试")
+		return nil, errors.New("上次 USSD 會話尚未釋放，請稍後重試")
 	}
 
 	opCtx, opCancel := context.WithTimeout(ctx, timeout)
@@ -71,16 +71,16 @@ func (q *QMIBackend) ExecuteUSSD(ctx context.Context, command string, timeout ti
 	if noWaitSrc, ok := any(src).(qmiUSSDNoWaitSource); ok {
 		err := noWaitSrc.VOICEOriginateUSSDNoWait(opCtx, req)
 		if err == nil {
-			logger.Debug("QMI USSD NoWait 已发起", "control_path", q.controlPath)
+			logger.Debug("QMI USSD NoWait 已發起", "control_path", q.controlPath)
 			return q.waitQMIUSSDResult(opCtx, src)
 		}
 		if !qmiUSSDNoWaitUnsupported(err) {
 			if qmiUSSDOperationDeadlineExceeded(opCtx, err) {
 				q.ussdAwaitRelease = true
 				_ = src.VOICECancelUSSD(context.Background())
-				return nil, errors.New("USSD 响应网络超时（QMI 异步请求超时）")
+				return nil, errors.New("USSD 響應網路超時（QMI 非同步請求超時）")
 			}
-			return nil, fmt.Errorf("发送 QMI USSD 失败: %w", qmiUSSDDecorateQMIError(err))
+			return nil, fmt.Errorf("傳送 QMI USSD 失敗: %w", qmiUSSDDecorateQMIError(err))
 		}
 		logger.Debug("QMI USSD NoWait 不可用，回退同步 originate",
 			"control_path", q.controlPath,
@@ -92,7 +92,7 @@ func (q *QMIBackend) ExecuteUSSD(ctx context.Context, command string, timeout ti
 	if result, resultErr, ok := qmiUSSDResultFromResponse(resp); ok {
 		if resultErr != nil {
 			if err != nil {
-				return nil, fmt.Errorf("发送 QMI USSD 失败: %w; %v", qmiUSSDDecorateQMIError(err), resultErr)
+				return nil, fmt.Errorf("傳送 QMI USSD 失敗: %w; %v", qmiUSSDDecorateQMIError(err), resultErr)
 			}
 			return nil, resultErr
 		}
@@ -102,9 +102,9 @@ func (q *QMIBackend) ExecuteUSSD(ctx context.Context, command string, timeout ti
 		if qmiUSSDOperationDeadlineExceeded(opCtx, err) {
 			q.ussdAwaitRelease = true
 			_ = src.VOICECancelUSSD(context.Background())
-			return nil, errors.New("USSD 响应网络超时（QMI 请求超时）")
+			return nil, errors.New("USSD 響應網路超時（QMI 請求超時）")
 		}
-		return nil, fmt.Errorf("发送 QMI USSD 失败: %w", qmiUSSDDecorateQMIError(err))
+		return nil, fmt.Errorf("傳送 QMI USSD 失敗: %w", qmiUSSDDecorateQMIError(err))
 	}
 
 	return q.waitQMIUSSDResult(opCtx, src)
@@ -127,7 +127,7 @@ func (q *QMIBackend) waitQMIUSSDResult(ctx context.Context, src qmiUSSDSource) (
 		}
 		q.ussdAwaitRelease = true
 		_ = src.VOICECancelUSSD(context.Background())
-		return nil, errors.New("USSD 响应网络超时（无回调）")
+		return nil, errors.New("USSD 響應網路超時（無回撥）")
 	}
 }
 
@@ -173,7 +173,7 @@ func (q *QMIBackend) prepareQMIUSSDVoiceState(ctx context.Context, src qmiUSSDSo
 	if hasSystemSelection {
 		current, err := sysSrc.NASGetSystemSelectionPreference(ctx)
 		if err != nil {
-			logger.Debug("QMI USSD 前置 NAS 系统选择读取失败", "control_path", q.controlPath, "err", err)
+			logger.Debug("QMI USSD 前置 NAS 系統選擇讀取失敗", "control_path", q.controlPath, "err", err)
 		} else {
 			pref = current
 		}
@@ -192,7 +192,7 @@ func (q *QMIBackend) queryQMIUSSDVoiceDomain(ctx context.Context, src qmiUSSDSou
 	}
 	cfg, err := voiceSrc.VOICEGetConfig(ctx, qmi.VoiceConfigQuery{VoiceDomainPreference: true})
 	if err != nil {
-		logger.Debug("QMI USSD 前置 VOICE 配置读取失败", "control_path", q.controlPath, "err", err)
+		logger.Debug("QMI USSD 前置 VOICE 配置讀取失敗", "control_path", q.controlPath, "err", err)
 		return 0, false
 	}
 	if cfg == nil || !cfg.HasCurrentVoiceDomainPreference {
@@ -209,7 +209,7 @@ func (q *QMIBackend) queryQMIUSSDVoiceDomain(ctx context.Context, src qmiUSSDSou
 
 func (q *QMIBackend) prepareQMIUSSDSystemSelection(ctx context.Context, src qmiUSSDSystemSelectionSource, current *qmi.SystemSelectionPreference, voiceDomainFromConfig uint32, hasVoiceDomainFromConfig bool) {
 	if current == nil {
-		logger.Debug("QMI USSD 前置 NAS 系统选择为空", "control_path", q.controlPath)
+		logger.Debug("QMI USSD 前置 NAS 系統選擇為空", "control_path", q.controlPath)
 		return
 	}
 
@@ -232,7 +232,7 @@ func (q *QMIBackend) prepareQMIUSSDSystemSelection(ctx context.Context, src qmiU
 			"voice_domain_from_voice_config_name", qmiUSSDVoiceDomainName(voiceDomainFromConfig),
 		)
 	}
-	logger.Debug("QMI USSD 前置 NAS 系统选择", fields...)
+	logger.Debug("QMI USSD 前置 NAS 系統選擇", fields...)
 
 	next := qmi.SystemSelectionPreference{
 		ChangeDuration:    qmi.NASChangeDurationPowerCycle,
@@ -275,7 +275,7 @@ func (q *QMIBackend) prepareQMIUSSDSystemSelection(ctx context.Context, src qmiU
 				"set_voice_domain_name", qmiUSSDVoiceDomainName(next.VoiceDomainPreference),
 			)
 		}
-		logger.Warn("QMI USSD 前置 CS/Voice 域准备失败，继续尝试发起 USSD",
+		logger.Warn("QMI USSD 前置 CS/Voice 域準備失敗，繼續嘗試發起 USSD",
 			fields...,
 		)
 		return
@@ -295,7 +295,7 @@ func (q *QMIBackend) prepareQMIUSSDSystemSelection(ctx context.Context, src qmiU
 			"set_voice_domain_name", qmiUSSDVoiceDomainName(next.VoiceDomainPreference),
 		)
 	}
-	logger.Info("QMI USSD 前置 CS/Voice 域已准备", fields...)
+	logger.Info("QMI USSD 前置 CS/Voice 域已準備", fields...)
 }
 
 func (q *QMIBackend) initUSSDCallbacks(src qmiUSSDSource) {
@@ -401,7 +401,7 @@ func qmiUSSDResultFromResponse(resp *qmi.VoiceUSSDResponse) (*USSDResult, error,
 		return nil, nil, false
 	}
 	if resp.HasFailureCause {
-		return nil, fmt.Errorf("QMI USSD 失败: %s", qmiUSSDFailureCauseDetail(resp.FailureCause)), true
+		return nil, fmt.Errorf("QMI USSD 失敗: %s", qmiUSSDFailureCauseDetail(resp.FailureCause)), true
 	}
 	if resp.USSData != nil {
 		result := qmiUSSDPayloadResult(0, resp.USSData)
@@ -426,10 +426,10 @@ func qmiUSSDResultFromNoWait(info *qmi.VoiceUSSDNoWaitIndication) (USSDResult, e
 		return USSDResult{}, nil, false
 	}
 	if info.HasErrorCode {
-		return USSDResult{}, fmt.Errorf("QMI USSD 失败: error_code=0x%04X", info.ErrorCode), true
+		return USSDResult{}, fmt.Errorf("QMI USSD 失敗: error_code=0x%04X", info.ErrorCode), true
 	}
 	if info.HasFailureCause {
-		return USSDResult{}, fmt.Errorf("QMI USSD 失败: %s", qmiUSSDFailureCauseDetail(info.FailureCause)), true
+		return USSDResult{}, fmt.Errorf("QMI USSD 失敗: %s", qmiUSSDFailureCauseDetail(info.FailureCause)), true
 	}
 	if info.USSData != nil {
 		return qmiUSSDPayloadResult(0, info.USSData), nil, true

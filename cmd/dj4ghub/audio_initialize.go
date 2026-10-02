@@ -18,7 +18,7 @@ import (
 // USB location for that; Windows adb does not, so the experimental audio
 // path stays unavailable on Windows rather than guessing a target.
 func audioUSBLocation(context.Context) (string, error) {
-	return "", errors.New("实验模块音频暂不支持 Windows")
+	return "", errors.New("實驗模組音訊暫不支援 Windows")
 }
 
 var (
@@ -30,7 +30,7 @@ var (
 // Legacy MD5-crypt protocol, not password storage. Never log input or result.
 func legacyADBPassword(challenge string) (string, error) {
 	if !regexp.MustCompile(`^[0-9]{8}$`).MatchString(challenge) {
-		return "", errors.New("不支持的 ADB 授权协议；未修改设备")
+		return "", errors.New("不支援的 ADB 授權協議；未修改裝置")
 	}
 	pw := []byte("SH_adb_quectel")
 	salt := []byte(challenge)
@@ -85,12 +85,12 @@ func legacyADBPassword(challenge string) (string, error) {
 func parseAudioUSB(raw string) ([]string, error) {
 	m := audioUSBPattern.FindStringSubmatch(raw)
 	if len(m) != 10 {
-		return nil, errors.New("无法严格解析 USB 配置；未修改设备")
+		return nil, errors.New("無法嚴格解析 USB 配置；未修改裝置")
 	}
 	vid, _ := strconv.ParseUint(m[1][2:], 16, 16)
 	pid, _ := strconv.ParseUint(m[2][2:], 16, 16)
 	if vid != 0x2ca3 || pid != 0x4006 || m[5] != "1" {
-		return nil, errors.New("USB 身份或 AT 接口不符合初始化条件")
+		return nil, errors.New("USB 身份或 AT 介面不符合初始化條件")
 	}
 	return m[1:], nil
 }
@@ -102,7 +102,7 @@ func audioIdentity(at func(string) (string, error)) (string, error) {
 	}
 	m := audioIMEIPattern.FindStringSubmatch(raw)
 	if len(m) != 2 {
-		return "", errors.New("无法读取设备 IMEI，禁止自动初始化")
+		return "", errors.New("無法讀取裝置 IMEI，禁止自動初始化")
 	}
 	return m[1], nil
 }
@@ -126,11 +126,11 @@ func initializeAudioADB(ctx context.Context, at func(string) (string, error), ba
 	}
 	id, err := audioIdentity(at)
 	if err != nil || id != expected {
-		return false, errors.New("设备身份变化，已停止初始化")
+		return false, errors.New("裝置身份變化，已停止初始化")
 	}
 	firmware, err := at("AT+CVERSION")
 	if err != nil || !strings.Contains(firmware, "VERSION: QDC507GLEFM21\r") && !strings.Contains(firmware, "VERSION: QDC507GLEFM21\n") {
-		return false, errors.New("未验证的固件，禁止自动初始化")
+		return false, errors.New("未驗證的韌體，禁止自動初始化")
 	}
 	if err = os.MkdirAll(backupDir, 0700); err != nil {
 		return false, err
@@ -167,11 +167,11 @@ func initializeAudioADB(ctx context.Context, at func(string) (string, error), ba
 	}
 	current, err := parseAudioUSB(check)
 	if err != nil || strings.Join(current, ",") != strings.Join(config, ",") {
-		return false, errors.New("USB 配置发生变化；未覆盖")
+		return false, errors.New("USB 配置發生變化；未覆蓋")
 	}
 	config[7] = "1"
 	if _, err = at(`AT+QCFG="usbcfg",` + strings.Join(config, ",")); err != nil {
-		return false, errors.New("启用 ADB 接口失败；配置备份已保留")
+		return false, errors.New("啟用 ADB 介面失敗；配置備份已保留")
 	}
 	if err = audioInitializationGuard(at, expected); err != nil {
 		return false, err
@@ -189,7 +189,7 @@ func initializeAudioADB(ctx context.Context, at func(string) (string, error), ba
 			continue
 		}
 		if got != expected {
-			return true, errors.New("重连的是另一台设备，已停止")
+			return true, errors.New("重連的是另一臺裝置，已停止")
 		}
 		check, e = at(`AT+QCFG="usbcfg"`)
 		if e != nil {
@@ -200,13 +200,13 @@ func initializeAudioADB(ctx context.Context, at func(string) (string, error), ba
 			return true, nil
 		}
 	}
-	return true, errors.New("ADB 配置已提交，等待重连超时；未重复重启，请在设备恢复后重试")
+	return true, errors.New("ADB 配置已提交，等待重連超時；未重複重啟，請在裝置恢復後重試")
 }
 
 func audioInitializationGuard(at func(string) (string, error), expected string) error {
 	id, err := audioIdentity(at)
 	if err != nil || id != expected {
-		return errors.New("设备身份变化，已停止")
+		return errors.New("裝置身份變化，已停止")
 	}
 	raw, err := at("AT+CLCC")
 	if err != nil {
@@ -216,7 +216,7 @@ func audioInitializationGuard(at func(string) (string, error), expected string) 
 		if strings.HasPrefix(strings.TrimSpace(line), "+CLCC:") {
 			fields := strings.Split(line, ",")
 			if len(fields) < 5 || strings.TrimSpace(fields[3]) != "1" {
-				return errors.New("当前有语音通话或未知通话状态，不能初始化")
+				return errors.New("目前有語音通話或未知通話狀態，不能初始化")
 			}
 		}
 	}
@@ -229,18 +229,18 @@ func authorizeAudioADB(at func(string) (string, error), expected string) error {
 	}
 	raw, err := at("AT+QADBKEY?")
 	if err != nil {
-		return errors.New("无法查询旧式 ADB 授权；未尝试其他协议")
+		return errors.New("無法查詢舊式 ADB 授權；未嘗試其他協議")
 	}
 	m := audioChallengePattern.FindStringSubmatch(raw)
 	if len(m) != 2 {
-		return errors.New("不是已验证的旧式 ADB 挑战格式")
+		return errors.New("不是已驗證的舊式 ADB 挑戰格式")
 	}
 	password, err := legacyADBPassword(m[1])
 	if err != nil {
 		return err
 	}
 	if _, err = at(fmt.Sprintf(`AT+QADBKEY="%s"`, password)); err != nil {
-		return errors.New("设备拒绝 ADB 授权（授权信息不记录）")
+		return errors.New("裝置拒絕 ADB 授權（授權資訊不記錄）")
 	}
 	return audioInitializationGuard(at, expected)
 }

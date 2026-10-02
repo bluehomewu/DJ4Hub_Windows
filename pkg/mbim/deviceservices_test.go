@@ -46,13 +46,13 @@ func TestParseDeviceServices(t *testing.T) {
 		t.Fatalf("elements=%d want 2", len(ds.Elements))
 	}
 	if !ds.Supports(UUIDBasicConnect, 16) {
-		t.Fatal("应支持 BasicConnect/16")
+		t.Fatal("應支援 BasicConnect/16")
 	}
 	if ds.Supports(UUIDBasicConnect, 99) {
-		t.Fatal("不应支持 BasicConnect/99")
+		t.Fatal("不應支援 BasicConnect/99")
 	}
 	if !ds.HasService(UUIDSMS) || ds.HasService(UUIDAuth) {
-		t.Fatal("HasService 判定错误")
+		t.Fatal("HasService 判定錯誤")
 	}
 }
 
@@ -65,9 +65,9 @@ func TestParseDeviceServicesMalformedElementSkipped(t *testing.T) {
 	le.PutUint32(info[dataStart+24:], 99)
 	ds, err := parseDeviceServices(info)
 	if err != nil {
-		t.Fatalf("parse 不应整体失败: %v", err)
+		t.Fatalf("parse 不應整體失敗: %v", err)
 	}
 	if ds.Supports(UUIDBasicConnect, 1) {
-		t.Fatal("畸形元素应被跳过")
+		t.Fatal("畸形元素應被跳過")
 	}
 }

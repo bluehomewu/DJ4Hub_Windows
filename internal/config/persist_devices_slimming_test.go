@@ -6,8 +6,8 @@ import (
 	"testing"
 )
 
-// 期望终态:Update/Add 保存设备时不把运行时路径写进 config(只存 IMEI + 意图)。
-// 当前实现会写 control_device/interface/at_port → 本测试现在应 FAIL,证明保存侧泄漏。
+// 期望終態:Update/Add 儲存裝置時不把執行時路徑寫進 config(只存 IMEI + 意圖)。
+// 目前實現會寫 control_device/interface/at_port → 本測試現在應 FAIL,證明儲存側洩漏。
 func TestUpdateDeviceInFileDoesNotPersistRuntimePaths(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.yaml")
 	raw := "devices:\n- id: dev1\n  device_backend: qmi\n  modem_imei: \"867383058993207\"\n"
@@ -15,12 +15,12 @@ func TestUpdateDeviceInFileDoesNotPersistRuntimePaths(t *testing.T) {
 		t.Fatalf("write config: %v", err)
 	}
 
-	// 模拟切运营商/编辑:传入带运行时解析路径的 cfg。
+	// 模擬切電信業者/編輯:傳入帶執行時解析路徑的 cfg。
 	newDev := DeviceConfig{
 		ID:            "dev1",
 		ModemIMEI:     "867383058993207",
 		DeviceBackend: "qmi",
-		ControlDevice: "/dev/cdc-wdm3", // 运行时路径,不应被持久化
+		ControlDevice: "/dev/cdc-wdm3", // 執行時路徑,不應被持久化
 		Interface:     "wwan2",
 		ATPort:        "/dev/ttyUSB9",
 		USBPath:       "/sys/bus/usb/devices/1-7",
@@ -42,7 +42,7 @@ func TestUpdateDeviceInFileDoesNotPersistRuntimePaths(t *testing.T) {
 	}
 }
 
-// Add 新设备时同样不写路径(只 IMEI + 意图)。
+// Add 新裝置時同樣不寫路徑(只 IMEI + 意圖)。
 func TestAddDeviceInFileDoesNotPersistRuntimePaths(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.yaml")
 	if err := os.WriteFile(path, []byte("devices: []\n"), 0o600); err != nil {

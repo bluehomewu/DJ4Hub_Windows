@@ -91,7 +91,7 @@ func discoverHostDefaultRoute() hostDefaultRoute {
 func discoverInterfaceCounters(index int) (networkByteCounters, error) {
 	row := windows.MibIfRow2{InterfaceIndex: uint32(index)}
 	if err := windows.GetIfEntry2Ex(windows.MibIfEntryNormal, &row); err != nil {
-		return networkByteCounters{}, fmt.Errorf("读取网卡计数: %w", err)
+		return networkByteCounters{}, fmt.Errorf("讀取網卡計數: %w", err)
 	}
 	return networkByteCounters{RX: row.InOctets, TX: row.OutOctets}, nil
 }
@@ -131,7 +131,7 @@ func wwanProfiles(ctx context.Context, interfaceName string) ([]string, error) {
 	output, err := runHidden(ctx, "netsh", "mbn", "show", "profiles", "interface="+interfaceName)
 	profiles := parseWWANProfiles(output)
 	if err != nil && len(profiles) == 0 && !strings.Contains(output, "---") {
-		return nil, fmt.Errorf("读取行动宽带设定档失败: %s", strings.TrimSpace(output))
+		return nil, fmt.Errorf("讀取行動寬頻設定檔失敗: %s", strings.TrimSpace(output))
 	}
 	return profiles, nil
 }
@@ -139,7 +139,7 @@ func wwanProfiles(ctx context.Context, interfaceName string) ([]string, error) {
 func connectWWAN(ctx context.Context, interfaceName, profile string) error {
 	output, err := runHidden(ctx, "netsh", "mbn", "connect", "interface="+interfaceName, "connmode=name", "name="+profile)
 	if err != nil {
-		return fmt.Errorf("Windows 拒绝连接行动宽带: %s", strings.TrimSpace(output))
+		return fmt.Errorf("Windows 拒絕連線行動寬頻: %s", strings.TrimSpace(output))
 	}
 	return nil
 }
@@ -152,13 +152,13 @@ func enableAdapterElevated(ctx context.Context, interfaceName string) error {
 	output, err := runHidden(ctx, "powershell.exe", "-NoProfile", "-NonInteractive", "-Command", script)
 	if err != nil {
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-			return errors.New("等待 Windows 管理员授权超时")
+			return errors.New("等待 Windows 管理員授權超時")
 		}
 		detail := strings.TrimSpace(output)
 		if detail == "" {
 			detail = err.Error()
 		}
-		return fmt.Errorf("启用 Windows 网卡失败（可能已取消 UAC 授权）: %s", detail)
+		return fmt.Errorf("啟用 Windows 網卡失敗（可能已取消 UAC 授權）: %s", detail)
 	}
 	return nil
 }
@@ -179,7 +179,7 @@ func enableDJINetworkService(service *hostNetworkService) error {
 		return enableAdapterElevated(ctx, service.Name)
 	}
 	if service.Kind != "wwan" {
-		return errors.New("该网卡由 Windows 自动通过 DHCP 取得地址；请检查模块拨号状态或重新插拔")
+		return errors.New("該網卡由 Windows 自動透過 DHCP 取得位址；請檢查模組撥號狀態或重新插拔")
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -188,7 +188,7 @@ func enableDJINetworkService(service *hostNetworkService) error {
 		return err
 	}
 	if len(profiles) == 0 {
-		return errors.New("Windows 没有可用的行动宽带设定档；请在 Windows 设置 → 网络和 Internet → 手机网络中添加 APN")
+		return errors.New("Windows 沒有可用的行動寬頻設定檔；請在 Windows 設定 → 網路和 Internet → 手機網路中新增 APN")
 	}
 	var lastErr error
 	for _, profile := range profiles {

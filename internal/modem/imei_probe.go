@@ -9,19 +9,19 @@ import (
 	"go.bug.st/serial"
 )
 
-// imeiCacheItem 存储 IMEI 缓存条目及对应的获取时间戳
+// imeiCacheItem 儲存 IMEI 快取條目及對應的取得時間戳
 type imeiCacheItem struct {
 	IMEI string
 	TS   time.Time
 }
 
-// imeiCache 提供线程安全的内存 IMEI 映射缓存，避免频繁通过串口发起硬件查询
+// imeiCache 提供執行緒安全的記憶體 IMEI 對映快取，避免頻繁透過串列埠發起硬體查詢
 var imeiCache struct {
 	mu sync.RWMutex
 	m  map[string]imeiCacheItem
 }
 
-// ProbeIMEICached 在 10 分钟缓存有效期内优先从内存缓存中获取指定 AT 串口的 IMEI；若未命中或过期，则调用底层串口方法探测
+// ProbeIMEICached 在 10 分鐘快取有效期內優先從記憶體快取中取得指定 AT 串列埠的 IMEI；若未命中或過期，則呼叫底層串列埠方法探測
 func ProbeIMEICached(atPort string, timeout time.Duration) (string, error) {
 	atPort = strings.TrimSpace(atPort)
 	if atPort == "" {
@@ -51,7 +51,7 @@ func ProbeIMEICached(atPort string, timeout time.Duration) (string, error) {
 	return imei, err
 }
 
-// ProbeIMEI 通过打开底层 TTY 串口设备并执行 `AT+CGSN` 指令来实时探测模组的 IMEI 串号
+// ProbeIMEI 透過開啟底層 TTY 串列埠裝置並執行 `AT+CGSN` 指令來即時探測模組的 IMEI 串號
 func ProbeIMEI(atPort string, timeout time.Duration) (string, error) {
 	atPort = strings.TrimSpace(atPort)
 	if atPort == "" {
@@ -61,7 +61,7 @@ func ProbeIMEI(atPort string, timeout time.Duration) (string, error) {
 		timeout = 1500 * time.Millisecond
 	}
 
-	// 配置标准的 3 线异步串口波特率与帧校验格式
+	// 配置標準的 3 線非同步串列埠波特率與幀校驗格式
 	mode := &serial.Mode{
 		BaudRate: 115200,
 		DataBits: 8,
@@ -85,12 +85,12 @@ func ProbeIMEI(atPort string, timeout time.Duration) (string, error) {
 		_, _ = p.Write([]byte(s))
 	}
 
-	// 写入 AT 测试命令与查询 IMEI 的 AT+CGSN 命令
+	// 寫入 AT 測試命令與查詢 IMEI 的 AT+CGSN 命令
 	write("AT\r\n")
 	time.Sleep(40 * time.Millisecond)
 	write("AT+CGSN\r\n")
 
-	// 在指定的截止时间内轮询并解析串口输出内容
+	// 在指定的截止時間內輪詢並解析串列埠輸出內容
 	for time.Now().Before(deadline) {
 		n, rerr := p.Read(buf)
 		if n > 0 {
@@ -106,7 +106,7 @@ func ProbeIMEI(atPort string, timeout time.Duration) (string, error) {
 		}
 	}
 
-	// 最终尝试解析一次累积的串口缓冲区
+	// 最終嘗試解析一次累積的串列埠緩衝區
 	if imei := parseIMEI(acc.String()); imei != "" {
 		return imei, nil
 	}

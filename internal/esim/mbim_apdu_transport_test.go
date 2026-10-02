@@ -60,7 +60,7 @@ func TestMBIMAPDUTransportAcquiresExclusiveLease(t *testing.T) {
 		t.Fatalf("OpenEUICCLogicalChannel: %v", err)
 	}
 	if !tr.coord.hasSession(ch) {
-		t.Fatal("打开通道后应登记会话")
+		t.Fatal("開啟通道後應登記會話")
 	}
 	if _, err := tr.TransmitEUICCAPDU(context.Background(), 1, ch, []byte{0x00, 0xA4}); err != nil {
 		t.Fatalf("TransmitEUICCAPDU: %v", err)
@@ -69,7 +69,7 @@ func TestMBIMAPDUTransportAcquiresExclusiveLease(t *testing.T) {
 		t.Fatalf("CloseEUICCLogicalChannel: %v", err)
 	}
 	if tr.coord.hasSession(ch) {
-		t.Fatal("关闭通道后会话应被移除")
+		t.Fatal("關閉通道後會話應被移除")
 	}
 }
 
@@ -79,7 +79,7 @@ func TestMBIMAPDUTransportForwardsArbiterToSource(t *testing.T) {
 	arb := apduarbiter.New("mbim-dev", apduarbiter.Options{MaxSessions: 3, MaxQMITransports: 3})
 	tr.SetAPDUArbiter(arb)
 	if f.gotArbiter != arb {
-		t.Fatal("SetAPDUArbiter 应转发给底层 src")
+		t.Fatal("SetAPDUArbiter 應轉發給底層 src")
 	}
 }
 

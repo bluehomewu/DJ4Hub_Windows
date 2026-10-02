@@ -27,8 +27,8 @@ func TestManagerExecuteATFailsFastWithoutATPort(t *testing.T) {
 		t.Fatal("CanExecuteAT() = true, want false")
 	}
 
-	if _, err := m.ExecuteAT("AT", 100*time.Millisecond); err == nil || err.Error() != "当前设备没有可用 AT 端口" {
-		t.Fatalf("ExecuteAT() error = %v, want 当前设备没有可用 AT 端口", err)
+	if _, err := m.ExecuteAT("AT", 100*time.Millisecond); err == nil || err.Error() != "目前裝置沒有可用 AT 埠" {
+		t.Fatalf("ExecuteAT() error = %v, want 目前裝置沒有可用 AT 埠", err)
 	}
 }
 
@@ -64,8 +64,8 @@ func TestManagerExecuteATFailsFastWhenNotRunning(t *testing.T) {
 		t.Fatal("CanExecuteAT() = true, want false")
 	}
 
-	if _, err := m.ExecuteAT("AT", 100*time.Millisecond); err == nil || err.Error() != "AT 管理器未启动或不可用" {
-		t.Fatalf("ExecuteAT() error = %v, want AT 管理器未启动或不可用", err)
+	if _, err := m.ExecuteAT("AT", 100*time.Millisecond); err == nil || err.Error() != "AT 管理器未啟動或不可用" {
+		t.Fatalf("ExecuteAT() error = %v, want AT 管理器未啟動或不可用", err)
 	}
 }
 
@@ -168,7 +168,7 @@ func TestManagerClassifiesFatalSerialRuntimeErrors(t *testing.T) {
 		{name: "no such device", err: errors.New("open /dev/ttyUSB2: no such device"), want: true},
 		{name: "bad file descriptor", err: errors.New("bad file descriptor"), want: true},
 		{name: "timeout", err: errors.New("timeout"), want: false},
-		{name: "command error", err: errors.New("设备返回错误: ERROR"), want: false},
+		{name: "command error", err: errors.New("裝置返回錯誤: ERROR"), want: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -284,8 +284,8 @@ func TestHandleCommandTriggersWatchdogAfterConsecutiveNormalTimeouts(t *testing.
 			errChan:  make(chan error, 1),
 		}
 		m.handleCommand(req)
-		if err := <-req.errChan; err == nil || err.Error() != "命令执行超时" {
-			t.Fatalf("timeout %d error=%v want 命令执行超时", i, err)
+		if err := <-req.errChan; err == nil || err.Error() != "命令執行超時" {
+			t.Fatalf("timeout %d error=%v want 命令執行超時", i, err)
 		}
 		if i < atTimeoutWatchdogThreshold {
 			select {
@@ -332,8 +332,8 @@ func TestHandleCommandIgnoresHighPriorityTimeoutsForWatchdog(t *testing.T) {
 			highPriority: true,
 		}
 		m.handleCommand(req)
-		if err := <-req.errChan; err == nil || err.Error() != "命令执行超时" {
-			t.Fatalf("timeout %d error=%v want 命令执行超时", i, err)
+		if err := <-req.errChan; err == nil || err.Error() != "命令執行超時" {
+			t.Fatalf("timeout %d error=%v want 命令執行超時", i, err)
 		}
 	}
 
@@ -380,8 +380,8 @@ func TestHandleCommandResetsTimeoutWatchdogOnDeviceError(t *testing.T) {
 		m.rxChan <- rxMsg{Data: "ERROR"}
 	}()
 	m.handleCommand(req)
-	if err := <-req.errChan; err == nil || !strings.Contains(err.Error(), "设备返回错误") {
-		t.Fatalf("device error=%v want 设备返回错误", err)
+	if err := <-req.errChan; err == nil || !strings.Contains(err.Error(), "裝置返回錯誤") {
+		t.Fatalf("device error=%v want 裝置返回錯誤", err)
 	}
 
 	for i := 0; i < atTimeoutWatchdogThreshold-1; i++ {

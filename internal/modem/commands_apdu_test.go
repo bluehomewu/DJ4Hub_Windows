@@ -520,7 +520,7 @@ func TestManagerTransmitBasicAPDUDoesNotRetryParseFailure(t *testing.T) {
 
 	_, err := m.TransmitBasicAPDU("00A40400")
 	close(stop)
-	if err == nil || !strings.Contains(err.Error(), "解析 CSIM 响应失败") {
+	if err == nil || !strings.Contains(err.Error(), "解析 CSIM 響應失敗") {
 		t.Fatalf("TransmitBasicAPDU() error = %v, want parse failure", err)
 	}
 	got := drainCommands(commands)
@@ -547,8 +547,8 @@ func TestManagerTransmitBasicAPDURejectsInvalidHex(t *testing.T) {
 
 			_, err := m.TransmitBasicAPDU(apduHex)
 			close(stop)
-			if err == nil || !strings.Contains(err.Error(), "APDU hex 解码失败") {
-				t.Fatalf("TransmitBasicAPDU() error = %v, want APDU hex 解码失败", err)
+			if err == nil || !strings.Contains(err.Error(), "APDU hex 解碼失敗") {
+				t.Fatalf("TransmitBasicAPDU() error = %v, want APDU hex 解碼失敗", err)
 			}
 			if got := drainCommands(commands); len(got) != 0 {
 				t.Fatalf("commands = %#v, want none", got)

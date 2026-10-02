@@ -9,7 +9,7 @@ import (
 )
 
 // ============================================================================
-// OperatorSelectionProvider 实现
+// OperatorSelectionProvider 實現
 // ============================================================================
 
 func (q *QMIBackend) ScanOperators(ctx context.Context) ([]OperatorCandidate, error) {

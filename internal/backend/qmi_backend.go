@@ -17,8 +17,8 @@ import (
 	"github.com/warthog618/sms/encoding/tpdu"
 )
 
-// QMISource 定义了 QMI 后端需要从底层 QMI Core 提供者 (qmicore.Manager) 获得的所有功能接口。
-// 这层抽象确保了 QMIBackend 与 qmicore.Manager 解耦，同时防止包循环引用。
+// QMISource 定義了 QMI 後端需要從底層 QMI Core 提供者 (qmicore.Manager) 獲得的所有功能介面。
+// 這層抽象確保了 QMIBackend 與 qmicore.Manager 解耦，同時防止包迴圈引用。
 type QMISource interface {
 	GetDeviceSerialNumbers(ctx context.Context) (*qmi.DeviceInfo, error)
 	GetDeviceRevision(ctx context.Context) (string, string, error)
@@ -36,7 +36,7 @@ type QMISource interface {
 	GetOperatingMode(ctx context.Context) (qmi.OperatingMode, error)
 	SetOperatingMode(ctx context.Context, mode qmi.OperatingMode) error
 
-	// WMS 短信相关
+	// WMS 簡訊相關
 	WMSSendRawMessage(ctx context.Context, format uint8, pdu []byte) error
 	WMSRawReadMessage(ctx context.Context, storageType uint8, index uint32) ([]byte, error)
 	WMSDeleteMessage(ctx context.Context, storageType uint8, index uint32) error
@@ -46,7 +46,7 @@ type QMISource interface {
 	}, error)
 	WMSDeleteMessagesByTag(ctx context.Context, storageType uint8, tag qmi.MessageTagType, mode qmi.MessageMode) error
 
-	// UIM 鉴权相关 (与 eUICC 共用)
+	// UIM 鑑權相關 (與 eUICC 共用)
 	OpenEUICCLogicalChannel(ctx context.Context, slot byte, aid []byte) (byte, error)
 	CloseEUICCLogicalChannel(ctx context.Context, slot byte, channel byte) error
 	TransmitEUICCAPDU(ctx context.Context, slot byte, channel byte, command []byte) ([]byte, error)
@@ -55,19 +55,19 @@ type QMISource interface {
 	UIMPostSwitchReload(ctx context.Context, readiness manager.UIMReadiness, opts manager.UIMPostSwitchReloadOptions) (uint8, error)
 	EnsureSIMProvisioned(ctx context.Context, opts manager.EnsureSIMProvisionedOptions) (manager.UIMReadiness, error)
 
-	// 获取原生 MCC 和 MNC
+	// 取得原生 MCC 和 MNC
 	GetNativeMCCMNC(ctx context.Context) (mcc, mnc string, err error)
 
-	// 获取 SIM EF_SPN 服务提供商名称
+	// 取得 SIM EF_SPN 服務提供商名稱
 	GetNativeSPN(ctx context.Context) (string, error)
 
-	// 获取 SIM/eSIM profile 原生元数据
+	// 取得 SIM/eSIM profile 原生後設資料
 	GetSIMMetadata(ctx context.Context) (*qmi.SIMMetadata, error)
 
-	// 获取短信中心号码（由底层 QMI 库实现）
+	// 取得簡訊中心號碼（由底層 QMI 庫實現）
 	GetSMSC(ctx context.Context) (string, error)
 
-	// 获取设备状态快照（由 NAS Indication 事件驱动更新，零 IPC）
+	// 取得裝置狀態快照（由 NAS Indication 事件驅動更新，零 IPC）
 	GetDeviceSnapshot() *manager.DeviceSnapshot
 }
 
@@ -87,10 +87,10 @@ type qmiEFADReader interface {
 	UIMReadTransparentWithSession(ctx context.Context, sessionType uint8, fileID uint16, path []uint8) ([]byte, error)
 }
 
-// QMIBackend QMI 后端 — 复用 qmicore.Manager 提供的 QMI 资源池通信
+// QMIBackend QMI 後端 — 複用 qmicore.Manager 提供的 QMI 資源池通訊
 type QMIBackend struct {
 	source      QMISource
-	controlPath string // cdc-wdm 设备节点路径
+	controlPath string // cdc-wdm 裝置節點路徑
 
 	ussdOnce         sync.Once
 	ussdInitErr      error
@@ -151,11 +151,11 @@ func (q *QMIBackend) nasSource() (nasControlSource, error) {
 	return src, nil
 }
 
-// NewQMIBackend 创建 QMI 后端
-// source: QMI Core 资源提供者（通常是 qmicore.Manager）
+// NewQMIBackend 建立 QMI 後端
+// source: QMI Core 資源提供者（通常是 qmicore.Manager）
 func NewQMIBackend(controlPath string, source QMISource) (*QMIBackend, error) {
 	if source == nil {
-		return nil, fmt.Errorf("QMI 资源源不能为空")
+		return nil, fmt.Errorf("QMI 資源源不能為空")
 	}
 
 	return &QMIBackend{
@@ -164,17 +164,17 @@ func NewQMIBackend(controlPath string, source QMISource) (*QMIBackend, error) {
 	}, nil
 }
 
-// Mode 返回后端模式标识
+// Mode 返回後端模式標識
 func (q *QMIBackend) Mode() string { return "qmi" }
 
-// Close QMIBackend 现在不再持有独立的 Client，因此 Close 无需主动关闭资源
-// 资源生命周期由 qmicore.Manager 统一控制
+// Close QMIBackend 現在不再持有獨立的 Client，因此 Close 無需主動關閉資源
+// 資源生命週期由 qmicore.Manager 統一控制
 func (q *QMIBackend) Close() error {
 	return nil
 }
 
 // ============================================================================
-// DeviceInfoProvider 实现
+// DeviceInfoProvider 實現
 // ============================================================================
 
 func (q *QMIBackend) GetIMEI(ctx context.Context) (string, error) {
@@ -199,7 +199,7 @@ func (q *QMIBackend) GetIMSI(ctx context.Context) (string, error) {
 	return q.source.GetIMSI(ctx)
 }
 
-// GetIMSILive 强制实时读取 IMSI（绕过 snapshot 优先路径）。
+// GetIMSILive 強制即時讀取 IMSI（繞過 snapshot 優先路徑）。
 func (q *QMIBackend) GetIMSILive(ctx context.Context) (string, error) {
 	type strictLive interface {
 		GetIMSIStrictLive(context.Context) (string, error)
@@ -244,7 +244,7 @@ func (q *QMIBackend) GetMSISDN(ctx context.Context) (string, error) {
 	return msisdn, nil
 }
 
-// GetICCIDLive 强制实时读取 ICCID（绕过 snapshot 优先路径）。
+// GetICCIDLive 強制即時讀取 ICCID（繞過 snapshot 優先路徑）。
 func (q *QMIBackend) GetICCIDLive(ctx context.Context) (string, error) {
 	type strictLive interface {
 		GetICCIDStrictLive(context.Context) (string, error)
@@ -265,8 +265,8 @@ func (q *QMIBackend) GetRevision(ctx context.Context) (string, error) {
 	return rev, err
 }
 
-// qmiSNRToDB 把 QMI NAS 的 SNR（0.1 dB 缩放整数，如 134 = 13.4 dB）四舍五入为 dB 整数。
-// LTE RSSNR 与 5G NR SINR 在 QMI 里均为该编码；RSRP/RSRQ 则是直接的 dBm/dB 值，无需换算。
+// qmiSNRToDB 把 QMI NAS 的 SNR（0.1 dB 縮放整數，如 134 = 13.4 dB）四捨五入為 dB 整數。
+// LTE RSSNR 與 5G NR SINR 在 QMI 裡均為該編碼；RSRP/RSRQ 則是直接的 dBm/dB 值，無需換算。
 func qmiSNRToDB(raw int16) int {
 	if raw >= 0 {
 		return int((raw + 5) / 10)
@@ -316,7 +316,7 @@ func (q *QMIBackend) GetSignalInfo(ctx context.Context) (*SignalInfo, error) {
 		return info, nil
 	}
 
-	// 首先使用 NAS GetSignalInfo（字段最全，1 次 IPC）
+	// 首先使用 NAS GetSignalInfo（欄位最全，1 次 IPC）
 	if sigInfo, err := q.source.GetSignalInfo(ctx); err == nil && sigInfo != nil {
 		if sigInfo.LTERSRP != 0 {
 			info.RSRP = int(sigInfo.LTERSRP)
@@ -339,7 +339,7 @@ func (q *QMIBackend) GetSignalInfo(ctx context.Context) (*SignalInfo, error) {
 		}
 	}
 
-	// 层 3：仅当 RSSI 仍为空时才补发 GetSignalStrength（从 2 次 IPC 降为条件性 1 次）
+	// 層 3：僅當 RSSI 仍為空時才補發 GetSignalStrength（從 2 次 IPC 降為條件性 1 次）
 	if info.RSSI == 0 {
 		if sig, err := q.source.GetSignalStrength(ctx); err == nil && sig != nil {
 			info.RSSI = int(sig.RSSI)
@@ -381,7 +381,7 @@ func (q *QMIBackend) GetServingSystem(ctx context.Context) (*ServingSystem, erro
 			// if suspicious {
 			// 	reason = "suspicious"
 			// }
-			// logger.Debug("QMI serving snapshot 回源校验",
+			// logger.Debug("QMI serving snapshot 回源校驗",
 			// 	"reason", reason,
 			// 	"reg_state", serving.RegistrationState.String(),
 			// 	"mcc", serving.MCC,
@@ -393,32 +393,32 @@ func (q *QMIBackend) GetServingSystem(ctx context.Context) (*ServingSystem, erro
 		}
 	}
 	if serving == nil {
-		// 直接发起 NAS GetServingSystem 请求
+		// 直接發起 NAS GetServingSystem 請求
 		serving, err = q.source.GetServingSystem(ctx)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	// 映射 QMI RegistrationState → AT-style regStatus
+	// 對映 QMI RegistrationState → AT-style regStatus
 	switch serving.RegistrationState {
 	case qmi.RegStateNotRegistered:
 		ss.RegStatus = 0
-		ss.RegStatusText = "未注册"
+		ss.RegStatusText = "未註冊"
 	case qmi.RegStateRegistered:
 		ss.RegStatus = 1
-		ss.RegStatusText = "已注册(本地)"
+		ss.RegStatusText = "已註冊(本地)"
 		ss.PSAttached = serving.PSAttached
 	case qmi.RegStateRoaming:
 		ss.RegStatus = 5
-		ss.RegStatusText = "已注册(漫游)"
+		ss.RegStatusText = "已註冊(漫遊)"
 		ss.PSAttached = serving.PSAttached
 	case qmi.RegStateSearching:
 		ss.RegStatus = 2
-		ss.RegStatusText = "搜索中"
+		ss.RegStatusText = "搜尋中"
 	case qmi.RegStateDenied:
 		ss.RegStatus = 3
-		ss.RegStatusText = "注册被拒"
+		ss.RegStatusText = "註冊被拒"
 	default:
 		ss.RegStatus = 4
 		ss.RegStatusText = "未知"
@@ -431,7 +431,7 @@ func (q *QMIBackend) GetServingSystem(ctx context.Context) (*ServingSystem, erro
 		ss.Operator = qmiOperatorDisplay(serving.MCC, serving.MNC)
 	}
 	if (ss.RegStatus == 1 || ss.RegStatus == 5) && strings.TrimSpace(ss.Operator) == "" && !operatorRetried {
-		logger.Debug("QMI serving 命中已注册但运营商为空，触发一次回源",
+		logger.Debug("QMI serving 命中已註冊但電信業者為空，觸發一次回源",
 			"reg_status", ss.RegStatus,
 			"mcc", ss.MCC,
 			"mnc", ss.MNC,
@@ -447,7 +447,7 @@ func (q *QMIBackend) GetServingSystem(ctx context.Context) (*ServingSystem, erro
 		}
 	}
 
-	// 网络模式映射 (基于 QmiNasRadioInterface 标准)
+	// 網路模式對映 (基於 QmiNasRadioInterface 標準)
 	switch serving.RadioInterface {
 	case 0x01, 0x02:
 		ss.NetworkMode = "CDMA"
@@ -474,7 +474,7 @@ func (q *QMIBackend) GetServingSystem(ctx context.Context) (*ServingSystem, erro
 		ss.NetworkMode = "Unknown"
 	}
 
-	// 尝试获取 SysInfo（LAC/CellID）
+	// 嘗試取得 SysInfo（LAC/CellID）
 	var sysInfo *qmi.SysInfo
 	if snap := q.source.GetDeviceSnapshot(); snap != nil {
 		if cached, _ := snap.SysInfo(); cached != nil {
@@ -792,8 +792,8 @@ func (q *QMIBackend) NASRegisterIndications(ctx context.Context) error {
 	})
 }
 
-// GetSMSC 读取短信中心号码（SMSC）。
-// 具体解析逻辑在 quectel-qmi-go 库内实现。
+// GetSMSC 讀取簡訊中心號碼（SMSC）。
+// 具體解析邏輯在 quectel-qmi-go 庫內實現。
 func (q *QMIBackend) GetSMSC(ctx context.Context) (string, error) {
 	if ctx == nil {
 		ctx = context.Background()
@@ -802,7 +802,7 @@ func (q *QMIBackend) GetSMSC(ctx context.Context) (string, error) {
 }
 
 // ============================================================================
-// SMSProvider 实现
+// SMSProvider 實現
 // ============================================================================
 
 func (q *QMIBackend) SendSMS(ctx context.Context, to, body string) error {
@@ -812,20 +812,20 @@ func (q *QMIBackend) SendSMS(ctx context.Context, to, body string) error {
 func (q *QMIBackend) SendSMSWithOptions(ctx context.Context, to, body string, opts smscodec.SubmitOptions) error {
 	tpdus, _, err := smscodec.BuildSubmitTPDUsWithOptions(to, body, opts)
 	if err != nil {
-		return fmt.Errorf("PDU 编码失败: %w", err)
+		return fmt.Errorf("PDU 編碼失敗: %w", err)
 	}
 	if len(tpdus) == 0 {
-		return fmt.Errorf("PDU 编码结果为空")
+		return fmt.Errorf("PDU 編碼結果為空")
 	}
 
-	// 逐段发送（支持长短信自动分段）
+	// 逐段傳送（支援長簡訊自動分段）
 	for i, binaryTPDU := range tpdus {
 		pduWithSMSC := append([]byte{0x00}, binaryTPDU...)
 
 		// format=0x06 表示 GW PP (3GPP Point-to-Point)
 		sendStart := time.Now()
 		if err := q.source.WMSSendRawMessage(ctx, 0x06, pduWithSMSC); err != nil {
-			logger.Warn("QMI 短信发送失败",
+			logger.Warn("QMI 簡訊傳送失敗",
 				"to", to,
 				"part", i+1,
 				"parts", len(tpdus),
@@ -834,19 +834,19 @@ func (q *QMIBackend) SendSMSWithOptions(ctx context.Context, to, body string, op
 				"elapsed_ms", time.Since(sendStart).Milliseconds(),
 				"err", err,
 			)
-			return fmt.Errorf("发送第 %d/%d 段失败: %w", i+1, len(tpdus), err)
+			return fmt.Errorf("傳送第 %d/%d 段失敗: %w", i+1, len(tpdus), err)
 		}
 	}
 
-	logger.Info("QMI 短信发送成功", "to", to, "parts", len(tpdus), "encoding", opts.Encoding)
+	logger.Info("QMI 簡訊傳送成功", "to", to, "parts", len(tpdus), "encoding", opts.Encoding)
 	return nil
 }
 
 func (q *QMIBackend) ReadSMS(ctx context.Context, index int) (*SMS, error) {
-	// 优先从 NV 存储（storageType=1）读取
+	// 優先從 NV 儲存（storageType=1）讀取
 	pdu, err := q.source.WMSRawReadMessage(ctx, 1, uint32(index))
 	if err != nil {
-		// 回退到 SIM 存储（storageType=0）
+		// 回退到 SIM 儲存（storageType=0）
 		pdu, err = q.source.WMSRawReadMessage(ctx, 0, uint32(index))
 		if err != nil {
 			return nil, err
@@ -878,7 +878,7 @@ func (q *QMIBackend) ListSMS(ctx context.Context) ([]SMSSummary, error) {
 }
 
 func (q *QMIBackend) DeleteAllSMS(ctx context.Context) error {
-	// 删除 UIM/NV 两类存储里的已读和未读消息，避免任一侧残留占满容量。
+	// 刪除 UIM/NV 兩類儲存裡的已讀和未讀訊息，避免任一側殘留佔滿容量。
 	var errs []error
 	for _, storage := range []uint8{0, 1} {
 		for _, tag := range []qmi.MessageTagType{qmi.TagTypeMTRead, qmi.TagTypeMTNotRead} {
@@ -891,7 +891,7 @@ func (q *QMIBackend) DeleteAllSMS(ctx context.Context) error {
 }
 
 // ============================================================================
-// OperatingModeController 实现
+// OperatingModeController 實現
 // ============================================================================
 
 func (q *QMIBackend) SetOperatingMode(ctx context.Context, mode OperatingMode) error {
@@ -902,10 +902,10 @@ func (q *QMIBackend) SetOperatingMode(ctx context.Context, mode OperatingMode) e
 	case ModeLowPower:
 		qmiMode = qmi.ModeLowPower
 	case ModeRFOff:
-		// 飞行模式：QMI 切换为 ModeLowPower (0x01)，这等价于 AT+CFUN=4。
+		// 飛航模式：QMI 切換為 ModeLowPower (0x01)，這等價於 AT+CFUN=4。
 		qmiMode = qmi.ModeLowPower
 	default:
-		return fmt.Errorf("不支持的操作模式: %d", mode)
+		return fmt.Errorf("不支援的操作模式: %d", mode)
 	}
 	return q.source.SetOperatingMode(ctx, qmiMode)
 }
@@ -954,13 +954,13 @@ func (q *QMIBackend) EnsureSIMProvisioned(ctx context.Context, opts manager.Ensu
 }
 
 // ============================================================================
-// SIMAuthProvider 实现
+// SIMAuthProvider 實現
 // ============================================================================
 
 func (q *QMIBackend) OpenLogicalChannel(ctx context.Context, aid string) (int, error) {
 	aidBytes, err := hex.DecodeString(aid)
 	if err != nil {
-		return 0, fmt.Errorf("AID hex 解码失败: %w", err)
+		return 0, fmt.Errorf("AID hex 解碼失敗: %w", err)
 	}
 	if source, ok := q.source.(qmiSIMAuthLogicalChannelSource); ok {
 		ch, err := source.OpenSIMAuthLogicalChannel(ctx, 1, aidBytes)
@@ -969,7 +969,7 @@ func (q *QMIBackend) OpenLogicalChannel(ctx context.Context, aid string) (int, e
 		}
 		return int(ch), nil
 	}
-	return 0, fmt.Errorf("QMI source 不支持 SIMAuth 逻辑通道")
+	return 0, fmt.Errorf("QMI source 不支援 SIMAuth 邏輯通道")
 }
 
 func (q *QMIBackend) ResolveSIMAuthAID(ctx context.Context, app string, fallbackAID string) (string, string, error) {
@@ -1007,13 +1007,13 @@ func (q *QMIBackend) CloseLogicalChannel(ctx context.Context, channelID int) err
 	if source, ok := q.source.(qmiSIMAuthLogicalChannelSource); ok {
 		return source.CloseSIMAuthLogicalChannel(ctx, 1, byte(channelID))
 	}
-	return fmt.Errorf("QMI source 不支持 SIMAuth 逻辑通道")
+	return fmt.Errorf("QMI source 不支援 SIMAuth 邏輯通道")
 }
 
 func (q *QMIBackend) TransmitAPDU(ctx context.Context, channelID int, command string) (string, error) {
 	cmdBytes, err := hex.DecodeString(command)
 	if err != nil {
-		return "", fmt.Errorf("APDU hex 解码失败: %w", err)
+		return "", fmt.Errorf("APDU hex 解碼失敗: %w", err)
 	}
 
 	resp, err := q.source.TransmitEUICCAPDU(ctx, 1, byte(channelID), cmdBytes)

@@ -6,8 +6,8 @@
     try {
       if (!audio) audio = new AudioContext();
       await audio.resume(); enabled = !enabled;
-      buttons.forEach(b => b.textContent = enabled ? '关闭来电／短信提示音' : '开启来电／短信提示音');
-    } catch { button.textContent = '浏览器未允许声音，请重试'; }
+      buttons.forEach(b => b.textContent = enabled ? '關閉來電／簡訊提示音' : '開啟來電／簡訊提示音');
+    } catch { button.textContent = '瀏覽器未允許聲音，請重試'; }
   }));
   function beep(call) {
     if (!enabled || !audio || audio.state !== 'running') return;

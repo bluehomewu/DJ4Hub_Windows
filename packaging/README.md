@@ -26,8 +26,8 @@
 dj4ghub start          背景啟動並開啟管理網頁
 dj4ghub start --demo   不接硬體的示範模式
 dj4ghub stop           停止背景服務
-dj4ghub status         查看執行狀態
-dj4ghub logs           即時查看日誌（Ctrl+C 離開）
+dj4ghub status         檢視執行狀態
+dj4ghub logs           即時檢視日誌（Ctrl+C 離開）
 dj4ghub open           重新開啟管理網頁
 dj4ghub activate       檢查模組網卡，必要時連線 Windows 行動寬頻後結束
 dj4ghub serve --port COM17

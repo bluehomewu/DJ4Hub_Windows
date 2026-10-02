@@ -14,14 +14,14 @@ import (
 	"github.com/WongLoki/DJ4Hub/pkg/logger"
 )
 
-// forceReleasePort 检查端口是否被占用，如果是则杀掉占用者
+// forceReleasePort 檢查埠是否被佔用，如果是則殺掉佔用者
 func (m *Manager) forceReleasePort(portPath string) {
-	// 设备文件不存在时 fuser 可能返回内核线程 PID，直接跳过避免误杀。
+	// 裝置檔案不存在時 fuser 可能返回核心執行緒 PID，直接跳過避免誤殺。
 	if _, err := os.Stat(portPath); err != nil {
 		return
 	}
 
-	// 先查询占用进程，再排除当前进程(及其线程)后定向释放，避免误杀自身。
+	// 先查詢佔用行程，再排除目前行程(及其執行緒)後定向釋放，避免誤殺自身。
 	out, _ := exec.Command("fuser", portPath).CombinedOutput()
 	if len(out) == 0 {
 		return
@@ -37,7 +37,7 @@ func (m *Manager) forceReleasePort(portPath string) {
 	skipped := make([]int, 0, len(occupiedPIDs))
 
 	for _, pid := range occupiedPIDs {
-		// 跳过内核关键进程: PID 1 (init/systemd), PID 2 (kthreadd)
+		// 跳過核心關鍵行程: PID 1 (init/systemd), PID 2 (kthreadd)
 		if pid <= 2 {
 			skipped = append(skipped, pid)
 			continue
@@ -52,18 +52,18 @@ func (m *Manager) forceReleasePort(portPath string) {
 	}
 
 	if len(skipped) > 0 {
-		logger.Warn(fmt.Sprintf("[%s] 端口被当前进程占用，跳过自杀式释放", m.cfg.ID), "port", portPath, "self_pids", skipped)
+		logger.Warn(fmt.Sprintf("[%s] 埠被目前行程佔用，跳過自殺式釋放", m.cfg.ID), "port", portPath, "self_pids", skipped)
 	}
 	if len(released) > 0 {
-		logger.Warn(fmt.Sprintf("[%s] 检测到端口被外部进程占用，正在强制释放", m.cfg.ID), "port", portPath, "pids", released)
-		// 等待进程完全退出
+		logger.Warn(fmt.Sprintf("[%s] 檢測到埠被外部行程佔用，正在強制釋放", m.cfg.ID), "port", portPath, "pids", released)
+		// 等待程序完全退出
 		time.Sleep(200 * time.Millisecond)
 	}
 }
 
 func parseFuserPIDs(raw string) []int {
-	// fuser 输出通常形如: "/dev/ttyUSB2: 1234 5678"
-	// 只解析冒号后的 PID，避免把设备名中的数字(如 ttyUSB2)误当作 PID。
+	// fuser 輸出通常形如: "/dev/ttyUSB2: 1234 5678"
+	// 只解析冒號後的 PID，避免把裝置名中的數字(如 ttyUSB2)誤當作 PID。
 	if idx := strings.Index(raw, ":"); idx >= 0 && idx+1 < len(raw) {
 		raw = raw[idx+1:]
 	}
@@ -104,4 +104,4 @@ func currentProcessTaskPIDSet() map[int]struct{} {
 	return out
 }
 
-// SetSMSCallback 设置短信接收回调
+// SetSMSCallback 設定簡訊接收回撥

@@ -76,8 +76,8 @@ func parseProvider(info []byte) (Provider, error) {
 }
 
 // QueryHomeProvider issues HOME_PROVIDER and parses the single MBIM_PROVIDER.
-// 它的 ProviderId(PLMN)由模组按正确的 MNC 长度给出(5 或 6 位),
-// 适合作为"原运营商"的权威来源,避免靠 IMSI 猜 MNC 长度。
+// 它的 ProviderId(PLMN)由模組按正確的 MNC 長度給出(5 或 6 位),
+// 適合作為"原電信業者"的權威來源,避免靠 IMSI 猜 MNC 長度。
 func QueryHomeProvider(ctx context.Context, d *Device) (Provider, error) {
 	resp, err := d.Command(ctx, UUIDBasicConnect, CIDBasicConnectHomeProvider, CommandTypeQuery, nil)
 	if err != nil {

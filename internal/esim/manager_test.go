@@ -512,7 +512,7 @@ func TestDoForEachEUICCScansPastThreeFailuresAndStopsAtFirstUsableVendorAID(t *t
 // per-AID callback. Without recovery, that panic unwinds past forEachEUICC
 // and is only caught by gin's process-wide Recovery middleware, which throws
 // away the already-discovered eUICC/profile data and reports a generic 500
-// that the frontend renders as "未检测到 eUICC". The callback must be allowed
+// that the frontend renders as "未偵測到 eUICC". The callback must be allowed
 // to panic per-AID without taking down the whole overview/profile scan.
 func TestDoForEachEUICCRecoversFromCallbackPanic(t *testing.T) {
 	targetAIDHex := strings.ToUpper(hex.EncodeToString(AIDs[3]))
@@ -621,7 +621,7 @@ func newTestQMIManagerForPowerCycle(t *testing.T, be *fakeSIMPowerBackend, calls
 	}
 }
 
-// newTestATManagerForSIMReload 创建一个用于测试 AT 通道 SIM 重载的 Manager 实例，指定后端模式为 AT
+// newTestATManagerForSIMReload 建立一個用於測試 AT 通道 SIM 過載的 Manager 例項，指定後端模式為 AT
 func newTestATManagerForSIMReload(t *testing.T, be *fakeSIMPowerBackend, calls *atomic.Int32) *Manager {
 	t.Helper()
 	be.mode = backend.BackendAT
@@ -931,7 +931,7 @@ func TestDisableProfileTreatsMBIMInvalidChannelAsExpected(t *testing.T) {
 	mgr.postSwitchMinDelay = 0
 
 	if err := mgr.DisableProfile(context.Background(), targetICCID, aidHex); err != nil {
-		t.Fatalf("DisableProfile() error=%v, want nil (MBIM逻辑通道失效是 refresh 后预期信号)", err)
+		t.Fatalf("DisableProfile() error=%v, want nil (MBIM邏輯通道失效是 refresh 後預期訊號)", err)
 	}
 	if disableCalls.Load() != 1 {
 		t.Fatalf("DisableProfile calls=%d want 1", disableCalls.Load())
@@ -1129,7 +1129,7 @@ func TestRunPostSwitchHookStillCallsAfterSwitchWhenAPDUStaysBusy(t *testing.T) {
 
 	mgr.runPostSwitchHook(SwitchOperationEnableProfile, 0)
 
-	// APDU 忙时仍应执行 onAfterSwitch 回调，避免切卡后上层恢复流程被跳过。
+	// APDU 忙時仍應執行 onAfterSwitch 回撥，避免切卡後上層恢復流程被跳過。
 	if afterCalls.Load() != 1 {
 		t.Fatalf("onAfterSwitch calls=%d want 1", afterCalls.Load())
 	}
@@ -1263,7 +1263,7 @@ func TestFinalizeEnableProfileResultTreatsMBIMInvalidChannelAsExpected(t *testin
 	m := &Manager{deviceID: "dev-mbim"}
 	wrapped := fmt.Errorf("transmit APDU: %w", ErrMBIMUICCInvalidChannel)
 	if err := m.finalizeEnableProfileResult("8986001234567890123", wrapped); err != nil {
-		t.Fatalf("finalizeEnableProfileResult() error = %v, want nil (MBIM逻辑通道失效是 refresh 后预期信号)", err)
+		t.Fatalf("finalizeEnableProfileResult() error = %v, want nil (MBIM邏輯通道失效是 refresh 後預期訊號)", err)
 	}
 }
 
@@ -1608,7 +1608,7 @@ func TestPatchCachedActiveProfileClearsAllOtherProfilesOnDevice(t *testing.T) {
 				EID:    "eid-a",
 				AIDHex: "A000",
 				Profiles: []ProfileItem{
-					{ICCID: "iccid-a1", State: 1, StateText: "已启用"},
+					{ICCID: "iccid-a1", State: 1, StateText: "已啟用"},
 					{ICCID: "iccid-a2", State: 0, StateText: "已禁用"},
 				},
 			},
@@ -1616,7 +1616,7 @@ func TestPatchCachedActiveProfileClearsAllOtherProfilesOnDevice(t *testing.T) {
 				EID:    "eid-b",
 				AIDHex: "B000",
 				Profiles: []ProfileItem{
-					{ICCID: "iccid-b1", State: 1, StateText: "已启用"},
+					{ICCID: "iccid-b1", State: 1, StateText: "已啟用"},
 					{ICCID: "iccid-b2", State: 0, StateText: "已禁用"},
 				},
 			},
@@ -1637,7 +1637,7 @@ func TestPatchCachedActiveProfileClearsAllOtherProfilesOnDevice(t *testing.T) {
 	if got.Profiles[0].Profiles[0].State != 0 || got.Profiles[0].Profiles[0].StateText != "已禁用" {
 		t.Fatalf("first profile in target group = %#v, want disabled", got.Profiles[0].Profiles[0])
 	}
-	if got.Profiles[0].Profiles[1].State != 1 || got.Profiles[0].Profiles[1].StateText != "已启用" {
+	if got.Profiles[0].Profiles[1].State != 1 || got.Profiles[0].Profiles[1].StateText != "已啟用" {
 		t.Fatalf("target profile = %#v, want enabled", got.Profiles[0].Profiles[1])
 	}
 	if got.Profiles[1].Profiles[0].State != 0 || got.Profiles[1].Profiles[0].StateText != "已禁用" {
@@ -1657,7 +1657,7 @@ func TestPatchCachedActiveProfileClearsPreviouslyEnabledProfileAcrossAIDsWithinS
 				EID:    "eid-shared",
 				AIDHex: "SE1",
 				Profiles: []ProfileItem{
-					{ICCID: "iccid-se1-active", State: 1, StateText: "已启用"},
+					{ICCID: "iccid-se1-active", State: 1, StateText: "已啟用"},
 				},
 			},
 			{
@@ -1681,7 +1681,7 @@ func TestPatchCachedActiveProfileClearsPreviouslyEnabledProfileAcrossAIDsWithinS
 	if got.Profiles[0].Profiles[0].State != 0 || got.Profiles[0].Profiles[0].StateText != "已禁用" {
 		t.Fatalf("previously enabled profile = %#v, want disabled after cross-AID switch within same EID", got.Profiles[0].Profiles[0])
 	}
-	if got.Profiles[1].Profiles[0].State != 1 || got.Profiles[1].Profiles[0].StateText != "已启用" {
+	if got.Profiles[1].Profiles[0].State != 1 || got.Profiles[1].Profiles[0].StateText != "已啟用" {
 		t.Fatalf("target profile = %#v, want enabled", got.Profiles[1].Profiles[0])
 	}
 }
@@ -1694,14 +1694,14 @@ func TestActiveProfileNameReturnsFirstEnabledProfileByTraversalOrder(t *testing.
 				EID:    "eid-a",
 				AIDHex: "A000",
 				Profiles: []ProfileItem{
-					{ICCID: "iccid-a1", Name: " First Enabled ", State: 1, StateText: "已启用"},
+					{ICCID: "iccid-a1", Name: " First Enabled ", State: 1, StateText: "已啟用"},
 				},
 			},
 			{
 				EID:    "eid-b",
 				AIDHex: "B000",
 				Profiles: []ProfileItem{
-					{ICCID: "iccid-b1", Name: "Second Enabled", State: 1, StateText: "已启用"},
+					{ICCID: "iccid-b1", Name: "Second Enabled", State: 1, StateText: "已啟用"},
 				},
 			},
 		},
@@ -1724,7 +1724,7 @@ func TestActiveProfileNameDoesNotTriggerLoadWhenCacheMissing(t *testing.T) {
 			Profiles: []EUICCProfiles{{
 				EID:      "eid-a",
 				AIDHex:   "A000",
-				Profiles: []ProfileItem{{ICCID: "iccid-a1", Name: "Should Not Load", State: 1, StateText: "已启用"}},
+				Profiles: []ProfileItem{{ICCID: "iccid-a1", Name: "Should Not Load", State: 1, StateText: "已啟用"}},
 			}},
 		}, nil
 	})
@@ -1749,7 +1749,7 @@ func TestRefreshProfilesPreservesCachedChipInfo(t *testing.T) {
 			Profiles: []EUICCProfiles{{
 				EID:      "eid-a",
 				AIDHex:   "A000",
-				Profiles: []ProfileItem{{ICCID: "iccid-a1", State: 1, StateText: "已启用"}},
+				Profiles: []ProfileItem{{ICCID: "iccid-a1", State: 1, StateText: "已啟用"}},
 			}},
 		}, nil
 	})
@@ -1758,7 +1758,7 @@ func TestRefreshProfilesPreservesCachedChipInfo(t *testing.T) {
 		return []EUICCProfiles{{
 			EID:      "eid-a",
 			AIDHex:   "A000",
-			Profiles: []ProfileItem{{ICCID: "iccid-a2", State: 1, StateText: "已启用"}},
+			Profiles: []ProfileItem{{ICCID: "iccid-a2", State: 1, StateText: "已啟用"}},
 		}}, nil
 	}
 
@@ -1791,7 +1791,7 @@ func TestRefreshOverviewReplacesChipInfoAndProfiles(t *testing.T) {
 		Profiles: []EUICCProfiles{{
 			EID:      "eid-old",
 			AIDHex:   "OLD",
-			Profiles: []ProfileItem{{ICCID: "iccid-old", State: 1, StateText: "已启用"}},
+			Profiles: []ProfileItem{{ICCID: "iccid-old", State: 1, StateText: "已啟用"}},
 		}},
 	}
 	mgr.chipInfoCache = &EUICCChipInfo{SkuName: "before", Firmware: "1.0.0"}
@@ -1806,7 +1806,7 @@ func TestRefreshOverviewReplacesChipInfoAndProfiles(t *testing.T) {
 			Profiles: []EUICCProfiles{{
 				EID:      "eid-new",
 				AIDHex:   "NEW",
-				Profiles: []ProfileItem{{ICCID: "iccid-new", State: 1, StateText: "已启用"}},
+				Profiles: []ProfileItem{{ICCID: "iccid-new", State: 1, StateText: "已啟用"}},
 			}},
 		}, nil
 	}
@@ -1990,7 +1990,7 @@ func TestNotifyModemResetSkipsReloadDuringSwitchSuppressionWindow(t *testing.T) 
 
 func TestDeleteProfileResultPreservesWarningDetails(t *testing.T) {
 	result := DeleteProfileResult{
-		Warning:     "Profile 已删除，但删除通知发送未完全确认",
+		Warning:     "Profile 已刪除，但刪除通知傳送未完全確認",
 		WarningCode: "delete_notification_not_observed",
 		SpaceDelta: &SpaceDelta{
 			Direction: SpaceDeltaDirectionReleased,
@@ -1998,7 +1998,7 @@ func TestDeleteProfileResultPreservesWarningDetails(t *testing.T) {
 		},
 	}
 
-	if result.Warning != "Profile 已删除，但删除通知发送未完全确认" {
+	if result.Warning != "Profile 已刪除，但刪除通知傳送未完全確認" {
 		t.Fatalf("Warning=%q want delete warning", result.Warning)
 	}
 	if result.WarningCode != "delete_notification_not_observed" {
@@ -2177,7 +2177,7 @@ func TestResolveDownloadIMEIRejectsInvalidExplicitCustomIMEI(t *testing.T) {
 	if err == nil {
 		t.Fatal("resolveDownloadIMEI() error=nil, want invalid IMEI error")
 	}
-	if !strings.Contains(err.Error(), "无效的 IMEI") {
+	if !strings.Contains(err.Error(), "無效的 IMEI") {
 		t.Fatalf("error=%q want invalid IMEI message", err)
 	}
 }
@@ -2192,7 +2192,7 @@ func TestResolveDownloadIMEIDoesNotGenerateSyntheticIMEIForCustomTransport(t *te
 	if err == nil {
 		t.Fatal("resolveDownloadIMEI() error=nil, want missing IMEI error")
 	}
-	if !strings.Contains(err.Error(), "无法获取设备 IMEI") {
+	if !strings.Contains(err.Error(), "無法取得裝置 IMEI") {
 		t.Fatalf("error=%q want missing IMEI message", err)
 	}
 }
@@ -2207,7 +2207,7 @@ func TestClassifyDownloadErrorIdentifiesInsufficientMemory(t *testing.T) {
 	if info.BPPCommandID != 5 || info.BPPErrorReason != 10 {
 		t.Fatalf("BPP fields=(%d,%d) want (5,10)", info.BPPCommandID, info.BPPErrorReason)
 	}
-	if !strings.Contains(info.Message, "空间不足") {
+	if !strings.Contains(info.Message, "空間不足") {
 		t.Fatalf("Message=%q want mention space shortage", info.Message)
 	}
 }
@@ -2219,14 +2219,14 @@ func TestClassifyDownloadErrorDoesNotTreatNonLoadProfileElementsReason10AsInsuff
 	if info.Code != DownloadErrorEUICCProfileInstallFailed {
 		t.Fatalf("Code=%q want %q", info.Code, DownloadErrorEUICCProfileInstallFailed)
 	}
-	if strings.Contains(info.Message, "空间不足") {
+	if strings.Contains(info.Message, "空間不足") {
 		t.Fatalf("Message=%q should not mention space shortage for command id 2", info.Message)
 	}
 }
 
 func TestClassifyDownloadErrorSeesWrappedBPPError(t *testing.T) {
 	baseErr := &sgp22.LoadBoundProfilePackageError{BPPCommandID: 5, ErrorReason: 9}
-	err := fmt.Errorf("下载 profile 失败: %w (cancel session error: remote failed)", baseErr)
+	err := fmt.Errorf("下載 profile 失敗: %w (cancel session error: remote failed)", baseErr)
 
 	info := ClassifyDownloadError(err)
 	if info.Code != DownloadErrorEUICCIccidAlreadyExists {
@@ -2440,7 +2440,7 @@ func TestSafeListNotificationConvertsMalformedResponsePanicToError(t *testing.T)
 	if notifications != nil {
 		t.Fatalf("notifications=%v want nil on malformed response", notifications)
 	}
-	if !strings.Contains(err.Error(), "解析通知列表响应失败") {
+	if !strings.Contains(err.Error(), "解析通知列表響應失敗") {
 		t.Fatalf("error=%q want parse failure context", err)
 	}
 }
@@ -2486,7 +2486,7 @@ func TestRecoverDownloadInstallFinalizeErrorSendsInstallNotification(t *testing.
 		context.Background(),
 		mustDecodeHex(t, aidHex),
 		[]*sgp22.NotificationMetadata{{SequenceNumber: 11}},
-		errors.New("APDU 透传失败: 设备返回错误: ERROR (cancel session error: Execution Error)"),
+		errors.New("APDU 透傳失敗: 裝置返回錯誤: ERROR (cancel session error: Execution Error)"),
 	)
 	if !ok {
 		t.Fatal("recoverDownloadInstallFinalizeError() ok=false, want true")

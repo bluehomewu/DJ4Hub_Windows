@@ -20,13 +20,13 @@ var (
 	ErrQMIUIMNotAvailable       = errors.New("qmi_uim_not_available")
 	ErrQMIUIMNotSupported       = errors.New("qmi_uim_not_supported")
 	ErrQMIControlDeviceMissing  = errors.New("qmi_control_device_missing")
-	// ErrQMIUIMCardReset 表示卡片在执行 APDU（通常是携带 refresh=true 的 EnableProfile）时触发了内部 UICC RESET。
-	// 模组会返回 QMI_ERR_CARD_CALL_CONTROL_REF_FAILED (0x0030)，这是正常预期行为，不代表切卡失败。
+	// ErrQMIUIMCardReset 表示卡片在執行 APDU（通常是攜帶 refresh=true 的 EnableProfile）時觸發了內部 UICC RESET。
+	// 模組會返回 QMI_ERR_CARD_CALL_CONTROL_REF_FAILED (0x0030)，這是正常預期行為，不代表切卡失敗。
 	ErrQMIUIMCardReset = errors.New("qmi_uim_card_reset")
-	// ErrMBIMUICCInvalidChannel 是 ErrQMIUIMCardReset 的 MBIM 对应物：MBIM 模组在同样的场景下
-	// 返回 Microsoft UICC Low Level Access 定义的 MBIM_STATUS_ERROR_MS_INVALID_LOGICAL_CHANNEL /
-	// MS_SELECT_FAILED / MS_NO_LOGICAL_CHANNELS（0x8743000x），代表 eUICC 内部 RESET 使逻辑通道失效，
-	// 同样是预期信号，不代表切卡失败。
+	// ErrMBIMUICCInvalidChannel 是 ErrQMIUIMCardReset 的 MBIM 對應物：MBIM 模組在同樣的場景下
+	// 返回 Microsoft UICC Low Level Access 定義的 MBIM_STATUS_ERROR_MS_INVALID_LOGICAL_CHANNEL /
+	// MS_SELECT_FAILED / MS_NO_LOGICAL_CHANNELS（0x8743000x），代表 eUICC 內部 RESET 使邏輯通道失效，
+	// 同樣是預期訊號，不代表切卡失敗。
 	ErrMBIMUICCInvalidChannel             = errors.New("mbim_uicc_invalid_channel")
 	ErrQMITransportRequiresNetworkManager = ErrQMITransportNotAvailable
 	ErrQMIESIMRequiresNetworkManager      = ErrQMITransportRequiresNetworkManager // Deprecated: kept for backward compatibility.
@@ -57,8 +57,8 @@ type QMIChannel struct {
 	channel   byte
 	opened    bool
 	mu        sync.Mutex
-	// activeCtx 是当前操作的 context（由 DownloadProfile 注入）。
-	// 普通操作未注入时为 nil，使用 context.Background() 作为兜底。
+	// activeCtx 是目前操作的 context（由 DownloadProfile 注入）。
+	// 普通操作未注入時為 nil，使用 context.Background() 作為兜底。
 	activeCtx atomic.Pointer[context.Context]
 }
 
@@ -73,13 +73,13 @@ func (c *QMIChannel) CurrentChannel() byte {
 	return c.channel
 }
 
-// SetContext 注入 APDU 操作的 context，由 DownloadProfile 在 LPA client 创建后调用。
-// 注入后所有 Transmit / OpenLogicalChannel 调用均使用该 ctx。
+// SetContext 注入 APDU 操作的 context，由 DownloadProfile 在 LPA client 建立後呼叫。
+// 注入後所有 Transmit / OpenLogicalChannel 呼叫均使用該 ctx。
 func (c *QMIChannel) SetContext(ctx context.Context) {
 	c.activeCtx.Store(&ctx)
 }
 
-// getActiveCtx 返回当前有效的 context。未注入时返回 context.Background()。
+// getActiveCtx 返回目前有效的 context。未注入時返回 context.Background()。
 func (c *QMIChannel) getActiveCtx() context.Context {
 	if p := c.activeCtx.Load(); p != nil {
 		return *p
@@ -111,7 +111,7 @@ func (c *QMIChannel) OpenLogicalChannel(aid []byte) (byte, error) {
 	}
 	c.channel = channel
 	c.opened = true
-	logger.RunDebug("QMI logical channel 打开成功",
+	logger.RunDebug("QMI logical channel 開啟成功",
 		"transport", transportQMI,
 		"control_device", c.transport.ControlDevice(),
 		"aid", strings.ToUpper(hex.EncodeToString(aid)),
@@ -132,7 +132,7 @@ func (c *QMIChannel) Transmit(command []byte) ([]byte, error) {
 		return nil, wrapQMIChannelError("transmit APDU", err)
 	}
 	if elapsed := time.Since(started); shouldLogQMIAPDUSuccess(elapsed) {
-		logger.RunDebug("QMI APDU 透传成功",
+		logger.RunDebug("QMI APDU 透傳成功",
 			"transport", transportQMI,
 			"control_device", c.transport.ControlDevice(),
 			"channel", c.channel,
@@ -146,13 +146,13 @@ func (c *QMIChannel) CloseLogicalChannel(channel byte) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	// 关闭 channel 必须完成，使用独立的 Background context（防止被 DownloadProfile ctx 取消）。
+	// 關閉 channel 必須完成，使用獨立的 Background context（防止被 DownloadProfile ctx 取消）。
 	closeCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := c.transport.CloseEUICCLogicalChannel(closeCtx, c.slot, channel); err != nil {
 		return wrapQMIChannelError("close logical channel", err)
 	}
-	logger.RunDebug("QMI logical channel 已关闭",
+	logger.RunDebug("QMI logical channel 已關閉",
 		"transport", transportQMI,
 		"control_device", c.transport.ControlDevice(),
 		"channel", channel)
@@ -175,8 +175,8 @@ func wrapQMIChannelError(operation string, err error) error {
 		case qmiq.QMIErrDeviceNotReady, qmiq.QMIErrInvalidID:
 			return fmt.Errorf("%w: %s", ErrQMIUIMNotAvailable, operation)
 		case qmiq.QMIErrCardCallControlRefFail:
-			// 卡片执行 EnableProfile+refresh 后触发内部 UICC RESET，模组返回 0x0030 属于正常行为。
-			// 包装为 ErrQMIUIMCardReset，让上层用 errors.Is 精确识别，而不依赖字符串匹配。
+			// 卡片執行 EnableProfile+refresh 後觸發內部 UICC RESET，模組返回 0x0030 屬於正常行為。
+			// 包裝為 ErrQMIUIMCardReset，讓上層用 errors.Is 精確識別，而不依賴字串匹配。
 			return fmt.Errorf("%w: %s", ErrQMIUIMCardReset, operation)
 		}
 	}

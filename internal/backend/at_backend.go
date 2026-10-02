@@ -9,28 +9,28 @@ import (
 	"github.com/WongLoki/DJ4Hub/pkg/smscodec"
 )
 
-// ATBackend AT 后端适配器 — 纯包装层，委托给现有 modem.Manager
-// 不修改 modem.Manager 的任何一行代码
+// ATBackend AT 後端介面卡 — 純包裝層，委託給現有 modem.Manager
+// 不修改 modem.Manager 的任何一行程式碼
 type ATBackend struct {
 	modem *modem.Manager
 }
 
-// NewATBackend 创建 AT 后端适配器
+// NewATBackend 建立 AT 後端介面卡
 func NewATBackend(m *modem.Manager) *ATBackend {
 	return &ATBackend{modem: m}
 }
 
-// Mode 返回后端模式标识
+// Mode 返回後端模式標識
 func (a *ATBackend) Mode() string { return "at" }
 
-// Close AT 后端无需额外清理（modem.Manager 由 Worker 管理生命周期）
+// Close AT 後端無需額外清理（modem.Manager 由 Worker 管理生命週期）
 func (a *ATBackend) Close() error { return nil }
 
-// Modem 返回底层 modem.Manager（供需要直接访问 AT 通道的调用方使用，如 AT+QCFG）
+// Modem 返回底層 modem.Manager（供需要直接訪問 AT 通道的呼叫方使用，如 AT+QCFG）
 func (a *ATBackend) Modem() *modem.Manager { return a.modem }
 
 // ============================================================================
-// DeviceInfoProvider 实现
+// DeviceInfoProvider 實現
 // ============================================================================
 
 func (a *ATBackend) GetIMEI(ctx context.Context) (string, error) {
@@ -41,7 +41,7 @@ func (a *ATBackend) GetIMSI(ctx context.Context) (string, error) {
 	return a.modem.QueryIMSI()
 }
 
-// GetIMSILive AT 模式下 IMSI 本身即实时读取。
+// GetIMSILive AT 模式下 IMSI 本身即即時讀取。
 func (a *ATBackend) GetIMSILive(ctx context.Context) (string, error) {
 	return a.modem.QueryIMSI()
 }
@@ -54,7 +54,7 @@ func (a *ATBackend) GetMSISDN(ctx context.Context) (string, error) {
 	return a.modem.QueryMSISDN()
 }
 
-// GetICCIDLive AT 模式下 ICCID 本身即实时读取。
+// GetICCIDLive AT 模式下 ICCID 本身即即時讀取。
 func (a *ATBackend) GetICCIDLive(ctx context.Context) (string, error) {
 	return a.modem.QueryICCID()
 }
@@ -84,7 +84,7 @@ func (a *ATBackend) GetSignalInfo(ctx context.Context) (*SignalInfo, error) {
 func (a *ATBackend) GetServingSystem(ctx context.Context) (*ServingSystem, error) {
 	ss := &ServingSystem{}
 
-	// AT+CREG? → 注册状态、LAC、CellID
+	// AT+CREG? → 註冊狀態、LAC、CellID
 	if regStatus, regText, lac, cellID, err := a.modem.QueryRegistration(); err == nil {
 		ss.RegStatus = regStatus
 		ss.RegStatusText = regText
@@ -92,12 +92,12 @@ func (a *ATBackend) GetServingSystem(ctx context.Context) (*ServingSystem, error
 		ss.CellID = cellID
 	}
 
-	// AT+COPS? → 运营商
+	// AT+COPS? → 電信業者
 	if operator, err := a.modem.QueryOperator(); err == nil {
 		ss.Operator = operator
 	}
 
-	// AT+QNWINFO → 网络模式 / 双工方式 / 频段 / 信道
+	// AT+QNWINFO → 網路模式 / 雙工方式 / 頻段 / 通道
 	if mode, duplex, band, channel, err := a.modem.QueryNetworkRadio(); err == nil {
 		ss.NetworkMode = mode
 		ss.NetworkDuplex = duplex
@@ -161,13 +161,13 @@ func mapModemSIMMetadata(meta *modem.SIMMetadata) *SIMMetadata {
 	return out
 }
 
-// GetSMSC 读取短信中心号码（AT+CSCA?）。
+// GetSMSC 讀取簡訊中心號碼（AT+CSCA?）。
 func (a *ATBackend) GetSMSC(ctx context.Context) (string, error) {
 	return a.modem.QuerySMSC()
 }
 
 // ============================================================================
-// SMSProvider 实现
+// SMSProvider 實現
 // ============================================================================
 
 func (a *ATBackend) SendSMS(ctx context.Context, to, body string) error {
@@ -179,15 +179,15 @@ func (a *ATBackend) SendSMSWithOptions(ctx context.Context, to, body string, opt
 }
 
 func (a *ATBackend) ReadSMS(ctx context.Context, index int) (*SMS, error) {
-	// 委托给 modem 读取 PDU 并解码
+	// 委託給 modem 讀取 PDU 並解碼
 	pdu, err := a.modem.SMSReadPDU(fmt.Sprintf("%d", index))
 	if err != nil {
 		return nil, err
 	}
 	if pdu == "" {
-		return nil, fmt.Errorf("短信 %d 不存在或为空", index)
+		return nil, fmt.Errorf("簡訊 %d 不存在或為空", index)
 	}
-	// 返回原始 PDU 数据; 完整解码由上层处理
+	// 返回原始 PDU 資料; 完整解碼由上層處理
 	return &SMS{
 		Index:   index,
 		Content: pdu, // PDU 原文
@@ -205,7 +205,7 @@ func (a *ATBackend) ListSMS(ctx context.Context) ([]SMSSummary, error) {
 	if err != nil {
 		return nil, err
 	}
-	// 返回 PDU 数量的概要；实际索引需解析 +CMGL 响应
+	// 返回 PDU 數量的概要；實際索引需解析 +CMGL 響應
 	result := make([]SMSSummary, 0, len(pdus))
 	for i := range pdus {
 		result = append(result, SMSSummary{Index: i})
@@ -218,7 +218,7 @@ func (a *ATBackend) DeleteAllSMS(ctx context.Context) error {
 }
 
 // ============================================================================
-// USSDProvider 实现
+// USSDProvider 實現
 // ============================================================================
 
 func (a *ATBackend) ExecuteUSSD(ctx context.Context, command string, timeout time.Duration) (*USSDResult, error) {
@@ -235,7 +235,7 @@ func (a *ATBackend) CancelUSSD(ctx context.Context) error {
 }
 
 // ============================================================================
-// OperatingModeController 实现
+// OperatingModeController 實現
 // ============================================================================
 
 func (a *ATBackend) SetOperatingMode(ctx context.Context, mode OperatingMode) error {
@@ -252,7 +252,7 @@ func (a *ATBackend) GetOperatingMode(ctx context.Context) (OperatingMode, error)
 	// 解析 +CFUN: N
 	var mode int
 	if _, err := fmt.Sscanf(resp, "+CFUN: %d", &mode); err != nil {
-		return ModeOnline, fmt.Errorf("解析 CFUN 响应失败: %s", resp)
+		return ModeOnline, fmt.Errorf("解析 CFUN 響應失敗: %s", resp)
 	}
 	return OperatingMode(mode), nil
 }
@@ -263,7 +263,7 @@ func (a *ATBackend) Reboot(ctx context.Context) error {
 }
 
 // ============================================================================
-// SIMAuthProvider 实现
+// SIMAuthProvider 實現
 // ============================================================================
 
 func (a *ATBackend) OpenLogicalChannel(ctx context.Context, aid string) (int, error) {

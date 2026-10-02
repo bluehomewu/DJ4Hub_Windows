@@ -37,7 +37,7 @@ var readerIMSIRegistry = struct {
 	m: make(map[string]string),
 }
 
-// LookupIMSIByReader 根据 reader 查找绑定的 IMSI。
+// LookupIMSIByReader 根據 reader 查詢繫結的 IMSI。
 func LookupIMSIByReader(reader string) (string, bool) {
 	reader = strings.TrimSpace(reader)
 	if reader == "" {
@@ -56,7 +56,7 @@ func LookupIMSIByReader(reader string) (string, bool) {
 	return imsi, true
 }
 
-// fixedWidthColorLevelEncoder 固定宽度（5字符）的彩色日志等级编码器
+// fixedWidthColorLevelEncoder 固定寬度（5字元）的彩色日誌等級編碼器
 func fixedWidthColorLevelEncoder(level zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
 	s := level.CapitalString()
 	for len(s) < 5 {
@@ -77,7 +77,7 @@ func fixedWidthColorLevelEncoder(level zapcore.Level, enc zapcore.PrimitiveArray
 	enc.AppendString(s)
 }
 
-// fixedWidthLevelEncoder 固定宽度（5字符）的日志等级编码器（无颜色，用于文件）
+// fixedWidthLevelEncoder 固定寬度（5字元）的日誌等級編碼器（無顏色，用於檔案）
 func fixedWidthLevelEncoder(level zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
 	s := level.CapitalString()
 	for len(s) < 5 {
@@ -88,9 +88,9 @@ func fixedWidthLevelEncoder(level zapcore.Level, enc zapcore.PrimitiveArrayEncod
 
 type LogConfig struct {
 	Debug    bool
-	Filename string // 主日志软链名称（如 logs/app.log）
-	MaxAge   int    // 保留天数，默认 30 天
-	// 以下字段为了向后兼容暂时保留，但不再起作用
+	Filename string // 主日誌軟鏈名稱（如 logs/app.log）
+	MaxAge   int    // 保留天數，預設 30 天
+	// 以下欄位為了向後相容暫時保留，但不再起作用
 	MaxSize    int
 	MaxBackups int
 	Compress   bool
@@ -223,7 +223,7 @@ func Setup(cfg LogConfig) {
 	}
 	fileEncoderConfig.ConsoleSeparator = " "
 
-	// 默认配置
+	// 預設配置
 	if cfg.Filename == "" {
 		cfg.Filename = "logs/app.log"
 	}
@@ -231,38 +231,38 @@ func Setup(cfg LogConfig) {
 		cfg.MaxAge = 30
 	}
 
-	// 确保日志目录存在
+	// 確保日誌目錄存在
 	_ = os.MkdirAll(filepath.Dir(cfg.Filename), 0755)
 
-	// 提取后缀来生成如 logs/app-%Y-%m-%d.log 的模式
+	// 提取字尾來生成如 logs/app-%Y-%m-%d.log 的模式
 	ext := filepath.Ext(cfg.Filename) // 比如 .log
 	base := strings.TrimSuffix(cfg.Filename, ext)
 	logPattern := base + "-%Y-%m-%d" + ext
 
-	// 文件输出 (使用 file-rotatelogs 按天进行轮转)
+	// 檔案輸出 (使用 file-rotatelogs 按天進行輪轉)
 	rl, err := rotatelogs.New(
 		logPattern,
-		rotatelogs.WithLinkName(cfg.Filename), // 维持软链（如 logs/app.log）
+		rotatelogs.WithLinkName(cfg.Filename), // 維持軟鏈（如 logs/app.log）
 		rotatelogs.WithMaxAge(time.Duration(cfg.MaxAge)*24*time.Hour),
 		rotatelogs.WithRotationTime(24*time.Hour), // 每天切割
 	)
 
 	var fileWriter zapcore.WriteSyncer
 	if err != nil {
-		// 降级到普通的 stdout 控制台如果初始化 rotatelogs 失败
+		// 降級到普通的 stdout 控制檯如果初始化 rotatelogs 失敗
 		fileWriter = zapcore.AddSync(os.Stdout)
 	} else {
 		fileWriter = zapcore.AddSync(rl)
 	}
 
-	// 控制台输出
+	// 控制檯輸出
 	consoleWriter := zapcore.AddSync(os.Stdout)
 
 	level := getLogLevel(cfg.Debug)
 	consoleCore := zapcore.NewCore(zapcore.NewConsoleEncoder(consoleEncoderConfig), consoleWriter, level)
 	fileCore := zapcore.NewCore(zapcore.NewConsoleEncoder(fileEncoderConfig), fileWriter, level)
 
-	// SSE 日志推送核心（用于前端实时日志）
+	// SSE 日誌推送核心（用於前端即時日誌）
 	sseCore := NewSSECore(GlobalBroadcaster, level)
 
 	core := &devicePrefixCore{Core: zapcore.NewTee(consoleCore, fileCore, sseCore)}
@@ -294,14 +294,14 @@ func Debug(msg string, args ...interface{}) {
 	SugarLogger().Debugw(msg, args...)
 }
 
-// RunDebug 仅在 go run 场景下输出 Debug 日志。
+// RunDebug 僅在 go run 場景下輸出 Debug 日誌。
 func RunDebug(msg string, args ...interface{}) {
 	if IsGoRun() {
 		SugarLogger().Debugw(msg, args...)
 	}
 }
 
-// RunWarn 仅在 go run 场景下输出 Warn 日志。
+// RunWarn 僅在 go run 場景下輸出 Warn 日誌。
 func RunWarn(msg string, args ...interface{}) {
 	if IsGoRun() {
 		SugarLogger().Warnw(msg, args...)

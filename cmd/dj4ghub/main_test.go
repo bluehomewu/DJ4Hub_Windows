@@ -26,7 +26,7 @@ func TestParseUSBATOperator(t *testing.T) {
 		{
 			name:     "known numeric PLMN",
 			response: "AT+COPS?\r\n+COPS: 0,2,\"46015\",7\r\nOK",
-			want:     "中国广电",
+			want:     "中國廣電",
 		},
 		{
 			name:     "long operator name",

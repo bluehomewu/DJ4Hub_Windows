@@ -28,7 +28,7 @@ func TestATResponseHasPrompt(t *testing.T) {
 }
 
 func TestSMSSubmitOptionsUsesUCS2ForChinese(t *testing.T) {
-	if got := smsSubmitOptions("验证码 1234").Encoding; got != smscodec.SMSEncodingUCS2 {
+	if got := smsSubmitOptions("驗證碼 1234").Encoding; got != smscodec.SMSEncodingUCS2 {
 		t.Fatalf("Chinese encoding = %q, want %q", got, smscodec.SMSEncodingUCS2)
 	}
 	if got := smsSubmitOptions("hello 123").Encoding; got != "" {

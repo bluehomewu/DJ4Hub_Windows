@@ -16,18 +16,18 @@ func (b *MBIMBackend) SendSMS(ctx context.Context, to, body string) error {
 func (b *MBIMBackend) SendSMSWithOptions(ctx context.Context, to, body string, opts smscodec.SubmitOptions) error {
 	tpdus, _, err := smscodec.BuildSubmitTPDUsWithOptions(to, body, opts)
 	if err != nil {
-		return fmt.Errorf("PDU 编码失败: %w", err)
+		return fmt.Errorf("PDU 編碼失敗: %w", err)
 	}
 	if len(tpdus) == 0 {
-		return fmt.Errorf("PDU 编码结果为空")
+		return fmt.Errorf("PDU 編碼結果為空")
 	}
 	for i, tpdu := range tpdus {
 		pdu := append([]byte{0x00}, tpdu...)
 		if _, err := b.source.SendSMS(ctx, pdu); err != nil {
-			return fmt.Errorf("发送第 %d/%d 段失败: %w", i+1, len(tpdus), err)
+			return fmt.Errorf("傳送第 %d/%d 段失敗: %w", i+1, len(tpdus), err)
 		}
 	}
-	logger.Info("MBIM 短信发送成功", "to", to, "parts", len(tpdus))
+	logger.Info("MBIM 簡訊傳送成功", "to", to, "parts", len(tpdus))
 	return nil
 }
 

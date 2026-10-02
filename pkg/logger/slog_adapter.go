@@ -12,35 +12,35 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// SlogAdapter 是一个 slog.Handler 实现，用于将 slog 的日志桥接到 zap logger。
+// SlogAdapter 是一個 slog.Handler 實現，用於將 slog 的日誌橋接到 zap logger。
 type SlogAdapter struct {
 	logger *zap.Logger
-	// callerChain 承载 slog logger.With("caller", "...") 注入的调用链，
-	// 避免同名 caller 字段重复打印。
+	// callerChain 承載 slog logger.With("caller", "...") 注入的呼叫鏈，
+	// 避免同名 caller 欄位重複列印。
 	callerChain []string
 }
 
-// NewSlogHandler 创建一个桥接 slog 到 zap 的处理器。
+// NewSlogHandler 建立一個橋接 slog 到 zap 的處理器。
 func NewSlogHandler(logger *zap.Logger) *SlogAdapter {
 	if logger == nil {
-		logger = ZapLogger() // Fallback 到全局 Log
+		logger = ZapLogger() // Fallback 到全域性 Log
 	}
-	// 关闭 logger 侧 caller 自动推断，避免 caller skip 在不同协程栈下漂移到 runtime/asm。
-	// 实际 caller 在 Handle 中通过 slog.Record.PC 精确写入 zap Entry.Caller。
+	// 關閉 logger 側 caller 自動推斷，避免 caller skip 在不同協程棧下漂移到 runtime/asm。
+	// 實際 caller 在 Handle 中透過 slog.Record.PC 精確寫入 zap Entry.Caller。
 	return &SlogAdapter{
 		logger:      logger.WithOptions(zap.WithCaller(false)),
 		callerChain: nil,
 	}
 }
 
-// Enabled 决定是否启用某日志级别
+// Enabled 決定是否啟用某日誌級別
 func (h *SlogAdapter) Enabled(_ context.Context, level slog.Level) bool {
-	// 如果全局开关或者配置没有把 debug 打开，这里的 zap logger 会自动滤除
-	// 为了确保所有的都丢给 zap 判断，我们总是返回 true，或者可以根据 zap 的配置判断
+	// 如果全域性開關或者配置沒有把 debug 開啟，這裡的 zap logger 會自動濾除
+	// 為了確保所有的都丟給 zap 判斷，我們總是返回 true，或者可以根據 zap 的配置判斷
 	return true
 }
 
-// Handle 处理单条 slog 日志并写入 zap
+// Handle 處理單條 slog 日誌並寫入 zap
 func (h *SlogAdapter) Handle(_ context.Context, r slog.Record) error {
 	fields := make([]zap.Field, 0, r.NumAttrs())
 	errText := ""
@@ -81,8 +81,8 @@ func (h *SlogAdapter) Handle(_ context.Context, r slog.Record) error {
 			strings.Contains(errLower, "use of closed network connection") ||
 			strings.Contains(errLower, "broken pipe") ||
 			strings.Contains(errLower, "eof") {
-			msg = "SIP TCP 通道读异常"
-			// 连接被显式关闭或切换通道导致 EOF/closed，降为 DEBUG；其他断连降为 WARN。
+			msg = "SIP TCP 通道讀異常"
+			// 連線被顯式關閉或切換通道導致 EOF/closed，降為 DEBUG；其他斷連降為 WARN。
 			if strings.Contains(errLower, "use of closed network connection") || strings.Contains(errLower, "eof") {
 				level = slog.LevelDebug
 			} else {
@@ -96,7 +96,7 @@ func (h *SlogAdapter) Handle(_ context.Context, r slog.Record) error {
 	return nil
 }
 
-// WithAttrs 返回带有预设属性的 Handler
+// WithAttrs 返回帶有預設屬性的 Handler
 func (h *SlogAdapter) WithAttrs(attrs []slog.Attr) slog.Handler {
 	fields := make([]zap.Field, 0, len(attrs))
 	callers := make([]string, 0, len(h.callerChain)+len(attrs))
@@ -119,7 +119,7 @@ func (h *SlogAdapter) WithAttrs(attrs []slog.Attr) slog.Handler {
 	}
 }
 
-// WithGroup 返回带命名空间的 Handler (这里简略实现)
+// WithGroup 返回帶名稱空間的 Handler (這裡簡略實現)
 func (h *SlogAdapter) WithGroup(name string) slog.Handler {
 	return &SlogAdapter{
 		logger:      h.logger.Named(name),

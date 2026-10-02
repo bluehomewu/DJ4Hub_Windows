@@ -10,20 +10,20 @@ let moduleAudioBusy = false;
 let moduleAudioLeaseBusy = false;
 let moduleAudioPreparation = null;
 async function refreshCalls() {
-  if (moduleAudioBusy) { $('#phone-status').textContent = '模块音频正在初始化，等待 USB 重新连接…'; return; }
+  if (moduleAudioBusy) { $('#phone-status').textContent = '模組音訊正在初始化，等待 USB 重新連線…'; return; }
   if (callPollBusy) return;
   callPollBusy = true;
   try {
     const result = await api('/api/calls');
-    const states = ['通话中', '保持', '拨号中', '响铃中', '来电', '呼叫等待'];
+    const states = ['通話中', '保持', '撥號中', '響鈴中', '來電', '呼叫等待'];
     const calls = result.calls || [];
     const ids = new Set(calls.map(c => c.id));
     for (const id of callStarted.keys()) if (!ids.has(id)) callStarted.delete(id);
     $('#phone-status').textContent = calls.map(c => {
       if (c.state === 0 && !callStarted.has(c.id)) callStarted.set(c.id, Date.now());
       const elapsed = callStarted.has(c.id) ? ` · ${Math.floor((Date.now()-callStarted.get(c.id))/1000)}s` : '';
-      return `${c.number || '未知号码'} · ${states[c.state] || '未知状态'}${elapsed}`;
-    }).join(' / ') || '无语音通话';
+      return `${c.number || '未知號碼'} · ${states[c.state] || '未知狀態'}${elapsed}`;
+    }).join(' / ') || '無語音通話';
     $('#phone-dial').disabled = calls.length > 0;
     $('#phone-answer').disabled = !calls.some(c => c.state === 4 || c.state === 5);
     $('#phone-hangup').disabled = !calls.length;
@@ -32,7 +32,7 @@ async function refreshCalls() {
       stopPhoneAudio();
     }
     previousCallsPresent = calls.length > 0;
-  } catch (e) { $('#phone-status').textContent = moduleAudioBusy || /NO_DEVICE|NOT_FOUND/i.test(e.message) ? 'USB 正在重新连接，稍后自动恢复…' : `通话状态不可用：${e.message}`; }
+  } catch (e) { $('#phone-status').textContent = moduleAudioBusy || /NO_DEVICE|NOT_FOUND/i.test(e.message) ? 'USB 正在重新連線，稍後自動恢復…' : `通話狀態不可用：${e.message}`; }
   finally { callPollBusy = false; }
 }
 async function phoneAction(action, extra = {}) {
@@ -40,7 +40,7 @@ async function phoneAction(action, extra = {}) {
   phoneActionBusy = true;
   try {
     if ((action === 'dial' || action === 'answer') && $('#phone-use-audio').checked) {
-      if (action === 'dial' && !/^\+?[0-9]{1,20}$/.test(extra.number || '')) throw new Error('请输入有效电话号码');
+      if (action === 'dial' && !/^\+?[0-9]{1,20}$/.test(extra.number || '')) throw new Error('請輸入有效電話號碼');
       await ensureModuleAudio();
       await connectPhoneAudio();
     }
@@ -64,12 +64,12 @@ document.querySelector('[data-view="calls"]').addEventListener('click',refreshCa
 setInterval(()=> { if ($('#calls').classList.contains('active') || callStarted.size) void refreshCalls(); },2000);
 $('#apn-preset').onchange = e => { if (e.target.value) $('#apn-value').value=e.target.value; };
 $('#apn-read').onclick = async () => {
-  try { const result=await api('/api/network'); const current=result.pdp_contexts?.find(c=>c.id===1); if(current){ $('#apn-value').value=current.apn; $('#apn-pdn').value=current.pdn; $('#apn-pdn').dispatchEvent(new Event('change', {bubbles:true})); $('#apn-preset').value=''; $('#apn-preset').dispatchEvent(new Event('change', {bubbles:true})); $('#apn-feedback').textContent='已读取当前主数据 APN'; } }
+  try { const result=await api('/api/network'); const current=result.pdp_contexts?.find(c=>c.id===1); if(current){ $('#apn-value').value=current.apn; $('#apn-pdn').value=current.pdn; $('#apn-pdn').dispatchEvent(new Event('change', {bubbles:true})); $('#apn-preset').value=''; $('#apn-preset').dispatchEvent(new Event('change', {bubbles:true})); $('#apn-feedback').textContent='已讀取目前主資料 APN'; } }
   catch(e){ $('#apn-feedback').textContent=e.message; }
 };
 $('#apn-save').onclick = async () => {
   const apn=$('#apn-value').value.trim();
-  if (!await showModal({title:'保存 APN',message:`主数据 APN 将改为 ${apn}。可能需要重新连接数据网络才能生效。`,confirmLabel:'保存'})) return;
+  if (!await showModal({title:'儲存 APN',message:`主資料 APN 將改為 ${apn}。可能需要重新連線資料網路才能生效。`,confirmLabel:'儲存'})) return;
   $('#apn-save').disabled=true;
   try { const result=await api('/api/network/apn',{method:'POST',body:JSON.stringify({apn,pdn:$('#apn-pdn').value})}); $('#apn-feedback').textContent=result.summary; }
   catch(e){$('#apn-feedback').textContent=e.message;}
@@ -78,7 +78,7 @@ $('#apn-save').onclick = async () => {
 function stopPhoneAudio(){
   audioPlayers.forEach(p=>{p.pause();p.srcObject=null;});audioPlayers=[];
   audioStreams.forEach(s=>s.getTracks().forEach(t=>t.stop()));audioStreams=[];
-  $('#audio-feedback').textContent='音频已断开';
+  $('#audio-feedback').textContent='音訊已斷開';
 }
 let audioPermissionRequested = false;
 let audioDiscoveryBusy = false;
@@ -98,18 +98,18 @@ async function discoverPhoneAudio(){
   audioDiscoveryBusy = true;
   audioPermissionRequested = true;
   $('#audio-discover').disabled = true;
-  $('#audio-feedback').textContent = '请允许浏览器使用麦克风，以读取音频设备。不会自动连接通话。';
+  $('#audio-feedback').textContent = '請允許瀏覽器使用麥克風，以讀取音訊裝置。不會自動連線通話。';
   try{
-    if (!navigator.mediaDevices?.getUserMedia) throw new Error('当前浏览器无法请求麦克风权限，请使用 localhost 或 HTTPS 打开');
+    if (!navigator.mediaDevices?.getUserMedia) throw new Error('目前瀏覽器無法請求麥克風權限，請使用 localhost 或 HTTPS 開啟');
     const permission=await navigator.mediaDevices.getUserMedia({audio:true});permission.getTracks().forEach(t=>t.stop());
     const devices=await navigator.mediaDevices.enumerateDevices();
     for(const [id,kind] of [['audio-mic','audioinput'],['audio-modem-in','audioinput'],['audio-speaker','audiooutput'],['audio-modem-out','audiooutput']]){
-      const select=$('#'+id), previous=select.value;select.replaceChildren(new Option('请选择设备',''));
+      const select=$('#'+id), previous=select.value;select.replaceChildren(new Option('請選擇裝置',''));
       const moduleField = id.startsWith('audio-modem');
       const choices = devices.filter(d => d.kind === kind && (moduleField ? isModemAudio(d) : !isModemAudio(d)));
       choices.forEach(d=>select.add(new Option(d.label||d.deviceId,d.deviceId)));
       select.disabled = choices.length === 0;
-      if (!choices.length) select.options[0].textContent = moduleField ? '未检测到模块声卡' : '未检测到设备';
+      if (!choices.length) select.options[0].textContent = moduleField ? '未偵測到模組音效卡' : '未偵測到裝置';
       if (previous && Array.from(select.options).some(option => option.value === previous)) select.value = previous;
       else if (moduleField && choices.length === 1) select.value = choices[0].deviceId;
       else if (!moduleField) select.value = choices.find(d => d.deviceId === 'default')?.deviceId || choices[0]?.deviceId || '';
@@ -117,8 +117,8 @@ async function discoverPhoneAudio(){
     }
     updateAudioAvailability();
     const hasModule = !$('#audio-modem-in').disabled && !$('#audio-modem-out').disabled;
-    $('#audio-feedback').textContent = !hasModule ? '模块音频尚未就绪，拨号或连接音频时会自动初始化。无需选择电脑自带声卡代替模块声卡。' : '已识别模块声卡，拨号时自动连接电脑音频。建议使用耳机避免回声。';
-  }catch(e){$('#audio-feedback').textContent=e.name === 'NotAllowedError' ? '麦克风权限未获允许。可在浏览器站点设置中允许后，点击“查找音频设备”重试。' : `无法读取音频设备：${e.message}`;}
+    $('#audio-feedback').textContent = !hasModule ? '模組音訊尚未就緒，撥號或連線音訊時會自動初始化。無需選擇電腦自帶音效卡代替模組音效卡。' : '已識別模組音效卡，撥號時自動連線電腦音訊。建議使用耳機避免回聲。';
+  }catch(e){$('#audio-feedback').textContent=e.name === 'NotAllowedError' ? '麥克風權限未獲允許。可在瀏覽器站點設定中允許後，點選“查詢音訊裝置”重試。' : `無法讀取音訊裝置：${e.message}`;}
   finally { audioDiscoveryBusy = false; $('#audio-discover').disabled = false; }
 }
 $('#audio-discover').onclick=discoverPhoneAudio;
@@ -127,18 +127,18 @@ document.querySelector('[data-view="calls"]').addEventListener('click', () => {
 });
 async function connectPhoneAudio(){
   updateAudioAvailability();
-  if ($('#audio-connect').disabled) throw new Error('音频设备尚未就绪或浏览器不支持输出选择，请检查设备选项');
+  if ($('#audio-connect').disabled) throw new Error('音訊裝置尚未就緒或瀏覽器不支援輸出選擇，請檢查裝置選項');
   stopPhoneAudio();
   try{
-    if(typeof HTMLMediaElement.prototype.setSinkId!=='function')throw new Error('浏览器不支持输出设备选择');
+    if(typeof HTMLMediaElement.prototype.setSinkId!=='function')throw new Error('瀏覽器不支援輸出裝置選擇');
     const mic=$('#audio-mic').value, modemIn=$('#audio-modem-in').value, speaker=$('#audio-speaker').value, modemOut=$('#audio-modem-out').value;
-    if(!mic||!modemIn||!speaker||!modemOut||mic===modemIn||speaker===modemOut)throw new Error('请选择不同的电脑与模块音频设备');
+    if(!mic||!modemIn||!speaker||!modemOut||mic===modemIn||speaker===modemOut)throw new Error('請選擇不同的電腦與模組音訊裝置');
     for(const [input,output] of [[mic,modemOut],[modemIn,speaker]]){
       const stream=await navigator.mediaDevices.getUserMedia({audio:{deviceId:{exact:input},echoCancellation:input===mic,noiseSuppression:input===mic}});audioStreams.push(stream);
       const player=new Audio();audioPlayers.push(player);player.srcObject=stream;await player.setSinkId(output);player.volume=input===mic?1:Number($('#audio-volume').value);await player.play();
     }
-    audioMuted=false;$('#audio-mute').setAttribute('aria-pressed','false');$('#audio-feedback').textContent='电脑与模块的音频流已连接，请在通话中确认双方声音。';
-  }catch(e){stopPhoneAudio();$('#audio-feedback').textContent=`连接失败：${e.message}`;throw e;}
+    audioMuted=false;$('#audio-mute').setAttribute('aria-pressed','false');$('#audio-feedback').textContent='電腦與模組的音訊流已連線，請在通話中確認雙方聲音。';
+  }catch(e){stopPhoneAudio();$('#audio-feedback').textContent=`連線失敗：${e.message}`;throw e;}
 }
 $('#audio-connect').onclick=async()=>{
   try { await ensureModuleAudio(); await connectPhoneAudio(); }
@@ -160,7 +160,7 @@ async function refreshModuleAudio() {
     const result = await api('/api/calls/audio');
     $('#audio-release').disabled = !moduleAudioToken || moduleAudioBusy;
     if (!result.active && moduleAudioToken) clearModuleAudioToken();
-    $('#audio-module-status').textContent = !result.configured ? (result.summary || '本机音频依赖未就绪，请执行 dj4ghub audio-check。') : result.active ? '音频待机就绪，不代表 IMS 已注册或运营商通话可用。挂断后保持待机；关闭页面或失去心跳后恢复 USB。' : '拨号时自动初始化音频；首次允许后，进入电话页面也会自动就绪。';
+    $('#audio-module-status').textContent = !result.configured ? (result.summary || '本機音訊依賴未就緒，請執行 dj4ghub audio-check。') : result.active ? '音訊待機就緒，不代表 IMS 已註冊或電信業者通話可用。掛斷後保持待機；關閉頁面或失去心跳後恢復 USB。' : '撥號時自動初始化音訊；首次允許後，進入電話頁面也會自動就緒。';
   } catch(e) { $('#audio-module-status').textContent = e.message; }
 }
 async function releaseModuleAudio() {
@@ -168,14 +168,14 @@ async function releaseModuleAudio() {
   moduleAudioBusy = true;
   stopPhoneAudio();
   $('#audio-release').disabled = true;
-  $('#audio-module-status').textContent = '正在停止音频并确认 USB 恢复…';
+  $('#audio-module-status').textContent = '正在停止音訊並確認 USB 恢復…';
   try {
     const result = await moduleAudioRequest('stop');
     clearModuleAudioToken();
     $('#audio-module-status').textContent = result.summary;
   } catch(e) {
     clearModuleAudioToken();
-    $('#audio-module-status').textContent = e.message + '。已停止续期；必要时重新插拔模块。';
+    $('#audio-module-status').textContent = e.message + '。已停止續期；必要時重新插拔模組。';
   } finally { moduleAudioBusy = false; }
 }
 function ensureModuleAudio() {
@@ -185,22 +185,22 @@ function ensureModuleAudio() {
   return moduleAudioPreparation;
 }
 async function prepareAutomaticAudio() {
-  if (moduleAudioBusy) throw new Error('音频正在初始化，请稍候');
+  if (moduleAudioBusy) throw new Error('音訊正在初始化，請稍候');
   if (moduleAudioToken) {
     try { await moduleAudioRequest('lease'); return; }
     catch (_) { stopPhoneAudio(); clearModuleAudioToken(); }
   }
   const status = await api('/api/calls/audio');
-  if (!status.configured) throw new Error(status.summary || '本机音频依赖未配置');
-  if (status.active) throw new Error('音频由另一个页面使用，请在原页面停止后重试');
+  if (!status.configured) throw new Error(status.summary || '本機音訊依賴未配置');
+  if (status.active) throw new Error('音訊由另一個頁面使用，請在原頁面停止後重試');
   const current = await api('/api/calls');
-  if ((current.calls || []).length) throw new Error('当前有通话或来电，不能重连 USB 初始化音频；请在无通话时进入电话页完成自动初始化');
+  if ((current.calls || []).length) throw new Error('目前有通話或來電，不能重連 USB 初始化音訊；請在無通話時進入電話頁完成自動初始化');
   if (localStorage.getItem('dj4hub-auto-audio-consent') !== '2') {
-    if (!await showModal({title:'启用自动通话音频',message:'首次使用新模块会备份配置、授权并开启 ADB，必要时重启；该授权会保留，不会自动撤销。随后临时加载已校验的驱动，可能短暂中断上网。不会刷固件。挂断关闭麦克风并保留待机。',confirmLabel:'允许初始化和自动音频'})) throw new Error('已取消自动音频');
+    if (!await showModal({title:'啟用自動通話音訊',message:'首次使用新模組會備份配置、授權並開啟 ADB，必要時重啟；該授權會保留，不會自動撤銷。隨後臨時載入已校驗的驅動，可能短暫中斷上網。不會刷韌體。掛斷關閉麥克風並保留待機。',confirmLabel:'允許初始化和自動音訊'})) throw new Error('已取消自動音訊');
     localStorage.setItem('dj4hub-auto-audio-consent', '2');
   }
   moduleAudioBusy = true;
-  $('#audio-module-status').textContent = '正在校验设备、加载音频并等待 USB 重新连接…';
+  $('#audio-module-status').textContent = '正在校驗裝置、載入音訊並等待 USB 重新連線…';
   try {
     const result = await moduleAudioRequest('prepare', '');
     moduleAudioToken = result.token;
@@ -221,7 +221,7 @@ setInterval(async () => {
   }
   moduleAudioLeaseBusy = true;
   try { await moduleAudioRequest('lease'); }
-  catch(e) { stopPhoneAudio(); clearModuleAudioToken(); $('#audio-module-status').textContent = e.message + '。音频已断开，下次拨号会重新初始化。'; }
+  catch(e) { stopPhoneAudio(); clearModuleAudioToken(); $('#audio-module-status').textContent = e.message + '。音訊已斷開，下次撥號會重新初始化。'; }
   finally { moduleAudioLeaseBusy = false; }
 }, 10000);
 document.querySelector('[data-view="calls"]').addEventListener('click', refreshModuleAudio);
@@ -239,7 +239,7 @@ window.addEventListener('pagehide', () => {
   }
 });
 navigator.mediaDevices?.addEventListener('devicechange', () => {
-  if (audioStreams.length) { stopPhoneAudio(); $('#audio-feedback').textContent = '音频设备发生变化，已安全断开，请重新查找并连接。'; }
+  if (audioStreams.length) { stopPhoneAudio(); $('#audio-feedback').textContent = '音訊裝置發生變化，已安全斷開，請重新查詢並連線。'; }
 });
 // Keep native values and change handlers as the source of truth.
 document.querySelectorAll('.phone-audio-fields select, .apn-settings select').forEach(select => {
@@ -266,7 +266,7 @@ document.querySelectorAll('.phone-audio-fields select, .apn-settings select').fo
   const close = () => { menu.hidden = true; trigger.setAttribute('aria-expanded', 'false'); };
   const render = () => {
     trigger.disabled = select.disabled;
-    caption.textContent = select.selectedOptions[0]?.textContent || '请选择设备';
+    caption.textContent = select.selectedOptions[0]?.textContent || '請選擇裝置';
     trigger.setAttribute('aria-label', select.getAttribute('aria-label') + '：' + caption.textContent);
     menu.replaceChildren();
     Array.from(select.options).forEach(option => {
@@ -291,7 +291,7 @@ document.querySelectorAll('.phone-audio-fields select, .apn-settings select').fo
     });
     if (!menu.children.length) {
       const empty = document.createElement('span');
-      empty.textContent = '尚无可选设备，请先查找音频设备';
+      empty.textContent = '尚無可選裝置，請先查詢音訊裝置';
       empty.className = 'audio-select-option';
       menu.append(empty);
     }

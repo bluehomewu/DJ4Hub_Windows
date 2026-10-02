@@ -103,11 +103,11 @@ func (f *fakeMBIMSource) UIMPowerOnSIM(context.Context, uint8) error {
 	return nil
 }
 
-// 原运营商应取 HomeProvider 的 PLMN(MNC 长度正确,3 位 → 6 位),而不是 IMSI 截 2 位。
+// 原電信業者應取 HomeProvider 的 PLMN(MNC 長度正確,3 位 → 6 位),而不是 IMSI 截 2 位。
 func TestMBIMBackendGetNativeMCCMNCUsesHomeProviderLength(t *testing.T) {
 	src := &fakeMBIMSource{
-		sub:          mbim.SubscriberReady{IMSI: "310840131414639"}, // IMSI[3:5]="84"(错)
-		homeProvider: mbim.Provider{PLMN: "310840"},                 // 正确 3 位 MNC
+		sub:          mbim.SubscriberReady{IMSI: "310840131414639"}, // IMSI[3:5]="84"(錯)
+		homeProvider: mbim.Provider{PLMN: "310840"},                 // 正確 3 位 MNC
 	}
 	b := NewMBIMBackend("", src)
 
@@ -120,8 +120,8 @@ func TestMBIMBackendGetNativeMCCMNCUsesHomeProviderLength(t *testing.T) {
 	}
 }
 
-// 真机场景:HomeProvider 拿不到、USIM ADF 也开不了(EF_AD 读失败),
-// 仍应靠 IMSI+MCC 表得到正确的 3 位 MNC(310→280),而不是截成 2 位。
+// 真機場景:HomeProvider 拿不到、USIM ADF 也開不了(EF_AD 讀失敗),
+// 仍應靠 IMSI+MCC 表得到正確的 3 位 MNC(310→280),而不是截成 2 位。
 func TestMBIMBackendGetNativeMCCMNCUsesMCCTableWhenNoHomeProviderNoEFAD(t *testing.T) {
 	src := &fakeMBIMSource{
 		sub:             mbim.SubscriberReady{IMSI: "310280233688494"},
@@ -139,7 +139,7 @@ func TestMBIMBackendGetNativeMCCMNCUsesMCCTableWhenNoHomeProviderNoEFAD(t *testi
 	}
 }
 
-// HomeProvider 不可用时,退回 IMSI(取 2 位 MNC),保证不 panic、有兜底。
+// HomeProvider 不可用時,退回 IMSI(取 2 位 MNC),保證不 panic、有兜底。
 func TestMBIMBackendGetNativeMCCMNCFallsBackToIMSI(t *testing.T) {
 	src := &fakeMBIMSource{
 		sub:             mbim.SubscriberReady{IMSI: "460001234567890"},
@@ -283,7 +283,7 @@ func TestMBIMBackendLiveIdentity(t *testing.T) {
 	var b any = NewMBIMBackend("", src)
 	reader, ok := b.(liveIdentityReader)
 	if !ok {
-		t.Fatal("MBIMBackend 未实现 live 身份接口（会导致面板 ICCID/IMSI 为空）")
+		t.Fatal("MBIMBackend 未實現 live 身份介面（會導致面板 ICCID/IMSI 為空）")
 	}
 	if iccid, _ := reader.GetICCIDLive(context.Background()); iccid != "89103000000589140892" {
 		t.Fatalf("GetICCIDLive = %q", iccid)
@@ -477,7 +477,7 @@ func TestMBIMBackendCapabilityDelegates(t *testing.T) {
 	src := &fakeMBIMSource{capability: want}
 	b := NewMBIMBackend("", src)
 	if b.Capability() != want {
-		t.Fatal("Capability 应透传 source 的能力对象")
+		t.Fatal("Capability 應透傳 source 的能力物件")
 	}
 }
 
@@ -527,14 +527,14 @@ func TestMBIMBackendCalculateAKAMarksDeadOnNoDeviceSupport(t *testing.T) {
 	}
 	b := NewMBIMBackend("", src)
 	if !caps.AuthAKAUsable() {
-		t.Fatal("前置:应可用")
+		t.Fatal("前置:應可用")
 	}
 	_, _, _, _, err := b.CalculateAKA(context.Background(), make([]byte, 16), make([]byte, 16))
 	if err == nil {
-		t.Fatal("应返回错误")
+		t.Fatal("應返回錯誤")
 	}
 	if caps.AuthAKAUsable() {
-		t.Fatal("status=9(NO_DEVICE_SUPPORT) 后应熔断")
+		t.Fatal("status=9(NO_DEVICE_SUPPORT) 後應熔斷")
 	}
 }
 
@@ -549,10 +549,10 @@ func TestMBIMBackendCalculateAKADoesNotMarkDeadOnSyncFailure(t *testing.T) {
 	b := NewMBIMBackend("", src)
 	_, _, _, _, err := b.CalculateAKA(context.Background(), make([]byte, 16), make([]byte, 16))
 	if err == nil {
-		t.Fatal("应返回错误")
+		t.Fatal("應返回錯誤")
 	}
 	if !caps.AuthAKAUsable() {
-		t.Fatal("status=35(AUTH_SYNC_FAILURE) 是合法认证响应，不应熔断 Auth 服务")
+		t.Fatal("status=35(AUTH_SYNC_FAILURE) 是合法認證響應，不應熔斷 Auth 服務")
 	}
 }
 
@@ -621,9 +621,9 @@ func TestMBIMBackendSIMAuthDelegates(t *testing.T) {
 	}
 }
 
-// ResolveSIMAuthAID 让 backend.SIMAuthAIDResolver 在 MBIM 下也可用。
-// SIM 身份鉴权与 ATAKAProvider 风格的逻辑通道读取都依赖
-// 这个接口拿完整 AID,而不是直接用拒绝短 AID 的卡上 fallback 短 AID 去开通道。
+// ResolveSIMAuthAID 讓 backend.SIMAuthAIDResolver 在 MBIM 下也可用。
+// SIM 身份鑑權與 ATAKAProvider 風格的邏輯通道讀取都依賴
+// 這個介面拿完整 AID,而不是直接用拒絕短 AID 的卡上 fallback 短 AID 去開通道。
 func TestMBIMBackendResolveSIMAuthAIDUSIM(t *testing.T) {
 	full := []byte{0xA0, 0x00, 0x00, 0x00, 0x87, 0x10, 0x02, 0xFF, 0xFF, 0xFF, 0xFF, 0x89, 0x07, 0x09, 0x00, 0x00}
 	src := &fakeMBIMSource{aidFn: func(prefix []byte) ([]byte, error) {

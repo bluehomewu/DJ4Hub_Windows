@@ -1,17 +1,17 @@
-// Package backend 定义 DJ 4G Hub 的设备后端抽象层。
-// AT 和 QMI 是平等的两种后端实现，通过配置开关 device_backend 选择。
+// Package backend 定義 DJ 4G Hub 的裝置後端抽象層。
+// AT 和 QMI 是平等的兩種後端實現，透過配置開關 device_backend 選擇。
 package backend
 
-// DeviceBackend 顶层聚合接口 — 所有后端模式（at/qmi/auto）均实现此接口
+// DeviceBackend 頂層聚合介面 — 所有後端模式（at/qmi/auto）均實現此介面
 type DeviceBackend interface {
 	DeviceInfoProvider
 	SMSProvider
 	OperatingModeController
 	SIMAuthProvider
 
-	// Mode 返回当前后端模式标识: "at" | "qmi"
+	// Mode 返回目前後端模式標識: "at" | "qmi"
 	Mode() string
 
-	// Close 释放后端持有的资源（QMI service 连接等）
+	// Close 釋放後端持有的資源（QMI service 連線等）
 	Close() error
 }

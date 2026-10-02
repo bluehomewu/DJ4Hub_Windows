@@ -7,29 +7,29 @@ import (
 	"github.com/warthog618/sms/encoding/tpdu"
 )
 
-// WAP Push 端口常量
+// WAP Push 埠常量
 const (
-	WAPPushOmaCPPort uint16 = 2948 // OMA Client Provisioning 目标端口
+	WAPPushOmaCPPort uint16 = 2948 // OMA Client Provisioning 目標埠
 )
 
-// ── OMA CP 解码后的数据结构 ──────────────────────────────────────
+// ── OMA CP 解碼後的資料結構 ──────────────────────────────────────
 
-// OmaCPCharacteristic 表示 OMA CP 配置文档中的一个特征项（如 NAPDEF、APPLICATION 等）
+// OmaCPCharacteristic 表示 OMA CP 配置文件中的一個特徵項（如 NAPDEF、APPLICATION 等）
 type OmaCPCharacteristic struct {
-	Type   string                // 特征类型：NAPDEF, APPLICATION, PXLOGICAL, ACCESS 等
-	Params map[string]string     // parm 参数映射：name → value
-	Subs   []OmaCPCharacteristic // 嵌套子特征
+	Type   string                // 特徵型別：NAPDEF, APPLICATION, PXLOGICAL, ACCESS 等
+	Params map[string]string     // parm 引數對映：name → value
+	Subs   []OmaCPCharacteristic // 巢狀子特徵
 }
 
-// OmaCPConfig 解码后的完整 OMA CP 配置文档
+// OmaCPConfig 解碼後的完整 OMA CP 配置文件
 type OmaCPConfig struct {
 	Version         string                // WBXML 版本
-	Characteristics []OmaCPCharacteristic // 顶层特征列表
+	Characteristics []OmaCPCharacteristic // 頂層特徵列表
 }
 
-// ── UDH 端口检测 ─────────────────────────────────────────────────
+// ── UDH 埠檢測 ─────────────────────────────────────────────────
 
-// extractUDHDestPort16 从 UDH 中提取 16 位目标端口号
+// extractUDHDestPort16 從 UDH 中提取 16 位目標埠號
 // UDH IE ID 0x05 = Application Port Addressing (16-bit)
 func extractUDHDestPort16(udh tpdu.UserDataHeader) (uint16, bool) {
 	for _, ie := range udh {
@@ -40,22 +40,22 @@ func extractUDHDestPort16(udh tpdu.UserDataHeader) (uint16, bool) {
 	return 0, false
 }
 
-// IsOmaCPMessage 检测 TPDU 是否为 OMA CP 配置短信（通过 UDH 目标端口 2948 判断）
+// IsOmaCPMessage 檢測 TPDU 是否為 OMA CP 配置簡訊（透過 UDH 目標埠 2948 判斷）
 func IsOmaCPMessage(udh tpdu.UserDataHeader) bool {
 	port, ok := parseUDHPorts(udh).preferredDestPort()
 	return ok && port == WAPPushOmaCPPort
 }
 
-// ── 公开 API ─────────────────────────────────────────────────────
+// ── 公開 API ─────────────────────────────────────────────────────
 
-// DecodeOmaCPFromTPDU 尝试从 TPDU 用户数据中解码 OMA CP 配置。
-// data 是 UDH 已剥离后的用户数据（可能包含 WSP Push header + WBXML body）。
+// DecodeOmaCPFromTPDU 嘗試從 TPDU 使用者資料中解碼 OMA CP 配置。
+// data 是 UDH 已剝離後的使用者資料（可能包含 WSP Push header + WBXML body）。
 func DecodeOmaCPFromTPDU(data []byte) (*OmaCPConfig, error) {
 	if len(data) < 4 {
-		return nil, fmt.Errorf("OMA CP 数据过短 (%d bytes)", len(data))
+		return nil, fmt.Errorf("OMA CP 資料過短 (%d bytes)", len(data))
 	}
 
-	// 尝试多个偏移量定位 WBXML 起始位置
+	// 嘗試多個偏移量定位 WBXML 起始位置
 	wbxmlData, err := findWBXMLStart(data)
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func DecodeOmaCPFromTPDU(data []byte) (*OmaCPConfig, error) {
 	return decodeWBXML(wbxmlData)
 }
 
-// FormatOmaCPSummary 将解码后的 OMA CP 配置格式化为人类可读摘要
+// FormatOmaCPSummary 將解碼後的 OMA CP 配置格式化為人類可讀摘要
 func FormatOmaCPSummary(cfg *OmaCPConfig) string {
 	if cfg == nil || len(cfg.Characteristics) == 0 {
 		return "(空配置)"
@@ -79,32 +79,32 @@ func FormatOmaCPSummary(cfg *OmaCPConfig) string {
 	return sb.String()
 }
 
-// ── WBXML 定位与解析 ─────────────────────────────────────────────
+// ── WBXML 定位與解析 ─────────────────────────────────────────────
 
-// findWBXMLStart 在数据中定位 WBXML 文档起始位置。
-// 支持以下场景：
-//  1. 直接是 WBXML（无 WSP 包装）
+// findWBXMLStart 在資料中定位 WBXML 文件起始位置。
+// 支援以下場景：
+//  1. 直接是 WBXML（無 WSP 包裝）
 //  2. WSP Push header + WBXML
-//  3. 扫描已知 WBXML 签名
+//  3. 掃描已知 WBXML 簽名
 func findWBXMLStart(data []byte) ([]byte, error) {
-	// 场景 1: 直接是 WBXML（版本 0x01-0x03，公共 ID 匹配 OMA CP）
+	// 場景 1: 直接是 WBXML（版本 0x01-0x03，公共 ID 匹配 OMA CP）
 	if isWBXMLHeader(data) {
 		return data, nil
 	}
 
-	// 场景 2: 跳过 WSP Push header，寻找 WBXML
+	// 場景 2: 跳過 WSP Push header，尋找 WBXML
 	// WSP Push 最小格式：[headers_len] [content_type] ... [WBXML]
-	// 实网中 WSP 头可能超过 16 字节，需全量扫描后续偏移。
+	// 實網中 WSP 頭可能超過 16 位元組，需全量掃描後續偏移。
 	for offset := 1; offset < len(data); offset++ {
 		if isWBXMLHeader(data[offset:]) {
 			return data[offset:], nil
 		}
 	}
 
-	return nil, fmt.Errorf("未找到 WBXML 文档头（可能是加密的 OMA CP 配置短信）")
+	return nil, fmt.Errorf("未找到 WBXML 文件頭（可能是加密的 OMA CP 配置簡訊）")
 }
 
-// isWBXMLHeader 检测字节流起始是否为合法的 WBXML 文档头
+// isWBXMLHeader 檢測位元組流起始是否為合法的 WBXML 文件頭
 func isWBXMLHeader(data []byte) bool {
 	if len(data) < 4 {
 		return false
@@ -119,7 +119,7 @@ func isWBXMLHeader(data []byte) bool {
 		return false
 	}
 
-	// 尝试继续解析 charset 和 strTableLen，避免误把随机数据识别为 WBXML。
+	// 嘗試繼續解析 charset 和 strTableLen，避免誤把隨機資料識別為 WBXML。
 	_, next, ok = parseMBUint32At(data, next)
 	if !ok {
 		return false
@@ -131,7 +131,7 @@ func isWBXMLHeader(data []byte) bool {
 	return uint64(next)+uint64(strTableLen) <= uint64(len(data))
 }
 
-// parseMBUint32At 从 data[start:] 解析一个 WBXML mb_u_int32。
+// parseMBUint32At 從 data[start:] 解析一個 WBXML mb_u_int32。
 func parseMBUint32At(data []byte, start int) (value uint32, next int, ok bool) {
 	if start < 0 || start >= len(data) {
 		return 0, start, false
@@ -152,9 +152,9 @@ func parseMBUint32At(data []byte, start int) (value uint32, next int, ok bool) {
 	return 0, pos, false
 }
 
-// ── WBXML 解码器 ─────────────────────────────────────────────────
+// ── WBXML 解碼器 ─────────────────────────────────────────────────
 
-// wbxml 全局 token 常量
+// wbxml 全域性 token 常量
 const (
 	wbxmlSwitchPage byte = 0x00
 	wbxmlEnd        byte = 0x01
@@ -164,19 +164,19 @@ const (
 	wbxmlOpaque     byte = 0xC3
 )
 
-// wbxml tag token 标志位
+// wbxml tag token 標誌位
 const (
 	wbxmlHasContent byte = 0x40
 	wbxmlHasAttrs   byte = 0x80
 )
 
-// wbxmlReader WBXML 字节流读取器
+// wbxmlReader WBXML 位元組流讀取器
 type wbxmlReader struct {
 	data     []byte
 	pos      int
-	strTable []byte // 字符串表
-	tagPage  int    // 当前 tag code page
-	attrPage int    // 当前 attribute code page
+	strTable []byte // 字串表
+	tagPage  int    // 目前 tag code page
+	attrPage int    // 目前 attribute code page
 }
 
 func (r *wbxmlReader) remaining() int { return len(r.data) - r.pos }
@@ -184,14 +184,14 @@ func (r *wbxmlReader) eof() bool      { return r.pos >= len(r.data) }
 
 func (r *wbxmlReader) readByte() (byte, error) {
 	if r.eof() {
-		return 0, fmt.Errorf("WBXML: 意外的文件结束 (pos=%d)", r.pos)
+		return 0, fmt.Errorf("WBXML: 意外的檔案結束 (pos=%d)", r.pos)
 	}
 	b := r.data[r.pos]
 	r.pos++
 	return b, nil
 }
 
-// readMBUint32 读取 WBXML 多字节无符号整数（mb_u_int32）
+// readMBUint32 讀取 WBXML 多位元組無符號整數（mb_u_int32）
 func (r *wbxmlReader) readMBUint32() (uint32, error) {
 	var result uint32
 	for i := 0; i < 5; i++ {
@@ -204,24 +204,24 @@ func (r *wbxmlReader) readMBUint32() (uint32, error) {
 			return result, nil
 		}
 	}
-	return 0, fmt.Errorf("WBXML: mb_uint32 编码超长")
+	return 0, fmt.Errorf("WBXML: mb_uint32 編碼超長")
 }
 
-// readStrI 读取 inline null-terminated 字符串
+// readStrI 讀取 inline null-terminated 字串
 func (r *wbxmlReader) readStrI() (string, error) {
 	start := r.pos
 	for r.pos < len(r.data) && r.data[r.pos] != 0x00 {
 		r.pos++
 	}
 	if r.pos >= len(r.data) {
-		return string(r.data[start:]), nil // 容错：未找到 null 终止符
+		return string(r.data[start:]), nil // 容錯：未找到 null 終止符
 	}
 	s := string(r.data[start:r.pos])
-	r.pos++ // 跳过 null 终止符
+	r.pos++ // 跳過 null 終止符
 	return s, nil
 }
 
-// readStrT 从字符串表中按偏移读取字符串
+// readStrT 從字串表中按偏移讀取字串
 func (r *wbxmlReader) readStrT(offset uint32) string {
 	if int(offset) >= len(r.strTable) {
 		return ""
@@ -233,10 +233,10 @@ func (r *wbxmlReader) readStrT(offset uint32) string {
 	return string(r.strTable[offset:end])
 }
 
-// readBytes 读取指定长度的原始字节
+// readBytes 讀取指定長度的原始位元組
 func (r *wbxmlReader) readBytes(n int) ([]byte, error) {
 	if r.pos+n > len(r.data) {
-		return nil, fmt.Errorf("WBXML: 数据不足 (need %d, have %d)", n, r.remaining())
+		return nil, fmt.Errorf("WBXML: 資料不足 (need %d, have %d)", n, r.remaining())
 	}
 	b := make([]byte, n)
 	copy(b, r.data[r.pos:r.pos+n])
@@ -244,39 +244,39 @@ func (r *wbxmlReader) readBytes(n int) ([]byte, error) {
 	return b, nil
 }
 
-// decodeWBXML 解码完整的 WBXML 文档为 OMA CP 配置
+// decodeWBXML 解碼完整的 WBXML 文件為 OMA CP 配置
 func decodeWBXML(data []byte) (*OmaCPConfig, error) {
 	r := &wbxmlReader{data: data}
 
-	// 1. 读取 WBXML header
+	// 1. 讀取 WBXML header
 	version, err := r.readByte()
 	if err != nil {
-		return nil, fmt.Errorf("WBXML header 读取失败: %w", err)
+		return nil, fmt.Errorf("WBXML header 讀取失敗: %w", err)
 	}
 
 	publicID, err := r.readMBUint32()
 	if err != nil {
-		return nil, fmt.Errorf("WBXML publicID 读取失败: %w", err)
+		return nil, fmt.Errorf("WBXML publicID 讀取失敗: %w", err)
 	}
 	if publicID != 0x0B {
-		return nil, fmt.Errorf("WBXML publicID=0x%X 不是 OMA CP (预期 0x0B)", publicID)
+		return nil, fmt.Errorf("WBXML publicID=0x%X 不是 OMA CP (預期 0x0B)", publicID)
 	}
 
 	charset, err := r.readMBUint32()
 	if err != nil {
-		return nil, fmt.Errorf("WBXML charset 读取失败: %w", err)
+		return nil, fmt.Errorf("WBXML charset 讀取失敗: %w", err)
 	}
 	_ = charset
 
-	// 2. 读取字符串表
+	// 2. 讀取字串表
 	strTableLen, err := r.readMBUint32()
 	if err != nil {
-		return nil, fmt.Errorf("WBXML 字符串表长度读取失败: %w", err)
+		return nil, fmt.Errorf("WBXML 字串表長度讀取失敗: %w", err)
 	}
 	if strTableLen > 0 {
 		r.strTable, err = r.readBytes(int(strTableLen))
 		if err != nil {
-			return nil, fmt.Errorf("WBXML 字符串表读取失败: %w", err)
+			return nil, fmt.Errorf("WBXML 字串表讀取失敗: %w", err)
 		}
 	}
 
@@ -288,7 +288,7 @@ func decodeWBXML(data []byte) (*OmaCPConfig, error) {
 	for !r.eof() {
 		chars, err := r.parseElement()
 		if err != nil {
-			break // 容错：部分解码也返回结果
+			break // 容錯：部分解碼也返回結果
 		}
 		if chars != nil {
 			cfg.Characteristics = append(cfg.Characteristics, *chars)
@@ -296,13 +296,13 @@ func decodeWBXML(data []byte) (*OmaCPConfig, error) {
 	}
 
 	if len(cfg.Characteristics) == 0 {
-		return nil, fmt.Errorf("WBXML 解码未得到任何配置项")
+		return nil, fmt.Errorf("WBXML 解碼未得到任何配置項")
 	}
 
 	return cfg, nil
 }
 
-// parseElement 解析一个 WBXML 元素（tag + attributes + content）
+// parseElement 解析一個 WBXML 元素（tag + attributes + content）
 // 返回 OmaCPCharacteristic（如果是 characteristic 或 parm 元素）
 func (r *wbxmlReader) parseElement() (*OmaCPCharacteristic, error) {
 	if r.eof() {
@@ -314,7 +314,7 @@ func (r *wbxmlReader) parseElement() (*OmaCPCharacteristic, error) {
 		return nil, err
 	}
 
-	// 处理全局 token
+	// 處理全域性 token
 	switch b {
 	case wbxmlSwitchPage:
 		page, err := r.readByte()
@@ -322,9 +322,9 @@ func (r *wbxmlReader) parseElement() (*OmaCPCharacteristic, error) {
 			return nil, err
 		}
 		r.tagPage = int(page)
-		return r.parseElement() // 递归解析下一个元素
+		return r.parseElement() // 遞迴解析下一個元素
 	case wbxmlEnd:
-		return nil, fmt.Errorf("END") // 信号：当前层级结束
+		return nil, fmt.Errorf("END") // 訊號：目前層級結束
 	}
 
 	// 解析 tag token
@@ -347,7 +347,7 @@ func (r *wbxmlReader) parseElement() (*OmaCPCharacteristic, error) {
 		for !r.eof() {
 			peek := r.data[r.pos]
 			if peek == wbxmlEnd {
-				r.pos++ // 消费 END token
+				r.pos++ // 消費 END token
 				break
 			}
 			if peek == wbxmlStrI {
@@ -365,7 +365,7 @@ func (r *wbxmlReader) parseElement() (*OmaCPCharacteristic, error) {
 			if peek == wbxmlOpaque {
 				r.pos++
 				length, _ := r.readMBUint32()
-				r.readBytes(int(length)) // 跳过 opaque 数据
+				r.readBytes(int(length)) // 跳過 opaque 資料
 				continue
 			}
 			if peek == wbxmlSwitchPage {
@@ -374,7 +374,7 @@ func (r *wbxmlReader) parseElement() (*OmaCPCharacteristic, error) {
 				r.tagPage = int(page)
 				continue
 			}
-			// 嵌套元素
+			// 巢狀元素
 			child, err := r.parseElement()
 			if err != nil {
 				break
@@ -385,7 +385,7 @@ func (r *wbxmlReader) parseElement() (*OmaCPCharacteristic, error) {
 		}
 	}
 
-	// 构建返回结构
+	// 構建返回結構
 	switch tagName {
 	case "characteristic":
 		c := &OmaCPCharacteristic{
@@ -393,7 +393,7 @@ func (r *wbxmlReader) parseElement() (*OmaCPCharacteristic, error) {
 			Params: make(map[string]string),
 			Subs:   children,
 		}
-		// 收集子元素中的 parm 参数
+		// 收集子元素中的 parm 引數
 		for i := range children {
 			if children[i].Type == "__parm__" {
 				for k, v := range children[i].Params {
@@ -401,7 +401,7 @@ func (r *wbxmlReader) parseElement() (*OmaCPCharacteristic, error) {
 				}
 			}
 		}
-		// 过滤掉已合并的 __parm__ 子元素
+		// 過濾掉已合併的 __parm__ 子元素
 		filtered := make([]OmaCPCharacteristic, 0, len(children))
 		for _, sub := range children {
 			if sub.Type != "__parm__" {
@@ -418,7 +418,7 @@ func (r *wbxmlReader) parseElement() (*OmaCPCharacteristic, error) {
 			name = textContent.String()
 		}
 		if strings.TrimSpace(name) == "" {
-			// 无参数名的 parm 无法稳定映射，直接忽略以避免污染空 key。
+			// 無引數名的 parm 無法穩定對映，直接忽略以避免汙染空 key。
 			return nil, nil
 		}
 		return &OmaCPCharacteristic{
@@ -427,7 +427,7 @@ func (r *wbxmlReader) parseElement() (*OmaCPCharacteristic, error) {
 		}, nil
 
 	case "wap-provisioningdoc":
-		// 顶层文档元素：直接返回子元素
+		// 頂層文件元素：直接返回子元素
 		if len(children) > 0 {
 			return &OmaCPCharacteristic{
 				Type: "wap-provisioningdoc",
@@ -441,7 +441,7 @@ func (r *wbxmlReader) parseElement() (*OmaCPCharacteristic, error) {
 	}
 }
 
-// parseAttributes 解析 WBXML 属性列表，填充到 attrs map 中
+// parseAttributes 解析 WBXML 屬性列表，填充到 attrs map 中
 func (r *wbxmlReader) parseAttributes(attrs map[string]string) {
 	var currentAttrName string
 	var currentValue strings.Builder
@@ -460,13 +460,13 @@ func (r *wbxmlReader) parseAttributes(attrs map[string]string) {
 			break
 		}
 
-		// END token 结束属性列表
+		// END token 結束屬性列表
 		if b == wbxmlEnd {
 			flushAttr()
 			return
 		}
 
-		// SWITCH_PAGE 切换 attribute code page
+		// SWITCH_PAGE 切換 attribute code page
 		if b == wbxmlSwitchPage {
 			page, err := r.readByte()
 			if err != nil {
@@ -476,28 +476,28 @@ func (r *wbxmlReader) parseAttributes(attrs map[string]string) {
 			continue
 		}
 
-		// STR_I inline string → 追加到当前属性值
+		// STR_I inline string → 追加到目前屬性值
 		if b == wbxmlStrI {
 			s, _ := r.readStrI()
 			currentValue.WriteString(s)
 			continue
 		}
 
-		// STR_T string table reference → 追加到当前属性值
+		// STR_T string table reference → 追加到目前屬性值
 		if b == wbxmlStrT {
 			offset, _ := r.readMBUint32()
 			currentValue.WriteString(r.readStrT(offset))
 			continue
 		}
 
-		// OPAQUE data → 跳过
+		// OPAQUE data → 跳過
 		if b == wbxmlOpaque {
 			length, _ := r.readMBUint32()
 			r.readBytes(int(length))
 			continue
 		}
 
-		// WBXML attribute value 支持 token 串联；当处于某属性值上下文时，优先解释 ATTRVALUE。
+		// WBXML attribute value 支援 token 串聯；當處於某屬性值上下文時，優先解釋 ATTRVALUE。
 		if currentAttrName != "" {
 			if value := resolveAttrValue(r.attrPage, b); value != "" && !strings.HasPrefix(value, "[0x") {
 				currentValue.WriteString(value)
@@ -505,16 +505,16 @@ func (r *wbxmlReader) parseAttributes(attrs map[string]string) {
 			}
 		}
 
-		// 尝试匹配 ATTRSTART（包括 0xA0 以上被复用为 type 属性入口的 token）
+		// 嘗試匹配 ATTRSTART（包括 0xA0 以上被複用為 type 屬性入口的 token）
 		if entryName, entryVal := resolveAttrStart(r.attrPage, b); entryName != "" && !strings.HasPrefix(entryName, "attr_") {
-			flushAttr() // 先保存上一个属性
+			flushAttr() // 先儲存上一個屬性
 			currentAttrName = entryName
 			currentValue.Reset()
 			currentValue.WriteString(entryVal)
 			continue
 		}
 
-		// 尝试解释为 ATTRVALUE（如果 token 存在于 value 映射表中）
+		// 嘗試解釋為 ATTRVALUE（如果 token 存在於 value 對映表中）
 		if value := resolveAttrValue(r.attrPage, b); value != "" && !strings.HasPrefix(value, "[0x") {
 			currentValue.WriteString(value)
 			continue
@@ -524,9 +524,9 @@ func (r *wbxmlReader) parseAttributes(attrs map[string]string) {
 	flushAttr()
 }
 
-// ── OMA CP Token 映射表 ─────────────────────────────────────────
+// ── OMA CP Token 對映表 ─────────────────────────────────────────
 
-// resolveTagName 解析 tag token 为 XML tag 名
+// resolveTagName 解析 tag token 為 XML tag 名
 func resolveTagName(codePage int, tagID byte) string {
 	if names, ok := omaCPTagTable[codePage]; ok {
 		if name, ok := names[tagID]; ok {
@@ -536,7 +536,7 @@ func resolveTagName(codePage int, tagID byte) string {
 	return fmt.Sprintf("tag_0x%02X", tagID)
 }
 
-// tag token 映射表（所有 code page）
+// tag token 對映表（所有 code page）
 var omaCPTagTable = map[int]map[byte]string{
 	0: {
 		0x05: "wap-provisioningdoc",
@@ -549,13 +549,13 @@ var omaCPTagTable = map[int]map[byte]string{
 	},
 }
 
-// attrTokenEntry 属性 token 条目
+// attrTokenEntry 屬性 token 條目
 type attrTokenEntry struct {
-	name  string // XML 属性名（如 "name", "value", "type"）
-	value string // 属性值或值前缀（空表示需要后续 token 提供值）
+	name  string // XML 屬性名（如 "name", "value", "type"）
+	value string // 屬性值或值字首（空表示需要後續 token 提供值）
 }
 
-// resolveAttrStart 解析 ATTRSTART token 为属性名和初始值
+// resolveAttrStart 解析 ATTRSTART token 為屬性名和初始值
 func resolveAttrStart(codePage int, token byte) (attrName, attrValue string) {
 	var table map[byte]attrTokenEntry
 	switch codePage {
@@ -572,7 +572,7 @@ func resolveAttrStart(codePage int, token byte) (attrName, attrValue string) {
 	return fmt.Sprintf("attr_0x%02X", token), ""
 }
 
-// resolveAttrValue 解析 ATTRVALUE token 为属性值字符串
+// resolveAttrValue 解析 ATTRVALUE token 為屬性值字串
 func resolveAttrValue(codePage int, token byte) string {
 	var table map[byte]string
 	switch codePage {
@@ -589,12 +589,12 @@ func resolveAttrValue(codePage int, token byte) string {
 	return fmt.Sprintf("[0x%02X]", token)
 }
 
-// ── Code Page 0: 基础配置属性 ──────────────────────────────────
+// ── Code Page 0: 基礎配置屬性 ──────────────────────────────────
 
 // ATTRSTART tokens (code page 0)
-// 参考 OMA-WAP-ProvCont-v1_1 Section 7.1
+// 參考 OMA-WAP-ProvCont-v1_1 Section 7.1
 var omaCPAttrStartPage0 = map[byte]attrTokenEntry{
-	// parm 的 name/value 属性
+	// parm 的 name/value 屬性
 	0x05: {"name", ""},
 	0x06: {"value", ""},
 	0x07: {"name", "NAME"},
@@ -656,9 +656,9 @@ var omaCPAttrStartPage0 = map[byte]attrTokenEntry{
 	0x3F: {"name", "PPGAUTH-TYPE"},
 }
 
-// ATTRVALUE tokens (code page 0) — 出现在 value > 0x80 区间或特殊位置
+// ATTRVALUE tokens (code page 0) — 出現在 value > 0x80 區間或特殊位置
 var omaCPAttrValuePage0 = map[byte]string{
-	// 地址类型值
+	// 位址型別值
 	0x45: "IPV4",
 	0x46: "IPV6",
 	0x47: "E164",
@@ -667,21 +667,21 @@ var omaCPAttrValuePage0 = map[byte]string{
 	0x4A: "SCODE",
 	0x4B: "TETRA-ITSI",
 	0x4C: "MAN",
-	// 呼叫类型值
+	// 呼叫型別值
 	0x50: "ANALOG-MODEM",
 	0x51: "V.120",
 	0x52: "V.110",
 	0x53: "X.31",
 	0x54: "BIT-TRANSPARENT",
 	0x55: "DIRECT-ASYNCHRONOUS-DATA-SERVICE",
-	// 认证类型值
+	// 認證型別值
 	0x60: "PAP",
 	0x61: "CHAP",
 	0x62: "HTTP-BASIC",
 	0x63: "HTTP-DIGEST",
 	0x64: "WTLS-SS",
 	0x65: "MD5",
-	// 承载类型值
+	// 承載型別值
 	0x6A: "GSM-USSD",
 	0x6B: "GSM-SMS",
 	0x6C: "ANSI-136-GUTS",
@@ -708,7 +708,7 @@ var omaCPAttrValuePage0 = map[byte]string{
 	0x81: "CDMA2000-1X-SIMPLE-IP",
 	0x82: "CDMA2000-1X-MOBILE-IP",
 	0x85: "AUTOBAUDING",
-	// 服务类型值
+	// 服務型別值
 	0x8A: "CL-WSP",
 	0x8B: "CO-WSP",
 	0x8C: "CL-SEC-WSP",
@@ -733,7 +733,7 @@ var omaCPAttrValuePage0 = map[byte]string{
 	0xAA: "ACCESS",
 }
 
-// ── Code Page 1: APPLICATION 属性 ─────────────────────────────
+// ── Code Page 1: APPLICATION 屬性 ─────────────────────────────
 
 // ATTRSTART tokens (code page 1)
 var omaCPAttrStartPage1 = map[byte]attrTokenEntry{
@@ -770,7 +770,7 @@ var omaCPAttrValuePage1 = map[byte]string{
 	0x52: "OTA-HTTP-TLS-TO",
 	0x53: "OTA-HTTP-PO",
 	0x54: "OTA-HTTP-TLS-PO",
-	// 常见 APPID 端口号
+	// 常見 APPID 埠號
 	0x55: "25",
 	0x56: "143",
 	0x57: "993",
@@ -783,7 +783,7 @@ var omaCPAttrValuePage1 = map[byte]string{
 	0x61: "HTTP-",
 	0x62: "BASIC",
 	0x63: "DIGEST",
-	// APPID 应用标识
+	// APPID 應用標識
 	0x90: "w2",
 	0x91: "w4",
 	0x92: "w5",
@@ -797,10 +797,10 @@ var omaCPAttrValuePage1 = map[byte]string{
 	0xA5: "RESOURCE",
 }
 
-// 上面的 ATTRVALUE token 0xA0-0xA5 同时用作 type 属性值，
-// 需要特殊处理：当它们出现在 characteristic 的 type 属性上下文中时解析为 type 值。
+// 上面的 ATTRVALUE token 0xA0-0xA5 同時用作 type 屬性值，
+// 需要特殊處理：當它們出現在 characteristic 的 type 屬性上下文中時解析為 type 值。
 func init() {
-	// 将 code page 0 的 type 值也添加到 attrStart 表（作为 type="VALUE" 的起始 token）
+	// 將 code page 0 的 type 值也新增到 attrStart 表（作為 type="VALUE" 的起始 token）
 	for token, value := range omaCPAttrValuePage0 {
 		if token >= 0xA0 && token <= 0xAA {
 			omaCPAttrStartPage0[token] = attrTokenEntry{"type", value}
@@ -816,27 +816,27 @@ func init() {
 
 // ── 配置摘要格式化 ───────────────────────────────────────────────
 
-// appIDNames 常见 APPID 的人类可读名称
+// appIDNames 常見 APPID 的人類可讀名稱
 var appIDNames = map[string]string{
-	"w2":              "WAP 浏览器",
-	"w4":              "浏览器书签",
+	"w2":              "WAP 瀏覽器",
+	"w4":              "瀏覽器書籤",
 	"w5":              "MMS 彩信",
 	"w7":              "SyncML DM",
-	"25":              "SMTP 邮件",
-	"110":             "POP3 邮件",
-	"143":             "IMAP4 邮件",
+	"25":              "SMTP 郵件",
+	"110":             "POP3 郵件",
+	"143":             "IMAP4 郵件",
 	"ap0004":          "MMS",
 	"ap0005":          "SyncML DM",
-	"APSERVICE":       "通用应用服务",
+	"APSERVICE":       "通用應用服務",
 	"OTA-HTTP-TO":     "OTA HTTP",
 	"OTA-HTTP-TLS-TO": "OTA HTTPS",
 }
 
-// formatCharacteristic 递归格式化一个配置特征项
+// formatCharacteristic 遞迴格式化一個配置特徵項
 func formatCharacteristic(sb *strings.Builder, c *OmaCPCharacteristic, indent int) {
 	prefix := strings.Repeat("  ", indent)
 
-	// 跳过文档根元素，直接输出子元素
+	// 跳過文件根元素，直接輸出子元素
 	if c.Type == "wap-provisioningdoc" {
 		for i, sub := range c.Subs {
 			if i > 0 {
@@ -851,7 +851,7 @@ func formatCharacteristic(sb *strings.Builder, c *OmaCPCharacteristic, indent in
 	sb.WriteString("📋 ")
 	sb.WriteString(c.Type)
 
-	// 为 APPLICATION 类型添加 APPID 说明
+	// 為 APPLICATION 型別新增 APPID 說明
 	if c.Type == "APPLICATION" {
 		if appID, ok := c.Params["APPID"]; ok {
 			if name, ok := appIDNames[appID]; ok {
@@ -861,7 +861,7 @@ func formatCharacteristic(sb *strings.Builder, c *OmaCPCharacteristic, indent in
 	}
 	sb.WriteString("\n")
 
-	// 输出参数
+	// 輸出引數
 	for name, value := range c.Params {
 		sb.WriteString(prefix)
 		sb.WriteString("  ")
@@ -871,7 +871,7 @@ func formatCharacteristic(sb *strings.Builder, c *OmaCPCharacteristic, indent in
 		sb.WriteString("\n")
 	}
 
-	// 递归输出子特征
+	// 遞迴輸出子特徵
 	for _, sub := range c.Subs {
 		formatCharacteristic(sb, &sub, indent+1)
 	}

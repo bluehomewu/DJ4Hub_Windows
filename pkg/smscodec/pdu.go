@@ -33,7 +33,7 @@ func NormalizeSMSEncoding(raw string) (SMSEncoding, error) {
 	}
 }
 
-// IsHexString 判断字符串是否为偶数长度的十六进制编码。
+// IsHexString 判斷字串是否為偶數長度的十六進位制編碼。
 func IsHexString(s string) bool {
 	if len(s) < 2 || len(s)%2 != 0 {
 		return false
@@ -47,17 +47,17 @@ func IsHexString(s string) bool {
 	return true
 }
 
-// ConcatInfo 长短信分片信息（UDH concatenation header）
+// ConcatInfo 長簡訊分片資訊（UDH concatenation header）
 type ConcatInfo struct {
-	IsConcat bool // 是否为多段短信
-	Ref      int  // 引用号（同一条长短信的所有分片共享此值）
-	RefBits  int  // 引用号位宽：8 或 16
-	Total    int  // 总分片数
-	Seq      int  // 当前序号 (1-based)
+	IsConcat bool // 是否為多段簡訊
+	Ref      int  // 引用號（同一條長簡訊的所有分片共享此值）
+	RefBits  int  // 引用號位寬：8 或 16
+	Total    int  // 總分片數
+	Seq      int  // 目前序號 (1-based)
 }
 
-// DecodeDeliverTPDU 解码下行短信 TPDU，返回发送方号码、文本内容、发送时间、和 concat 分片信息。
-// 如果 TPDU 包含 UDH concatenation header（长短信分片），concat.IsConcat 为 true。
+// DecodeDeliverTPDU 解碼下行簡訊 TPDU，返回傳送方號碼、文字內容、傳送時間、和 concat 分片資訊。
+// 如果 TPDU 包含 UDH concatenation header（長簡訊分片），concat.IsConcat 為 true。
 func DecodeDeliverTPDU(tpduBytes []byte) (sender string, text string, ts time.Time, concat ConcatInfo, err error) {
 	if trimmed, ok := TrimDeliverTPDUToDeclaredLength(tpduBytes); ok {
 		tpduBytes = trimmed
@@ -73,7 +73,7 @@ func DecodeDeliverTPDU(tpduBytes []byte) (sender string, text string, ts time.Ti
 	if err != nil {
 		return "", "", time.Time{}, ConcatInfo{}, err
 	}
-	// 检测 UDH 中的 concatenation 信息（长短信分片标识）
+	// 檢測 UDH 中的 concatenation 資訊（長簡訊分片標識）
 	if t.UDH != nil {
 		if segments, seqno, mref, ok := t.UDH.ConcatInfo8(); ok && segments > 1 {
 			concat = ConcatInfo{IsConcat: true, Ref: mref, RefBits: 8, Total: segments, Seq: seqno}
@@ -82,7 +82,7 @@ func DecodeDeliverTPDU(tpduBytes []byte) (sender string, text string, ts time.Ti
 		}
 	}
 
-	// 检查是否为二进制数据 (比如针对 SIM 卡的 OTA / Class 2 消息)，直接强转会破坏编码导致 webhook 报错
+	// 檢查是否為二進位資料 (比如針對 SIM 卡的 OTA / Class 2 訊息)，直接強轉會破壞編碼導致 webhook 報錯
 	textStr := string(msg)
 	alpha, aErr := t.DCS.Alphabet()
 	if aErr == nil && alpha == tpdu.Alpha8Bit {
@@ -90,7 +90,7 @@ func DecodeDeliverTPDU(tpduBytes []byte) (sender string, text string, ts time.Ti
 		textStr = formatBinaryClassification(classified)
 	}
 
-	// 最终安全保障：滤除任何非法的非 UTF-8 截断内容，防止下游 JSON 序列化崩溃
+	// 最終安全保障：濾除任何非法的非 UTF-8 截斷內容，防止下游 JSON 序列化崩潰
 	textStr = strings.ToValidUTF8(textStr, "")
 
 	if t.SmsType() == tpdu.SmsDeliver {
@@ -99,8 +99,8 @@ func DecodeDeliverTPDU(tpduBytes []byte) (sender string, text string, ts time.Ti
 	return "", textStr, time.Time{}, concat, nil
 }
 
-// IsShortCode 判断号码是否为运营商短号码/服务号码（非标准手机号）
-// 短号码特征：无 + 前缀、长度 <= 6 位、纯数字
+// IsShortCode 判斷號碼是否為電信業者短號碼/服務號碼（非標準手機號）
+// 短號碼特徵：無 + 字首、長度 <= 6 位、純數字
 func IsShortCode(phone string) bool {
 	if strings.HasPrefix(phone, "+") {
 		return false
@@ -109,7 +109,7 @@ func IsShortCode(phone string) bool {
 	return digits == "" && len(phone) <= 6
 }
 
-// BuildSubmitTPDUsWithOptions 编码上行短信为一组 SUBMIT TPDU，并允许调用方指定文本编码策略。
+// BuildSubmitTPDUsWithOptions 編碼上行簡訊為一組 SUBMIT TPDU，並允許呼叫方指定文字編碼策略。
 func BuildSubmitTPDUsWithOptions(to, text string, opts SubmitOptions) ([][]byte, []int, error) {
 	normalizedTo := strings.TrimSpace(to)
 	encoding, err := NormalizeSMSEncoding(string(opts.Encoding))
@@ -129,15 +129,15 @@ func BuildSubmitTPDUsWithOptions(to, text string, opts SubmitOptions) ([][]byte,
 		return nil, nil, err
 	}
 	if len(tpdus) == 0 {
-		return nil, nil, errors.New("TPDU 编码结果为空")
+		return nil, nil, errors.New("TPDU 編碼結果為空")
 	}
 
 	var bytesList [][]byte
 	var lenList []int
 
 	for _, pdu := range tpdus {
-		// 修复短号码地址类型：库默认将所有号码设为 TonInternational (0x91)，
-		// 但运营商短号码（如 888、10086）应使用 TonUnknown (0x81)
+		// 修復短號碼位址型別：庫預設將所有號碼設為 TonInternational (0x91)，
+		// 但電信業者短號碼（如 888、10086）應使用 TonUnknown (0x81)
 		if IsShortCode(normalizedTo) {
 			da := pdu.DA
 			da.SetTypeOfNumber(tpdu.TonUnknown)

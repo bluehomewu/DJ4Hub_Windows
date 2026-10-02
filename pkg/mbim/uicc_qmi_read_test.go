@@ -31,13 +31,13 @@ func TestBuildQMIReadTransparentTLVLayout(t *testing.T) {
 	}
 }
 
-// 读取挂在某个 ADF(如 ADF_USIM)下的文件时：
-//  1. Session TLV 必须携带完整 AID
-//  2. session_type 必须为 0x04 (Non-provisioning on slot 1)，而不是 0x00 (Primary GW)
+// 讀取掛在某個 ADF(如 ADF_USIM)下的檔案時：
+//  1. Session TLV 必須攜帶完整 AID
+//  2. session_type 必須為 0x04 (Non-provisioning on slot 1)，而不是 0x00 (Primary GW)
 //
-// 真机验证：EM7430 QMI-over-MBIM 隧道里 session_type=0x00 无论是否带 AID 都会以
-// qmi_error=0x0030 (INVALID_ARGUMENT) 拒绝；session_type=0x04 + 显式 AID 才是
-// 访问 ADF 子文件的正确方式。
+// 真機驗證：EM7430 QMI-over-MBIM 隧道里 session_type=0x00 無論是否帶 AID 都會以
+// qmi_error=0x0030 (INVALID_ARGUMENT) 拒絕；session_type=0x04 + 顯式 AID 才是
+// 訪問 ADF 子檔案的正確方式。
 func TestBuildQMIReadTransparentSessionTLVIncludesAID(t *testing.T) {
 	aid := []byte{0xA0, 0x00, 0x00, 0x00, 0x87, 0x10, 0x02}
 	frame := buildQMIReadTransparent(0x01, 2, 0x6F46, aid, nil, 0, 0)
@@ -92,9 +92,9 @@ func TestParseQMIReadResultMissingTLVsErrors(t *testing.T) {
 	}
 }
 
-// 模组在请求阶段就判定失败时(如越界长度、非法路径/AID),只会回标准强制的
-// Result Code TLV(0x02,result=FAILURE),不会带 card_result/read_result。
-// parseQMIReadResult 必须把这个错误码透出来,而不是报"缺少 TLV"的模糊错误。
+// 模組在請求階段就判定失敗時(如越界長度、非法路徑/AID),只會回標準強制的
+// Result Code TLV(0x02,result=FAILURE),不會帶 card_result/read_result。
+// parseQMIReadResult 必須把這個錯誤碼透出來,而不是報"缺少 TLV"的模糊錯誤。
 func TestParseQMIReadResultSurfacesQMIErrorCode(t *testing.T) {
 	result := []byte{0x02, 0x04, 0x00, 0x01, 0x00, 0x1C, 0x00} // qmi_error=0x001C
 	frame := buildTestQMIServiceResp(0x0020, result)

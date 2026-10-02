@@ -20,7 +20,7 @@ func installAudioRuntime(source string) error {
 		return nil
 	}
 	if _, err = os.Lstat(destination); err == nil {
-		return errors.New("目标目录已存在但校验未通过；为保护原文件，请先将该目录改名备份再导入")
+		return errors.New("目標目錄已存在但校驗未透過；為保護原檔案，請先將該目錄改名備份再匯入")
 	} else if !os.IsNotExist(err) {
 		return err
 	}

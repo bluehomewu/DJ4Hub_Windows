@@ -14,8 +14,8 @@ var (
 	goRunMode bool
 )
 
-// IsGoRun 返回当前进程是否大概率由 `go run` 启动。
-// 也支持通过 DJ4GHUB_FORCE_GO_RUN_LOG=true/false 手动覆盖判定结果。
+// IsGoRun 返回目前行程是否大機率由 `go run` 啟動。
+// 也支援透過 DJ4GHUB_FORCE_GO_RUN_LOG=true/false 手動覆蓋判定結果。
 func IsGoRun() bool {
 	goRunOnce.Do(func() {
 		goRunMode = detectGoRunMode()
@@ -37,14 +37,14 @@ func detectGoRunMode() bool {
 
 	if exe, err := os.Executable(); err == nil {
 		path := filepath.ToSlash(strings.ToLower(strings.TrimSpace(exe)))
-		// `go run` 的临时二进制通常位于 .../go-build... 路径下。
+		// `go run` 的臨時二進位通常位於 .../go-build... 路徑下。
 		if strings.Contains(path, "/go-build") {
 			return true
 		}
 	}
 
 	if bi, ok := debug.ReadBuildInfo(); ok && bi != nil {
-		// `go run` 默认以 command-line-arguments 作为主模块路径。
+		// `go run` 預設以 command-line-arguments 作為主模組路徑。
 		if strings.TrimSpace(bi.Path) == "command-line-arguments" {
 			return true
 		}

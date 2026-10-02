@@ -48,7 +48,7 @@ func (h *communicationHistory) loadBackupConfig() {
 	}
 	if err := json.Unmarshal(data, &h.backup); err != nil {
 		h.backup = historyBackupConfig{}
-		h.backupError = "备份设置读取失败，请重新选择目录"
+		h.backupError = "備份設定讀取失敗，請重新選擇目錄"
 	}
 }
 
@@ -84,11 +84,11 @@ func (h *communicationHistory) saveBackupConfig(config historyBackupConfig) erro
 // Build locally first; publish only the completed snapshot to the cloud directory.
 func (h *communicationHistory) snapshot(directory string, prefix string) (string, error) {
 	if h.db == nil {
-		return "", fmt.Errorf("记录数据库不可用")
+		return "", fmt.Errorf("記錄資料庫不可用")
 	}
 	info, err := os.Stat(directory)
 	if err != nil || !info.IsDir() {
-		return "", fmt.Errorf("备份目录不可用，请确认云盘目录已下载到本机")
+		return "", fmt.Errorf("備份目錄不可用，請確認雲盤目錄已下載到本機")
 	}
 	stage, err := os.MkdirTemp(filepath.Dir(h.path), ".history-snapshot-*")
 	if err != nil {
@@ -131,7 +131,7 @@ func (h *communicationHistory) snapshot(directory string, prefix string) (string
 func (h *communicationHistory) backupNow() (string, error) {
 	config := h.backup
 	if config.Directory == "" {
-		return "", fmt.Errorf("请先选择备份目录")
+		return "", fmt.Errorf("請先選擇備份目錄")
 	}
 	if config.Owner == "" {
 		var token [12]byte
@@ -191,7 +191,7 @@ func sqliteReadOnlyURI(path string) string {
 func readHistoryBackup(path string) ([]historyRecord, error) {
 	info, err := os.Stat(path)
 	if err != nil || !info.Mode().IsRegular() || info.Size() > 256<<20 {
-		return nil, fmt.Errorf("请选择小于 256 MB 的 SQLite 备份文件")
+		return nil, fmt.Errorf("請選擇小於 256 MB 的 SQLite 備份檔案")
 	}
 	db, err := gorm.Open(sqlite.Open(sqliteReadOnlyURI(path)), &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)})
 	if err != nil {
@@ -204,14 +204,14 @@ func readHistoryBackup(path string) ([]historyRecord, error) {
 	defer func() { _ = conn.Close() }()
 	var integrity string
 	if err := db.Raw("PRAGMA quick_check").Scan(&integrity).Error; err != nil || integrity != "ok" {
-		return nil, fmt.Errorf("备份完整性检查失败")
+		return nil, fmt.Errorf("備份完整性檢查失敗")
 	}
 	var rows []communicationRecord
 	if err := db.Limit(100001).Find(&rows).Error; err != nil {
-		return nil, fmt.Errorf("不是有效的 DJ 4G Hub 通信记录备份")
+		return nil, fmt.Errorf("不是有效的 DJ 4G Hub 通訊記錄備份")
 	}
 	if len(rows) > 100000 {
-		return nil, fmt.Errorf("备份记录过多")
+		return nil, fmt.Errorf("備份記錄過多")
 	}
 	records := make([]historyRecord, 0, len(rows))
 	for _, row := range rows {
@@ -220,7 +220,7 @@ func readHistoryBackup(path string) ([]historyRecord, error) {
 			return nil, err
 		}
 		if record.ID == "" || record.ID != row.RecordID || record.Kind != row.Kind || record.ICCID != row.ICCID || (record.Kind != "call" && record.Kind != "sms") || record.Started.IsZero() {
-			return nil, fmt.Errorf("备份记录格式不符合要求")
+			return nil, fmt.Errorf("備份記錄格式不符合要求")
 		}
 		records = append(records, record)
 	}
@@ -232,7 +232,7 @@ func readHistoryBackup(path string) ([]historyRecord, error) {
 
 func (h *communicationHistory) restoreBackup(path string) (int, string, error) {
 	if len(h.active) != 0 {
-		return 0, "", fmt.Errorf("通话结束后才能恢复记录")
+		return 0, "", fmt.Errorf("通話結束後才能恢復記錄")
 	}
 	records, err := readHistoryBackup(path)
 	if err != nil {
@@ -310,7 +310,7 @@ func (h *communicationHistory) backupIfDue(now time.Time) {
 func (a *app) historyBackupStatus(w http.ResponseWriter, r *http.Request) {
 	h := a.historyStore()
 	if h == nil {
-		writeError(w, 503, "记录存储未初始化")
+		writeError(w, 503, "記錄儲存未初始化")
 		return
 	}
 	h.mu.Lock()
@@ -321,7 +321,7 @@ func (a *app) historyBackupStatus(w http.ResponseWriter, r *http.Request) {
 func (a *app) historyBackupAction(w http.ResponseWriter, r *http.Request) {
 	// Native requests have no Origin. Cross-origin web pages cannot choose file paths.
 	if r.Header.Get("X-DJ4Hub-Audio") != "1" || r.Header.Get("Origin") != "" {
-		writeError(w, 403, "请从 macOS 客户端的备份设置操作")
+		writeError(w, 403, "請從 macOS 客戶端的備份設定操作")
 		return
 	}
 	var body struct {
@@ -331,12 +331,12 @@ func (a *app) historyBackupAction(w http.ResponseWriter, r *http.Request) {
 		Confirmed bool   `json:"confirmed"`
 	}
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 8192)).Decode(&body); err != nil {
-		writeError(w, 400, "无效请求")
+		writeError(w, 400, "無效請求")
 		return
 	}
 	h := a.historyStore()
 	if h == nil || a.demo {
-		writeError(w, 503, "真实记录存储不可用")
+		writeError(w, 503, "真實記錄儲存不可用")
 		return
 	}
 	// Serialize restore with dialing and call-history observation.
@@ -350,7 +350,7 @@ func (a *app) historyBackupAction(w http.ResponseWriter, r *http.Request) {
 	case "configure":
 		info, statErr := os.Stat(body.Path)
 		if !filepath.IsAbs(body.Path) || statErr != nil || !info.IsDir() {
-			writeError(w, 400, "请选择本机可用的备份文件夹")
+			writeError(w, 400, "請選擇本機可用的備份資料夾")
 			return
 		}
 		config := h.backup
@@ -362,21 +362,21 @@ func (a *app) historyBackupAction(w http.ResponseWriter, r *http.Request) {
 		config.Directory = body.Path
 		config.Enabled = body.Enabled
 		err = h.saveBackupConfig(config)
-		message = "备份设置已保存"
+		message = "備份設定已儲存"
 	case "backup":
 		_, err = h.backupNow()
-		message = "完整备份已写入所选目录；云盘上传进度请在 Finder 查看"
+		message = "完整備份已寫入所選目錄；雲盤上傳進度請在 Finder 檢視"
 	case "restore":
 		if !body.Confirmed || !filepath.IsAbs(body.Path) {
-			writeError(w, 400, "恢复前需要确认")
+			writeError(w, 400, "恢復前需要確認")
 			return
 		}
 		var count int
 		var safety string
 		count, safety, err = h.restoreBackup(body.Path)
-		message = fmt.Sprintf("已补回 %d 条记录；原数据安全备份：%s", count, safety)
+		message = fmt.Sprintf("已補回 %d 條記錄；原資料安全備份：%s", count, safety)
 	default:
-		writeError(w, 400, "不支持的备份操作")
+		writeError(w, 400, "不支援的備份操作")
 		return
 	}
 	if err != nil {

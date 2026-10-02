@@ -42,7 +42,7 @@ func probeCellularInternet(ctx context.Context, interfaceName string, sourceIPv4
 
 func probeAnyTarget(ctx context.Context, interfaceName string, sourceIPv4 string, targets []string) (string, error) {
 	if len(targets) == 0 {
-		return "", errors.New("没有配置公网检测地址")
+		return "", errors.New("沒有配置公網檢測位址")
 	}
 	probeCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -74,11 +74,11 @@ func probeAnyTarget(ctx context.Context, interfaceName string, sourceIPv4 string
 func probeHTTPFromInterface(ctx context.Context, interfaceName string, sourceIPv4 string, target string) error {
 	interfaceInfo, err := net.InterfaceByName(interfaceName)
 	if err != nil {
-		return fmt.Errorf("读取网卡 %s: %w", interfaceName, err)
+		return fmt.Errorf("讀取網卡 %s: %w", interfaceName, err)
 	}
 	sourceIP := net.ParseIP(sourceIPv4)
 	if sourceIP == nil || sourceIP.To4() == nil {
-		return fmt.Errorf("无效的 IPv4 地址 %q", sourceIPv4)
+		return fmt.Errorf("無效的 IPv4 位址 %q", sourceIPv4)
 	}
 
 	dialer := &net.Dialer{
@@ -118,7 +118,7 @@ func probeHTTPFromInterface(ctx context.Context, interfaceName string, sourceIPv
 		return err
 	}
 	if err := response.Body.Close(); err != nil {
-		return fmt.Errorf("关闭公网检测响应: %w", err)
+		return fmt.Errorf("關閉公網檢測響應: %w", err)
 	}
 	return nil
 }

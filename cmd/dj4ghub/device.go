@@ -201,11 +201,11 @@ func driverIssueText(node pnpDevice) string {
 	}
 	switch node.Problem {
 	case cmProbFailedInstall:
-		return fmt.Sprintf("%s 未安装驱动程序", name)
+		return fmt.Sprintf("%s 未安裝驅動程式", name)
 	case cmProbDisabled:
 		return fmt.Sprintf("%s 已在 Windows 中停用", name)
 	default:
-		return fmt.Sprintf("%s 驱动异常（代码 %d）", name, node.Problem)
+		return fmt.Sprintf("%s 驅動異常（程式碼 %d）", name, node.Problem)
 	}
 }
 

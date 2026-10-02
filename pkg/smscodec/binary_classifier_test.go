@@ -14,14 +14,14 @@ func TestParseUDHPortsSupports16And8(t *testing.T) {
 	}
 	ports := parseUDHPorts(udh)
 	if !ports.Has16Bit || ports.DestPort16 != 2948 || ports.SrcPort16 != 9200 {
-		t.Fatalf("16-bit 端口解析错误: %+v", ports)
+		t.Fatalf("16-bit 埠解析錯誤: %+v", ports)
 	}
 	if !ports.Has8Bit || ports.DestPort8 != 0x23 || ports.SrcPort8 != 0xF0 {
-		t.Fatalf("8-bit 端口解析错误: %+v", ports)
+		t.Fatalf("8-bit 埠解析錯誤: %+v", ports)
 	}
 	gotPort, ok := ports.preferredDestPort()
 	if !ok || gotPort != 2948 {
-		t.Fatalf("preferredDestPort 错误: ok=%v port=%d", ok, gotPort)
+		t.Fatalf("preferredDestPort 錯誤: ok=%v port=%d", ok, gotPort)
 	}
 }
 
@@ -30,13 +30,13 @@ func TestParseWSPPushContentTypeToken(t *testing.T) {
 	data := append([]byte{0x01, 0x06, 0x01, 0xB0}, buildTestWBXML()...)
 	wsp := parseWSPPush(data)
 	if !wsp.Ok {
-		t.Fatal("应识别为有效 WSP Push")
+		t.Fatal("應識別為有效 WSP Push")
 	}
 	if wsp.ContentType != "application/vnd.wap.connectivity-wbxml" {
-		t.Fatalf("content-type 解析错误: %q", wsp.ContentType)
+		t.Fatalf("content-type 解析錯誤: %q", wsp.ContentType)
 	}
 	if len(wsp.Body) == 0 {
-		t.Fatal("body 不应为空")
+		t.Fatal("body 不應為空")
 	}
 }
 
@@ -49,19 +49,19 @@ func TestClassifyBinarySMS_OmaCPByPort(t *testing.T) {
 	}
 	c := classifyBinarySMS(tp, msg)
 	if c.Kind != binaryKindOmaCP {
-		t.Fatalf("应识别为 OMA CP，实际: %s", c.Kind)
+		t.Fatalf("應識別為 OMA CP，實際: %s", c.Kind)
 	}
 	out := formatBinaryClassification(c)
-	if !strings.Contains(out, "[OMA CP 运营商配置短信]") {
-		t.Fatalf("输出缺少 OMA CP 标签: %s", out)
+	if !strings.Contains(out, "[OMA CP 電信業者配置簡訊]") {
+		t.Fatalf("輸出缺少 OMA CP 標籤: %s", out)
 	}
 	if !strings.Contains(out, "raw=") {
-		t.Fatalf("输出缺少 raw 字段: %s", out)
+		t.Fatalf("輸出缺少 raw 欄位: %s", out)
 	}
 }
 
 func TestClassifyBinarySMS_WAPSI(t *testing.T) {
-	// WSP header 使用文本 content-type，避免依赖 token 映射。
+	// WSP header 使用文字 content-type，避免依賴 token 對映。
 	ct := "application/vnd.wap.sic\x00"
 	body := []byte("title\x00https://example.com/si")
 	msg := append([]byte{0x21, 0x06, byte(len(ct))}, []byte(ct)...)
@@ -69,11 +69,11 @@ func TestClassifyBinarySMS_WAPSI(t *testing.T) {
 
 	c := classifyBinarySMS(&tpdu.TPDU{}, msg)
 	if c.Kind != binaryKindWAPSI {
-		t.Fatalf("应识别为 WAP SI，实际: %s", c.Kind)
+		t.Fatalf("應識別為 WAP SI，實際: %s", c.Kind)
 	}
 	out := formatBinaryClassification(c)
 	if !strings.Contains(out, "url=https://example.com/si") {
-		t.Fatalf("应提取 URL，实际: %s", out)
+		t.Fatalf("應提取 URL，實際: %s", out)
 	}
 }
 
@@ -90,14 +90,14 @@ func TestClassifyBinarySMS_MMSNotification(t *testing.T) {
 
 	c := classifyBinarySMS(&tpdu.TPDU{}, msg)
 	if c.Kind != binaryKindMMSNotification {
-		t.Fatalf("应识别为 MMS Notification，实际: %s", c.Kind)
+		t.Fatalf("應識別為 MMS Notification，實際: %s", c.Kind)
 	}
 	out := formatBinaryClassification(c)
 	if !strings.Contains(out, "x_mms_transaction_id=tx1") {
-		t.Fatalf("应提取 transaction id，实际: %s", out)
+		t.Fatalf("應提取 transaction id，實際: %s", out)
 	}
 	if !strings.Contains(out, "message_size=") {
-		t.Fatalf("应提取 message size，实际: %s", out)
+		t.Fatalf("應提取 message size，實際: %s", out)
 	}
 }
 
@@ -107,11 +107,11 @@ func TestClassifyBinarySMS_SIMOTA(t *testing.T) {
 	tp := &tpdu.TPDU{PID: 0x7F}
 	c := classifyBinarySMS(tp, msg)
 	if c.Kind != binaryKindSIMOTA {
-		t.Fatalf("应识别为 SIM OTA，实际: %s", c.Kind)
+		t.Fatalf("應識別為 SIM OTA，實際: %s", c.Kind)
 	}
 	out := formatBinaryClassification(c)
 	if !strings.Contains(out, "[SIM OTA 23.048]") {
-		t.Fatalf("缺少 SIM OTA 标签: %s", out)
+		t.Fatalf("缺少 SIM OTA 標籤: %s", out)
 	}
 	if !strings.Contains(out, "spi=0x1122") {
 		t.Fatalf("缺少 SPI 提示: %s", out)
@@ -122,10 +122,10 @@ func TestClassifyBinarySMS_UnknownFallback(t *testing.T) {
 	msg := []byte{0xde, 0xad, 0xbe, 0xef}
 	c := classifyBinarySMS(&tpdu.TPDU{}, msg)
 	if c.Kind != binaryKindUnknown {
-		t.Fatalf("应回退 unknown，实际: %s", c.Kind)
+		t.Fatalf("應回退 unknown，實際: %s", c.Kind)
 	}
 	out := formatBinaryClassification(c)
-	if !strings.Contains(out, "[二进制数据]") || !strings.Contains(out, "raw=deadbeef") {
-		t.Fatalf("unknown 输出不符合预期: %s", out)
+	if !strings.Contains(out, "[二進位資料]") || !strings.Contains(out, "raw=deadbeef") {
+		t.Fatalf("unknown 輸出不符合預期: %s", out)
 	}
 }
