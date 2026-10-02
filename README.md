@@ -72,8 +72,10 @@ dj4ghub serve --port COM17
    ```
 3. 第一次撥號時，網頁會請你同意初始化：程式會備份 USB 設定、以 QADBKEY 授權並**永久開啟模組 ADB**，然後重啟模組一次。Windows 11 會自動以內建 WinUSB 驅動綁定「ADB Interface」。
 4. 之後每次準備音訊時，程式會載入暫時性的核心驅動；Windows 會出現「麥克風 (AC Interface)」與「喇叭 (AC Interface)」。驅動在模組重啟後清除。
+5. 通話時，模組 → 電腦喇叭由瀏覽器播放；電腦麥克風 → 模組則由 DJ 4G Hub 服務以 WASAPI 直接傳送。原因是 Windows 上的 Chrome 無法輸出到模組 8 kHz 單聲道的「喇叭 (AC Interface)」，會悄悄改用預設喇叭。
 
 注意事項：
+- 請戴耳機通話：麥克風這一段不經過瀏覽器，沒有回音消除。
 - 執行時請不要讓其他 adb 服務佔用模組；若執行過 `adb devices`，請先 `adb kill-server`。
 - 模組音效卡出現時，Windows 可能自動把它設為預設播放／錄音裝置，請到「設定 → 系統 → 音效」改回原本的裝置。
 - 撥號需要 SIM 支援 VoLTE，且模組 `AT+QCFG="ims"` 為 `1,1`（已啟用且已註冊）。

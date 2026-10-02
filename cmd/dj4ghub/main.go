@@ -79,6 +79,8 @@ type app struct {
 	smsCardIdentity   string
 	audioMu           sync.Mutex
 	audioSession      *moduleAudioSession
+	uplinkMu          sync.Mutex
+	audioUplink       *audioUplink
 	modem             *modem.Manager
 	esimMu            sync.RWMutex
 	esim              *esim.Manager
@@ -329,6 +331,8 @@ func serve(instance *app, listen string) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	instance.seedSMSFromHistory()
+	defer instance.stopAudioUplink()
+	go instance.monitorAudioUplink(ctx)
 	go instance.monitorCallHistory(ctx)
 	go instance.monitorHistoryBackup(ctx)
 
@@ -588,6 +592,7 @@ func (a *app) routes() http.Handler {
 	mux.HandleFunc("POST /api/calls/audio/prepare", a.moduleAudioPrepare)
 	mux.HandleFunc("POST /api/calls/audio/lease", a.moduleAudioLease)
 	mux.HandleFunc("POST /api/calls/audio/stop", a.moduleAudioStop)
+	mux.HandleFunc("POST /api/calls/audio/uplink", a.moduleAudioUplink)
 	mux.HandleFunc("POST /api/network/apn", a.saveAPN)
 	mux.HandleFunc("GET /api/network", a.networkDiagnostic)
 	mux.HandleFunc("GET /api/network/local", a.localNetworkConnection)

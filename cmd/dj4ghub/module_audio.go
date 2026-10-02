@@ -51,6 +51,9 @@ type moduleAudioReply struct {
 	Active     bool   `json:"active"`
 	Token      string `json:"token,omitempty"`
 	Summary    string `json:"summary,omitempty"`
+	// NativeUplink tells the page that the service, not the browser, sends
+	// computer microphone audio to the module.
+	NativeUplink bool `json:"native_uplink"`
 }
 
 // Resolve locally supplied files only. Never download drivers or enable device ADB.
@@ -225,7 +228,7 @@ func (a *app) moduleAudioStatus(w http.ResponseWriter, r *http.Request) {
 	if a.demo {
 		summary = "示範模式不操作真實音訊硬體"
 	}
-	writeJSON(w, 200, moduleAudioReply{Configured: err == nil && !a.demo, Active: active, Summary: summary})
+	writeJSON(w, 200, moduleAudioReply{Configured: err == nil && !a.demo, Active: active, Summary: summary, NativeUplink: true})
 }
 
 func (a *app) moduleAudioPrepare(w http.ResponseWriter, r *http.Request) {
@@ -482,6 +485,7 @@ func (a *app) moduleAudioUpdate(w http.ResponseWriter, r *http.Request, stop boo
 			state, _ := s.shell(r.Context(), "cat "+audioQuote(s.dir+"/state"))
 			if state == "closed" {
 				a.audioSession = nil
+				a.stopAudioUplink()
 				writeJSON(w, 200, moduleAudioReply{Configured: true, Summary: "模組音訊已停止，USB 設定已恢復；臨時驅動在重啟後清除"})
 				return
 			}

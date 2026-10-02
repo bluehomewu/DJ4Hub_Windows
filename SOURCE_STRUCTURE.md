@@ -40,6 +40,7 @@ DJI Cellular/
 | `launcher_windows.go`、`control.go` | `start/stop/status/logs/open` 子指令、背景服務與帶權杖的本機關閉端點 |
 | `activate_windows.go` | 一次性確認模組網卡已連線 |
 | `filelock_windows.go` | 以 `LockFileEx` 確保只有一個服務持有通訊紀錄 |
+| `audio_uplink.go`、`audio_uplink_windows.go`、`audio_uplink_api.go` | 通話上行：以 WASAPI 擷取電腦麥克風、轉成 8 kHz 單聲道後送進模組音效卡（Windows Chrome 無法輸出到該裝置） |
 | `audio_adb_windows.go` | 實驗通話音訊：以 PnP 位置確認唯一模組，以 adb 序號鎖定目標（Windows adb 不提供 USB 位置） |
 
 ## 驗證

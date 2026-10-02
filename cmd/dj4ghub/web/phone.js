@@ -101,9 +101,18 @@ $('#apn-save').onclick = async () => {
   catch(e){$('#apn-feedback').textContent=e.message;}
   finally{$('#apn-save').disabled=false;}
 };
+// On Windows Chrome cannot render to the module's 8 kHz endpoint, so the
+// service streams the computer microphone to the module itself.
+let moduleAudioNativeUplink = false;
+let downlinkPlayer = null;
+function uplinkRequest(action, microphone = '', keepalive = false) {
+  return fetch('/api/calls/audio/uplink', {method:'POST', keepalive, headers:{'Content-Type':'application/json','X-DJ4Hub-Audio':'1','X-DJ4Hub-Audio-Token':moduleAudioToken}, body:JSON.stringify({action, microphone})})
+    .then(async response => { const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`); return data; });
+}
 function stopPhoneAudio(){
-  audioPlayers.forEach(p=>{p.pause();p.srcObject=null;});audioPlayers=[];
+  audioPlayers.forEach(p=>{p.pause();p.srcObject=null;});audioPlayers=[];downlinkPlayer=null;
   audioStreams.forEach(s=>s.getTracks().forEach(t=>t.stop()));audioStreams=[];
+  if (moduleAudioNativeUplink && moduleAudioToken) void uplinkRequest('stop', '', true).catch(()=>{});
   $('#audio-feedback').textContent='音訊已中斷';
 }
 let audioPermissionRequested = false;
@@ -163,12 +172,21 @@ async function connectPhoneAudio(){
   try{
     if(typeof HTMLMediaElement.prototype.setSinkId!=='function')throw new Error('瀏覽器不支援輸出裝置選擇');
     const mic=$('#audio-mic').value, modemIn=$('#audio-modem-in').value, speaker=$('#audio-speaker').value, modemOut=$('#audio-modem-out').value;
-    if(!mic||!modemIn||!speaker||!modemOut||mic===modemIn||speaker===modemOut)throw new Error('請選擇不同的電腦與模組音訊裝置');
-    for(const [input,output] of [[mic,modemOut],[modemIn,speaker]]){
+    const native = moduleAudioNativeUplink;
+    if(!mic||!modemIn||!speaker||(!native&&!modemOut)||mic===modemIn||speaker===modemOut)throw new Error('請選擇不同的電腦與模組音訊裝置');
+    const pairs = native ? [[modemIn,speaker]] : [[mic,modemOut],[modemIn,speaker]];
+    for(const [input,output] of pairs){
       const stream=await navigator.mediaDevices.getUserMedia({audio:{deviceId:{exact:input},echoCancellation:input===mic,noiseSuppression:input===mic}});audioStreams.push(stream);
       const player=new Audio();audioPlayers.push(player);player.srcObject=stream;await player.setSinkId(output);player.volume=input===mic?1:Number($('#audio-volume').value);await player.play();
+      if (input===modemIn) downlinkPlayer=player;
     }
-    audioMuted=false;$('#audio-mute').setAttribute('aria-pressed','false');$('#audio-feedback').textContent='電腦與模組的音訊流已連線，請在通話中確認雙方聲音。';
+    let route='';
+    if (native) {
+      const micLabel=$('#audio-mic').selectedOptions[0]?.textContent||'';
+      const result=await uplinkRequest('start', micLabel);
+      route=`（麥克風：${result.microphone}）`;
+    }
+    audioMuted=false;$('#audio-mute').setAttribute('aria-pressed','false');$('#audio-feedback').textContent=`電腦與模組的音訊流已連線${route}，請在通話中確認雙方聲音。`;
   }catch(e){stopPhoneAudio();$('#audio-feedback').textContent=`連線失敗：${e.message}`;throw e;}
 }
 $('#audio-connect').onclick=async()=>{
@@ -176,8 +194,17 @@ $('#audio-connect').onclick=async()=>{
   catch(e) { $('#audio-feedback').textContent = e.message; }
 };
 $('#audio-stop').onclick=stopPhoneAudio;
-$('#audio-mute').onclick=()=>{audioMuted=!audioMuted;audioStreams[0]?.getAudioTracks().forEach(t=>t.enabled=!audioMuted);$('#audio-mute').setAttribute('aria-pressed',String(audioMuted));};
-$('#audio-volume').oninput=e=>{if(audioPlayers[1])audioPlayers[1].volume=Number(e.target.value);};
+$('#audio-mute').onclick=async()=>{
+  audioMuted=!audioMuted;
+  if (moduleAudioNativeUplink) {
+    try { await uplinkRequest(audioMuted?'mute':'unmute'); }
+    catch(e) { audioMuted=!audioMuted; $('#audio-feedback').textContent=e.message; }
+  } else {
+    audioStreams[0]?.getAudioTracks().forEach(t=>t.enabled=!audioMuted);
+  }
+  $('#audio-mute').setAttribute('aria-pressed',String(audioMuted));
+};
+$('#audio-volume').oninput=e=>{if(downlinkPlayer)downlinkPlayer.volume=Number(e.target.value);};
 function moduleAudioRequest(path, token = moduleAudioToken) {
   return api('/api/calls/audio/' + path, {method:'POST',headers:{'X-DJ4Hub-Audio':'1','X-DJ4Hub-Audio-Token':token,...(path === 'prepare' ? {'X-DJ4Hub-Initialize':'1'} : {})}});
 }
@@ -190,6 +217,7 @@ async function refreshModuleAudio() {
   try {
     const result = await api('/api/calls/audio');
     moduleAudioSupported = Boolean(result.configured);
+    moduleAudioNativeUplink = Boolean(result.native_uplink);
     const autoAudio = $('#phone-use-audio');
     autoAudio.disabled = !moduleAudioSupported;
     if (!moduleAudioSupported) autoAudio.checked = false;
@@ -226,6 +254,7 @@ async function prepareAutomaticAudio() {
     catch (_) { stopPhoneAudio(); clearModuleAudioToken(); }
   }
   const status = await api('/api/calls/audio');
+  moduleAudioNativeUplink = Boolean(status.native_uplink);
   if (!status.configured) throw new Error(status.summary || '本機音訊依賴未設定');
   if (status.active) throw new Error('音訊由另一個頁面使用，請在原頁面停止後重試');
   const current = await api('/api/calls');
