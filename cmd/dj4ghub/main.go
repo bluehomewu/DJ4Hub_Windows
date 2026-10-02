@@ -1498,7 +1498,7 @@ func (a *app) check4GRoute(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, networkCheckResult{
 			OK:      false,
 			Summary: "4G 公網可達，但域名存取失敗",
-			Detail:  fmt.Sprintf("%s（%s）可存取 %s，但域名檢測未透過；請檢查 DNS 設定", service.Device, service.IPv4, target),
+			Detail:  fmt.Sprintf("%s（%s）可存取 %s，但域名檢測未通過；請檢查 DNS 設定", service.Device, service.IPv4, target),
 		})
 		return
 	}

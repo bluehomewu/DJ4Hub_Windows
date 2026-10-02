@@ -3059,7 +3059,7 @@ func (m *Manager) DownloadProfile(ctx context.Context, aidHex, smdp, matchingID,
 			return DownloadProfileResult{}, fmt.Errorf("已觸發防炸卡保護攔截：目標 EID 剩餘空間極度緊張（%d Bytes / %s，低於安全閾值 80KB）。請先刪除多餘的 Profile 釋放空間後再試。",
 				checkInfo.FreeNvramBytes, checkInfo.FreeNvram)
 		}
-		logger.Info("防炸卡預檢透過", "device", m.deviceID, "freeNvram", checkInfo.FreeNvram)
+		logger.Info("防炸卡預檢通過", "device", m.deviceID, "freeNvram", checkInfo.FreeNvram)
 	}
 
 	imei, err := m.resolveDownloadIMEI(ctx, downloadIMEI)

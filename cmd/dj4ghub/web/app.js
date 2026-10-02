@@ -656,7 +656,7 @@ function renderNetworkCheck(label, result) {
   const detail = document.createElement("p");
   detail.textContent = result.detail || result.summary || "";
   const status = document.createElement("small");
-  status.textContent = result.ok ? "透過" : "未透過";
+  status.textContent = result.ok ? "通過" : "未通過";
   row.append(name, detail, status);
   const existing = [...list.querySelectorAll(".item")].filter((item) => item.dataset.label !== label);
   row.dataset.label = label;
