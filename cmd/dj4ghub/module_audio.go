@@ -198,7 +198,7 @@ func audioRuntimeFiles(dir string) (map[string][]byte, error) {
 
 func (a *app) moduleAudioStatus(w http.ResponseWriter, r *http.Request) {
 	if !allowModuleAudio(r) {
-		writeError(w, 403, "音訊控制僅允許本機同源訪問")
+		writeError(w, 403, "音訊控制僅允許本機同源存取")
 		return
 	}
 	a.audioMu.Lock()
@@ -217,7 +217,7 @@ func (a *app) moduleAudioStatus(w http.ResponseWriter, r *http.Request) {
 
 func (a *app) moduleAudioPrepare(w http.ResponseWriter, r *http.Request) {
 	if !allowModuleAudio(r) {
-		writeError(w, 403, "音訊控制僅允許本機同源訪問")
+		writeError(w, 403, "音訊控制僅允許本機同源存取")
 		return
 	}
 	dir, adb, runtimeErr := moduleAudioRuntime()
@@ -421,7 +421,7 @@ func (a *app) moduleAudioStop(w http.ResponseWriter, r *http.Request) {
 
 func (a *app) moduleAudioUpdate(w http.ResponseWriter, r *http.Request, stop bool) {
 	if !allowModuleAudio(r) {
-		writeError(w, 403, "音訊控制僅允許本機同源訪問")
+		writeError(w, 403, "音訊控制僅允許本機同源存取")
 		return
 	}
 	a.audioMu.Lock()

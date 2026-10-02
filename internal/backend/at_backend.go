@@ -26,7 +26,7 @@ func (a *ATBackend) Mode() string { return "at" }
 // Close AT 後端無需額外清理（modem.Manager 由 Worker 管理生命週期）
 func (a *ATBackend) Close() error { return nil }
 
-// Modem 返回底層 modem.Manager（供需要直接訪問 AT 通道的呼叫方使用，如 AT+QCFG）
+// Modem 返回底層 modem.Manager（供需要直接存取 AT 通道的呼叫方使用，如 AT+QCFG）
 func (a *ATBackend) Modem() *modem.Manager { return a.modem }
 
 // ============================================================================

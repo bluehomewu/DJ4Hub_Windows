@@ -111,8 +111,8 @@ func printUsage(out io.Writer) {
 
 用法：
   dj4ghub start [--demo] [--port COMx] [--no-open]
-                         在後臺啟動並開啟管理網頁（直接雙擊 exe 等同 start）
-  dj4ghub stop           停止後臺服務
+                         在背景啟動並開啟管理網頁（直接雙擊 exe 等同 start）
+  dj4ghub stop           停止背景服務
   dj4ghub status         檢視執行狀態
   dj4ghub logs           檢視即時日誌（Ctrl+C 退出）
   dj4ghub open           開啟管理網頁
@@ -280,7 +280,7 @@ func startService(args []string) error {
 		CreationFlags: windows.CREATE_NO_WINDOW | windows.CREATE_NEW_PROCESS_GROUP,
 	}
 	if err := child.Start(); err != nil {
-		return fmt.Errorf("啟動後臺服務失敗: %w", err)
+		return fmt.Errorf("啟動背景服務失敗: %w", err)
 	}
 	state := serviceState{
 		PID:     child.Process.Pid,
@@ -300,9 +300,9 @@ func startService(args []string) error {
 		case err := <-exited:
 			removeServiceState()
 			path, _ := logPath()
-			return fmt.Errorf("後臺服務啟動後立即退出（%v），請檢視日誌 %s", err, path)
+			return fmt.Errorf("背景服務啟動後立即退出（%v），請檢視日誌 %s", err, path)
 		case <-deadline:
-			return errors.New("後臺服務在 25 秒內沒有響應，請執行 dj4ghub logs 檢視原因")
+			return errors.New("背景服務在 25 秒內沒有響應，請執行 dj4ghub logs 檢視原因")
 		case <-time.After(300 * time.Millisecond):
 		}
 	}
@@ -311,7 +311,7 @@ func startService(args []string) error {
 	if *demo {
 		mode = "（示範模式）"
 	}
-	fmt.Printf("DJ 4G Hub %s 已在後臺啟動%s：%s\n", appVersion, mode, state.URL)
+	fmt.Printf("DJ 4G Hub %s 已在背景啟動%s：%s\n", appVersion, mode, state.URL)
 	fmt.Println("停止服務：dj4ghub stop")
 	if !*noOpen {
 		return openURL(state.URL)

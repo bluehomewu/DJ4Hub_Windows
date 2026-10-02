@@ -37,7 +37,7 @@ func TestBuildQMIReadTransparentTLVLayout(t *testing.T) {
 //
 // 真機驗證：EM7430 QMI-over-MBIM 隧道里 session_type=0x00 無論是否帶 AID 都會以
 // qmi_error=0x0030 (INVALID_ARGUMENT) 拒絕；session_type=0x04 + 顯式 AID 才是
-// 訪問 ADF 子檔案的正確方式。
+// 存取 ADF 子檔案的正確方式。
 func TestBuildQMIReadTransparentSessionTLVIncludesAID(t *testing.T) {
 	aid := []byte{0xA0, 0x00, 0x00, 0x00, 0x87, 0x10, 0x02}
 	frame := buildQMIReadTransparent(0x01, 2, 0x6F46, aid, nil, 0, 0)

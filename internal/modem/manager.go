@@ -358,7 +358,7 @@ func (m *Manager) tripATTimeoutWatchdog(cmd string, failures int) {
 	m.notifyDisconnect("at_timeout_threshold")
 }
 
-// Start 啟動 AT 管理器的後臺協程
+// Start 啟動 AT 管理器的背景協程
 func (m *Manager) Start() error {
 	if m.pureQMIBackend() {
 		logger.Info(fmt.Sprintf("[%s] 純 QMI 模式，跳過 AT 管理器啟動", m.cfg.ID), "at_port", m.atPort)

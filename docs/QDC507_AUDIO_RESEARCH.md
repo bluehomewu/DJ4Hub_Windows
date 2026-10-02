@@ -51,7 +51,7 @@
 - 透過 sysfs 臨時將 functions 改為 `diag,serial,rmnet,ffs,audio`（不改 AT 持久配置），使用 30 秒自動恢復指令碼保護。
 - macOS `system_profiler SPAudioDataType` 實測出現 BAIWANG `AC Interface` 輸入和 `AS Interface` 輸出，均為 USB、8 kHz、單聲道。Mac 內建預設輸入/輸出未改變。
 - 沒有撥號、錄音或使用電腦麥克風。USB 列舉成功與實際雙向語音成功是不同驗收項。
-- 預設自動恢復指令碼在隨後檢查時未恢復 functions；不能依賴 ADB 啟動的後臺 shell 在 USB 重列舉後可靠執行清理。改用裝置重啟清理；後續整合必須另有可驗證的恢復機制。
+- 預設自動恢復指令碼在隨後檢查時未恢復 functions；不能依賴 ADB 啟動的背景 shell 在 USB 重列舉後可靠執行清理。改用裝置重啟清理；後續整合必須另有可驗證的恢復機制。
 - 重啟後已確認 functions 恢復 `diag,serial,rmnet,ffs`、audio_enable=0、無載入模組及音效卡，AT 狀態介面正常；本地實驗 ADB server 已停止。
 
 ## 音訊流與恢復複測（2026-09-12）

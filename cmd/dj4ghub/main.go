@@ -1488,8 +1488,8 @@ func (a *app) check4GRoute(w http.ResponseWriter, r *http.Request) {
 	if !dnsOK {
 		writeJSON(w, http.StatusOK, networkCheckResult{
 			OK:      false,
-			Summary: "4G 公網可達，但域名訪問失敗",
-			Detail:  fmt.Sprintf("%s（%s）可訪問 %s，但域名檢測未透過；請檢查 DNS 設定", service.Device, service.IPv4, target),
+			Summary: "4G 公網可達，但域名存取失敗",
+			Detail:  fmt.Sprintf("%s（%s）可存取 %s，但域名檢測未透過；請檢查 DNS 設定", service.Device, service.IPv4, target),
 		})
 		return
 	}
@@ -1500,7 +1500,7 @@ func (a *app) check4GRoute(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, networkCheckResult{
 		OK:      true,
 		Summary: summary,
-		Detail:  fmt.Sprintf("已強制透過 %s（%s）訪問 %s；%s", service.Device, service.IPv4, target, routeDetail),
+		Detail:  fmt.Sprintf("已強制透過 %s（%s）存取 %s；%s", service.Device, service.IPv4, target, routeDetail),
 	})
 }
 
@@ -1522,7 +1522,7 @@ func (a *app) checkProxyRoute(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, networkCheckResult{
 			OK:      false,
 			Summary: "代理未打通",
-			Detail:  "127.0.0.1:7890 代理訪問失敗：" + err.Error(),
+			Detail:  "127.0.0.1:7890 代理存取失敗：" + err.Error(),
 		})
 		return
 	}
