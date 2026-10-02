@@ -934,7 +934,6 @@ func (a *app) readUSBATSMSFromMemory(memory string) ([]receivedSMS, error) {
 				continue
 			}
 			msg.Content = content
-			log.Printf("USB AT long SMS reassembled: sender=%s segments=%d", msg.Sender, concat.Total)
 		}
 		messages = append(messages, msg)
 	}
