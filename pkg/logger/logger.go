@@ -249,13 +249,13 @@ func Setup(cfg LogConfig) {
 
 	var fileWriter zapcore.WriteSyncer
 	if err != nil {
-		// 降級到普通的 stdout 控制檯如果初始化 rotatelogs 失敗
+		// 降級到普通的 stdout 控制台如果初始化 rotatelogs 失敗
 		fileWriter = zapcore.AddSync(os.Stdout)
 	} else {
 		fileWriter = zapcore.AddSync(rl)
 	}
 
-	// 控制檯輸出
+	// 控制台輸出
 	consoleWriter := zapcore.AddSync(os.Stdout)
 
 	level := getLogLevel(cfg.Debug)
