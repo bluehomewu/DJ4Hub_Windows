@@ -131,6 +131,19 @@
           <div><span>本次總流量</span><strong id="traffic-session-total">--</strong></div>
         </div>
         <section id="hardware-details" class="hardware-details" hidden></section>
+        <section class="cellular-section" aria-labelledby="cellular-title">
+          <div class="section-heading">
+            <div><h2 id="cellular-title">SIM 與 VoLTE</h2><p>唯讀查詢模組狀態，不會修改任何設定。</p></div>
+            <button id="cellular-refresh" class="secondary compact" type="button">重新整理</button>
+          </div>
+          <div id="cellular-banner" class="cellular-banner is-muted"><span class="cellular-dot" aria-hidden="true"></span><strong id="cellular-summary">尚未讀取</strong></div>
+          <div class="cellular-grid">
+            <article class="cellular-card"><h3>VoLTE／IMS</h3><dl id="cellular-ims-facts" class="cellular-facts"></dl></article>
+            <article class="cellular-card"><h3>SIM 卡</h3><dl id="cellular-sim-facts" class="cellular-facts"></dl></article>
+            <article class="cellular-card"><h3>行動網路與訊號</h3><dl id="cellular-network-facts" class="cellular-facts"></dl></article>
+          </div>
+          <p id="cellular-status" class="cellular-note"></p>
+        </section>
         <p id="workmode-status" class="inline-status attention" hidden></p>
         <section class="activity-section" aria-labelledby="activity-title">
           <div class="section-heading activity-heading">

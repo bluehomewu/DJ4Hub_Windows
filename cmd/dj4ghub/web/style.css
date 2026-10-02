@@ -256,6 +256,26 @@ button:active:not(:disabled) { transform: translateY(1px); }
 .hardware-details small { display: block; margin-top: 5px; color: var(--dim); font-size: max(var(--font-min), calc(9px * var(--font-scale))); }
 
 .activity-section { margin-top: 28px; }
+.cellular-section { margin-top: 4px; }
+.cellular-banner { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; border: 1px solid var(--hairline); border-radius: var(--radius-md); padding: 11px 14px; background: var(--surface); }
+.cellular-banner strong { color: var(--text-default); font-size: max(var(--font-min), calc(11px * var(--font-scale))); font-weight: 550; }
+.cellular-dot { width: 8px; height: 8px; flex: none; border-radius: 50%; background: var(--dim); }
+.cellular-banner.is-good .cellular-dot { background: var(--positive); }
+.cellular-banner.is-warn .cellular-dot { background: var(--warning); }
+.cellular-banner.is-bad .cellular-dot { background: var(--negative); }
+.cellular-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.cellular-card { min-width: 0; border: 1px solid var(--hairline); border-radius: var(--radius-md); padding: 13px 14px; background: var(--surface); }
+.cellular-card h3 { margin: 0 0 8px; color: var(--muted); font-size: max(var(--font-min), calc(9px * var(--font-scale))); font-weight: 600; }
+.cellular-facts { display: grid; gap: 7px; margin: 0; }
+.cellular-facts > div { display: flex; min-width: 0; align-items: baseline; justify-content: space-between; gap: 12px; }
+.cellular-facts dt { flex: none; color: var(--dim); font-size: max(var(--font-min), calc(9px * var(--font-scale))); }
+.cellular-facts dd { min-width: 0; margin: 0; overflow: hidden; color: var(--text-default); font-size: max(var(--font-min), calc(10px * var(--font-scale))); font-variant-numeric: tabular-nums; text-align: right; text-overflow: ellipsis; white-space: nowrap; }
+.cellular-facts dd.good { color: var(--positive); }
+.cellular-facts dd.warn { color: var(--warning); }
+.cellular-facts dd.bad { color: var(--negative); }
+.cellular-facts dd button { min-height: 0; height: auto; border: 0; border-radius: 0; padding: 0; background: transparent; color: inherit; font: inherit; line-height: inherit; cursor: pointer; }
+.cellular-note { margin: 6px 2px 0; color: var(--dim); font-size: max(var(--font-min), calc(8px * var(--font-scale))); }
+@media (max-width: 980px) { .cellular-grid { grid-template-columns: 1fr; } }
 .activity-heading { margin-bottom: 9px; }
 .activity-updated { color: var(--dim); font-size: max(var(--font-min), calc(9px * var(--font-scale))); }
 .activity-panel { overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); }

@@ -646,6 +646,134 @@ function networkFact(label, value) {
   return item;
 }
 
+let cellularLoading = false;
+const cellularRevealed = new Set();
+
+// fact builds one row; tone colours the value, secret masks it until clicked.
+function cellularFact(label, value, tone = "", secret = false) {
+  const item = document.createElement("div");
+  const term = document.createElement("dt");
+  term.textContent = label;
+  const description = document.createElement("dd");
+  if (tone) description.className = tone;
+  const text = value === null || value === undefined || value === "" ? "--" : String(value);
+  if (secret && text !== "--") {
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    const render = () => {
+      const shown = cellularRevealed.has(label);
+      toggle.textContent = shown ? text : maskIdentifier(text);
+      toggle.title = shown ? "點選隱藏" : "點選顯示完整內容";
+    };
+    toggle.addEventListener("click", () => {
+      if (cellularRevealed.has(label)) cellularRevealed.delete(label);
+      else cellularRevealed.add(label);
+      render();
+    });
+    render();
+    description.append(toggle);
+  } else {
+    description.textContent = text;
+  }
+  item.append(term, description);
+  return item;
+}
+
+function yesNo(value, yes, no, goodWhenYes = true) {
+  if (value === null || value === undefined) return ["無法讀取", "warn"];
+  return value === goodWhenYes ? [value ? yes : no, "good"] : [value ? yes : no, "warn"];
+}
+
+function withUnit(value, unit) {
+  return value === null || value === undefined ? "" : `${value} ${unit}`;
+}
+
+function rsrpTone(value) {
+  if (value === null || value === undefined) return "";
+  if (value >= -90) return "good";
+  if (value >= -105) return "warn";
+  return "bad";
+}
+
+const connStateText = { CONNECT: "連線中（有資料傳輸）", NOCONN: "閒置（已駐留）", SEARCH: "搜尋網路中", LIMSRV: "限制服務（僅緊急通話）" };
+
+function renderCellular(data) {
+  const ims = data.ims || {};
+  const sim = data.sim || {};
+  const net = data.network || {};
+  const banner = $("#cellular-banner");
+  const tone = { ready: "is-good", unregistered: "is-warn", disabled: "is-bad" }[ims.state] || "is-muted";
+  banner.className = `cellular-banner ${tone}`;
+  $("#cellular-summary").textContent = ims.summary || "無法讀取 IMS 狀態";
+
+  const [imsEnabled, imsEnabledTone] = yesNo(ims.enabled, "已啟用", "未啟用");
+  const [imsRegistered, imsRegisteredTone] = yesNo(ims.registered, "已註冊", "未註冊");
+  const [volte, volteTone] = yesNo(ims.volte_disabled, "已停用", "允許", false);
+  const pdn = ims.pdn_cid
+    ? `cid ${ims.pdn_cid} · ${ims.pdn_active ? "已啟用" : "未啟用"}${ims.pdn_address ? ` · ${ims.pdn_address}` : ""}`
+    : "未設定";
+  $("#cellular-ims-facts").replaceChildren(
+    cellularFact("IMS 設定", imsEnabled, imsEnabledTone),
+    cellularFact("IMS 註冊", imsRegistered, imsRegisteredTone),
+    cellularFact("VoLTE", volte, volteTone),
+    cellularFact("IMS 連線", pdn, ims.pdn_active ? "good" : ""),
+    cellularFact("MBN 設定檔", ims.mbn),
+  );
+
+  const [inserted, insertedTone] = yesNo(sim.inserted, "已插入", "未插入");
+  const pinText = { READY: "就緒", "SIM PIN": "需要 PIN 碼", "SIM PUK": "需要 PUK 碼" }[sim.pin] || sim.pin;
+  $("#cellular-sim-facts").replaceChildren(
+    cellularFact("卡片", inserted, insertedTone),
+    cellularFact("PIN", pinText, sim.pin === "READY" ? "good" : "warn"),
+    cellularFact("初始化", sim.init_text, sim.init_status === 7 ? "good" : "warn"),
+    cellularFact("發卡業者", [sim.home_operator, sim.home_plmn].filter(Boolean).join(" · ")),
+    cellularFact("ICCID", sim.iccid, "", true),
+    cellularFact("IMSI", sim.imsi, "", true),
+    cellularFact("簡訊中心", sim.smsc, "", true),
+  );
+
+  const [attached, attachedTone] = yesNo(net.ps_attached, "已附著", "未附著");
+  const cell = net.rat === "LTE"
+    ? [`LTE ${net.duplex || ""}`.trim(), net.band ? `Band ${net.band}` : "", net.bandwidth_mhz ? `${net.bandwidth_mhz} MHz` : ""].filter(Boolean).join(" · ")
+    : net.rat;
+  const sinr = net.sinr === null || net.sinr === undefined ? "" : `${net.sinr} dB`;
+  $("#cellular-network-facts").replaceChildren(
+    cellularFact("註冊", net.registration, net.reg_status === 1 ? "good" : (net.roaming ? "warn" : "bad")),
+    cellularFact("服務網路", [net.operator, net.plmn].filter(Boolean).join(" · ")),
+    cellularFact("數據附著", attached, attachedTone),
+    cellularFact("連線狀態", connStateText[net.conn_state] || net.conn_state),
+    cellularFact("制式／頻段", cell),
+    cellularFact("RSRP", withUnit(net.rsrp, "dBm"), rsrpTone(net.rsrp)),
+    cellularFact("RSRQ／SINR", [withUnit(net.rsrq, "dB"), sinr].filter(Boolean).join(" · ")),
+    cellularFact("基地台", net.cell_id ? `eNB ${net.enodeb} · 扇區 ${net.sector} · PCI ${net.pci ?? "--"}` : ""),
+    cellularFact("TAC／EARFCN", [net.tac, net.earfcn].filter(Boolean).join(" · ")),
+  );
+
+  const errors = data.errors ? Object.keys(data.errors) : [];
+  const time = new Date(data.sampled_at_ms || Date.now()).toLocaleTimeString("zh-TW", { hour12: false });
+  $("#cellular-status").textContent = errors.length
+    ? `更新於 ${time} · 部分項目讀取失敗：${errors.join("、")}`
+    : `更新於 ${time} · 在概覽頁時每 15 秒更新`;
+}
+
+async function loadCellular(manual = false) {
+  if (cellularLoading) return;
+  cellularLoading = true;
+  const button = $("#cellular-refresh");
+  button.disabled = true;
+  try {
+    renderCellular(await api("/api/cellular"));
+  } catch (error) {
+    $("#cellular-banner").className = "cellular-banner is-muted";
+    $("#cellular-summary").textContent = "無法讀取 SIM 與 VoLTE 狀態";
+    $("#cellular-status").textContent = error.message;
+    if (manual) notice(error.message);
+  } finally {
+    cellularLoading = false;
+    button.disabled = false;
+  }
+}
+
 function renderNetworkCheck(label, result) {
   const list = $("#network-checks");
   list.className = "list";
@@ -1516,11 +1644,17 @@ $("#usbnet-mode-2").addEventListener("click", () => setUSBNetMode(2));
 $("#usbnet-mode-3").addEventListener("click", () => setUSBNetMode(3));
 $("#reboot-module").addEventListener("click", rebootModule);
 
+$("#cellular-refresh").addEventListener("click", () => loadCellular(true));
+
 loadStatus();
 loadSMS();
 loadSidebarConnection();
+loadCellular();
 setNetworkTrafficPolling(true);
 setNetworkActivityPolling(true);
 setInterval(loadStatus, 10000);
 setInterval(loadSMS, 5000);
 setInterval(loadSidebarConnection, 10000);
+setInterval(() => {
+  if ($("#overview").classList.contains("active") && !document.hidden) loadCellular();
+}, 15000);

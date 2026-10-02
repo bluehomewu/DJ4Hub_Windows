@@ -574,6 +574,7 @@ func (a *app) routes() http.Handler {
 	mux.HandleFunc("POST /api/history/backup", a.historyBackupAction)
 	mux.HandleFunc("GET /api/alerts", a.communicationAlerts)
 	mux.HandleFunc("GET /api/status", a.status)
+	mux.HandleFunc("GET /api/cellular", a.cellularStatus)
 	mux.HandleFunc("GET /api/sms", a.listSMS)
 	mux.HandleFunc("GET /api/sms/status", a.smsStatus)
 	mux.HandleFunc("POST /api/sms/send", a.sendSMS)
