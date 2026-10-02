@@ -2,7 +2,7 @@ const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
-const source = fs.readFileSync(require('node:path').join(__dirname, '../cmd/dj4ghub-macos/web/phone.js'), 'utf8');
+const source = fs.readFileSync(require('node:path').join(__dirname, '../cmd/dj4ghub/web/phone.js'), 'utf8');
 
 function harness() {
   const elements = new Map();
