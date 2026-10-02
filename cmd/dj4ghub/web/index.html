@@ -328,6 +328,10 @@
           </form>
           <pre id="at-output">等待指令</pre>
         </div>
+        <div class="settings-section at-reference">
+          <div class="section-heading"><div><h2>指令參考</h2><p>點選指令會填入上方輸入框，不會自動執行。<code>{a | b}</code> 表示擇一，<code>[ … ]</code> 表示可省略。</p></div><input id="at-reference-search" type="search" placeholder="搜尋指令或說明" aria-label="搜尋 AT 指令"></div>
+          <div id="at-reference-list" class="at-reference-list"></div>
+        </div>
       </section>
       <section id="calls" class="view">
         <div class="view-intro"><div><span class="section-kicker">PHONE</span><h2>電話</h2><p>透過 SIM 撥打電話，使用數字鍵盤操作語音選單。</p></div></div>
@@ -406,5 +410,6 @@
   <script src="/phone.js"></script>
   <script src="/history.js"></script>
   <script src="/alerts.js"></script>
+  <script src="/at-reference.js"></script>
 </body>
 </html>

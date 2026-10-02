@@ -423,6 +423,22 @@ input:focus { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); 
 .fold-panel > .inline-status { margin: 10px 14px 13px; }
 
 .esim-download { margin-top: 14px; }
+.at-reference .section-heading { align-items: center; }
+.at-reference .section-heading code { font-size: inherit; }
+#at-reference-search { width: min(280px, 100%); }
+.at-reference-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 14px; }
+.at-reference-group { display: grid; align-content: start; gap: 6px; }
+.at-reference-group h3 { margin: 0 0 2px; color: var(--muted); font-size: max(var(--font-min), calc(10px * var(--font-scale))); font-weight: 600; }
+.at-reference-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; border: 1px solid var(--hairline); border-radius: var(--radius-md); padding: 9px 12px; background: var(--surface); color: var(--text-default); text-align: left; }
+.at-reference-item:hover { border-color: var(--accent); }
+.at-reference-item code { overflow-wrap: anywhere; color: var(--text); font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: max(var(--font-min), calc(10px * var(--font-scale))); }
+.at-reference-item span { grid-column: 1 / -1; color: var(--muted); font-size: max(var(--font-min), calc(9px * var(--font-scale))); line-height: 1.45; }
+.at-risk { align-self: start; border-radius: 999px; padding: 2px 8px; font-size: max(var(--font-min), calc(8px * var(--font-scale))); white-space: nowrap; }
+.at-risk-read { background: var(--positive-soft); color: var(--positive); }
+.at-risk-write { background: var(--warning-soft); color: var(--warning); }
+.at-risk-reboot { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
+.at-risk-danger { background: color-mix(in srgb, var(--negative) 14%, transparent); color: var(--negative); }
+@media (max-width: 760px) { .at-reference-list { grid-template-columns: 1fr; } }
 .esim-qr-zone { display: grid; gap: 6px; margin: 14px 14px 0; border: 1px dashed var(--line); border-radius: var(--radius-md); padding: 14px; background: var(--surface-soft); text-align: center; outline: none; }
 .esim-qr-zone > div { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; color: var(--muted); font-size: max(var(--font-min), calc(10px * var(--font-scale))); }
 .esim-qr-zone strong { color: var(--text-default); }
