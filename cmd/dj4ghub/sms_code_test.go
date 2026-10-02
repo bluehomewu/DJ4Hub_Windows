@@ -9,6 +9,8 @@ func TestExtractSMSCode(t *testing.T) {
 		want    string
 	}{
 		{name: "Chinese", content: "【服務】您的驗證碼為 482913，5 分鐘內有效。", want: "482913"},
+		{name: "Simplified Chinese", content: "【中国电信】您的验证码为 365107，请勿泄露。", want: "365107"},
+		{name: "Simplified code before keyword", content: "登录动态码：220461", want: "220461"},
 		{name: "English", content: "Your verification code is 123456. Do not share it.", want: "123456"},
 		{name: "Code before keyword", content: "登入動態碼：778899", want: "778899"},
 		{name: "No keyword", content: "您的號碼 13800138000，本月餘額 128.50 元。", want: ""},
