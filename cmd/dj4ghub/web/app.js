@@ -235,7 +235,7 @@ function setUSBNetModeSelector(value) {
   });
 }
 
-function setHeaderDeviceState(connected, label = "裝置線上") {
+function setHeaderDeviceState(connected, label = "裝置在線") {
   const indicator = $("#header-device-state");
   indicator.classList.toggle("is-online", connected);
   indicator.classList.toggle("is-offline", !connected);
@@ -303,7 +303,7 @@ async function loadStatus() {
   try {
     const status = await api("/api/status");
     const connected = Boolean(status.usb_device || status.imei || status.firmware);
-    setHeaderDeviceState(connected, connected ? "裝置線上" : "等待裝置");
+    setHeaderDeviceState(connected, connected ? "裝置在線" : "等待裝置");
     setSidebarDeviceState(connected, status.usb_device);
     setValue("#operator", displayOperatorName(status.operator), status.operator ? "neutral" : "muted");
     setValue("#signal", status.signal_dbm ? `${status.signal_dbm} dBm` : "--", signalTone(status.signal_dbm));
