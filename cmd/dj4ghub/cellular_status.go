@@ -42,6 +42,8 @@ type simDetails struct {
 	HomePLMN     string `json:"home_plmn,omitempty"`
 	HomeOperator string `json:"home_operator,omitempty"`
 	SMSC         string `json:"smsc,omitempty"`
+	PINRemaining *int   `json:"pin_remaining,omitempty"`
+	PUKRemaining *int   `json:"puk_remaining,omitempty"`
 }
 
 type networkDetails struct {
@@ -118,6 +120,7 @@ func (a *app) cellularStatus(w http.ResponseWriter, _ *http.Request) {
 		parseUSBATIMSI(run("imsi", "AT+CIMI")),
 		run("csca", "AT+CSCA?"),
 	)
+	status.SIM.PINRemaining, status.SIM.PUKRemaining = parsePINCounters(run("pinc", `AT+QPINC="SC"`))
 
 	status.Network = parseNetworkDetails(
 		run("cereg", "AT+CEREG?"),

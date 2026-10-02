@@ -139,7 +139,13 @@
           <div id="cellular-banner" class="cellular-banner is-muted"><span class="cellular-dot" aria-hidden="true"></span><strong id="cellular-summary">尚未讀取</strong></div>
           <div class="cellular-grid">
             <article class="cellular-card"><h3>VoLTE／IMS</h3><dl id="cellular-ims-facts" class="cellular-facts"></dl></article>
-            <article class="cellular-card"><h3>SIM 卡</h3><dl id="cellular-sim-facts" class="cellular-facts"></dl></article>
+            <article class="cellular-card"><h3>SIM 卡</h3><dl id="cellular-sim-facts" class="cellular-facts"></dl>
+              <form id="sim-pin-form" class="sim-pin-form" hidden>
+                <label for="sim-pin-input">SIM 卡需要 PIN 碼</label>
+                <div><input id="sim-pin-input" type="password" inputmode="numeric" pattern="[0-9]{4,8}" maxlength="8" autocomplete="off" placeholder="4–8 位數字" required><button id="sim-pin-submit" type="submit">解鎖</button></div>
+                <small id="sim-pin-feedback">PIN 碼只會送到模組，不會儲存或記錄。</small>
+              </form>
+            </article>
             <article class="cellular-card"><h3>行動網路與訊號</h3><dl id="cellular-network-facts" class="cellular-facts"></dl></article>
           </div>
           <p id="cellular-status" class="cellular-note"></p>

@@ -4,7 +4,7 @@
 
 # DJ 4G Hub for Windows
 
-[DJ 4G Hub](https://github.com/WongLoki/DJ4Hub) 的 Windows 移植版：在 Windows 上透過 **DJI 4G 模組**（USB `2ca3:4006`，Quectel QDC507）原有的 USB 介面，提供裝置狀態、SIM 與 VoLTE 狀態、簡訊、SIM 通話控制、eSIM Profile、行動網路、連網活動與 AT 除錯等功能，不修改模組韌體。
+[DJ 4G Hub](https://github.com/WongLoki/DJ4Hub) 的 Windows 移植版：在 Windows 上透過 **DJI 4G 模組**（USB `2ca3:4006`，Quectel QDC507）原有的 USB 介面，提供裝置狀態、SIM 與 VoLTE 狀態、SIM PIN 解鎖、簡訊、SIM 通話控制、eSIM Profile、行動網路、連網活動與 AT 除錯等功能，不修改模組韌體。
 
 服務與網頁都在本機執行，預設只監聽 `127.0.0.1:7575`，沒有遠端遙測。
 

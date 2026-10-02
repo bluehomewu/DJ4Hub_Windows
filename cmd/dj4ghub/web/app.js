@@ -721,11 +721,18 @@ function renderCellular(data) {
   );
 
   const [inserted, insertedTone] = yesNo(sim.inserted, "已插入", "未插入");
+  const attempts = sim.pin_remaining === undefined
+    ? ""
+    : `PIN ${sim.pin_remaining} 次 · PUK ${sim.puk_remaining ?? "--"} 次`;
+  const needsPIN = sim.pin === "SIM PIN";
+  $("#sim-pin-form").hidden = !needsPIN;
+  if (!needsPIN) $("#sim-pin-input").value = "";
   const pinText = { READY: "就緒", "SIM PIN": "需要 PIN 碼", "SIM PUK": "需要 PUK 碼" }[sim.pin] || sim.pin;
   $("#cellular-sim-facts").replaceChildren(
     cellularFact("卡片", inserted, insertedTone),
     cellularFact("PIN", pinText, sim.pin === "READY" ? "good" : "warn"),
     cellularFact("初始化", sim.init_text, sim.init_status === 7 ? "good" : "warn"),
+    cellularFact("剩餘嘗試", attempts, sim.pin_remaining !== undefined && sim.pin_remaining < 2 ? "bad" : ""),
     cellularFact("發卡業者", [sim.home_operator, sim.home_plmn].filter(Boolean).join(" · ")),
     cellularFact("ICCID", sim.iccid, "", true),
     cellularFact("IMSI", sim.imsi, "", true),
@@ -754,6 +761,55 @@ function renderCellular(data) {
   $("#cellular-status").textContent = errors.length
     ? `更新於 ${time} · 部分項目讀取失敗：${errors.join("、")}`
     : `更新於 ${time} · 在概覽頁時每 15 秒更新`;
+}
+
+async function submitSIMPIN(pin, confirmLastAttempt) {
+  const response = await fetch("/api/sim/pin", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ pin, confirm_last_attempt: confirmLastAttempt }),
+  });
+  const data = await response.json().catch(() => ({}));
+  return { status: response.status, data };
+}
+
+async function unlockSIMPIN() {
+  const input = $("#sim-pin-input");
+  const button = $("#sim-pin-submit");
+  const feedback = $("#sim-pin-feedback");
+  const pin = input.value.trim();
+  if (!/^[0-9]{4,8}$/.test(pin)) {
+    feedback.textContent = "PIN 碼須為 4 到 8 位數字";
+    return;
+  }
+  button.disabled = true;
+  feedback.textContent = "正在解鎖…";
+  try {
+    let { status, data } = await submitSIMPIN(pin, false);
+    if (status === 409 && data.pin_remaining === 1) {
+      const confirmed = await showModal({
+        title: "最後一次 PIN 嘗試",
+        message: "這張 SIM 卡只剩 1 次 PIN 嘗試，輸入錯誤會被鎖定，需要向電信業者取得 PUK 碼。確定 PIN 碼正確嗎？",
+        confirmLabel: "確定送出",
+        danger: true,
+      });
+      if (!confirmed) {
+        feedback.textContent = "已取消";
+        return;
+      }
+      ({ status, data } = await submitSIMPIN(pin, true));
+    }
+    feedback.textContent = data.message || data.error || `HTTP ${status}`;
+    if (status === 200 && data.unlocked) {
+      input.value = "";
+      notice("SIM 已解鎖");
+      await Promise.all([loadStatus(), loadCellular()]);
+    }
+  } catch (error) {
+    feedback.textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
 }
 
 async function loadCellular(manual = false) {
@@ -1645,6 +1701,10 @@ $("#usbnet-mode-3").addEventListener("click", () => setUSBNetMode(3));
 $("#reboot-module").addEventListener("click", rebootModule);
 
 $("#cellular-refresh").addEventListener("click", () => loadCellular(true));
+$("#sim-pin-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  void unlockSIMPIN();
+});
 
 loadStatus();
 loadSMS();

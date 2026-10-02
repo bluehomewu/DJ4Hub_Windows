@@ -274,6 +274,12 @@ button:active:not(:disabled) { transform: translateY(1px); }
 .cellular-facts dd.warn { color: var(--warning); }
 .cellular-facts dd.bad { color: var(--negative); }
 .cellular-facts dd button { min-height: 0; height: auto; border: 0; border-radius: 0; padding: 0; background: transparent; color: inherit; font: inherit; line-height: inherit; cursor: pointer; }
+.sim-pin-form { display: grid; gap: 7px; margin-top: 12px; border-top: 1px solid var(--hairline); padding-top: 12px; }
+.sim-pin-form[hidden] { display: none; }
+.sim-pin-form label { color: var(--warning); font-size: max(var(--font-min), calc(10px * var(--font-scale))); font-weight: 600; }
+.sim-pin-form > div { display: flex; gap: 8px; }
+.sim-pin-form input { min-width: 0; flex: 1; letter-spacing: .2em; }
+.sim-pin-form small { color: var(--dim); font-size: max(var(--font-min), calc(8px * var(--font-scale))); }
 .cellular-note { margin: 6px 2px 0; color: var(--dim); font-size: max(var(--font-min), calc(8px * var(--font-scale))); }
 @media (max-width: 980px) { .cellular-grid { grid-template-columns: 1fr; } }
 .activity-heading { margin-bottom: 9px; }
