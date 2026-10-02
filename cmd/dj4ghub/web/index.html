@@ -227,6 +227,11 @@
         </div>
         <details id="esim-download-section" class="fold-panel esim-download" hidden>
           <summary><span><span class="panel-icon" aria-hidden="true">↓</span><strong>下載新 Profile</strong></span><small>SM-DP+ 啟用資訊</small></summary>
+          <div id="esim-qr-zone" class="esim-qr-zone" tabindex="0" aria-describedby="esim-qr-status">
+            <div><strong>從 QR Code 匯入</strong><span>拖曳圖片到這裡、按 Ctrl+V 貼上，或</span><button id="esim-qr-pick" class="secondary compact" type="button">選擇圖片</button></div>
+            <input id="esim-qr-file" type="file" accept="image/*" hidden>
+            <small id="esim-qr-status">支援電信業者提供的 eSIM QR Code 圖片或截圖；只會填入欄位，不會自動下載。</small>
+          </div>
           <form id="esim-download-form" class="esim-download-grid">
             <label><span>SM-DP+ 位址</span><input id="esim-smdp" placeholder="smdp.example.com" required></label>
             <label><span>Matching ID</span><input id="esim-matching-id" placeholder="可選"></label>
@@ -396,6 +401,7 @@
     </form>
   </div>
   <div id="notice" role="status" aria-live="polite"></div>
+  <script src="/jsQR.js"></script>
   <script src="/app.js"></script>
   <script src="/phone.js"></script>
   <script src="/history.js"></script>

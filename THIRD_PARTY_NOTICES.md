@@ -23,5 +23,6 @@ The source repository includes vendored dependencies under `third_party/` so the
 | pkg/errors | `third_party/pkg-errors/LICENSE` |
 | golang.org/x/text | `third_party/x-text/LICENSE` |
 | multierr | `third_party/multierr/LICENSE.txt` |
+| jsQR 1.4.0 (QR code decoding in the web console, `cmd/dj4ghub/web/jsQR.js`) | `third_party/jsqr/LICENSE` (Apache-2.0) |
 
 Dependencies fetched through Go modules retain their own licenses and copyright notices. This file is informational and does not replace any component's full license text.

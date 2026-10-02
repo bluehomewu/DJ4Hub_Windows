@@ -8,6 +8,8 @@ DJ 4G Hub is distributed under the terms in `LICENSE`, including its required up
 Required Notice: Copyright iniwex5 (https://github.com/iniwex5/vohive)
 ```
 
+The web console embeds [jsQR](https://github.com/cozmo/jsQR) 1.4.0 (Apache-2.0) to read eSIM QR codes.
+
 Quectel USB drivers are not included. Obtain and install them from Quectel or your module supplier under their terms.
 
 ## Optional experimental module audio

@@ -423,6 +423,13 @@ input:focus { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); 
 .fold-panel > .inline-status { margin: 10px 14px 13px; }
 
 .esim-download { margin-top: 14px; }
+.esim-qr-zone { display: grid; gap: 6px; margin: 14px 14px 0; border: 1px dashed var(--line); border-radius: var(--radius-md); padding: 14px; background: var(--surface-soft); text-align: center; outline: none; }
+.esim-qr-zone > div { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; color: var(--muted); font-size: max(var(--font-min), calc(10px * var(--font-scale))); }
+.esim-qr-zone strong { color: var(--text-default); }
+.esim-qr-zone small { color: var(--dim); font-size: max(var(--font-min), calc(9px * var(--font-scale))); }
+.esim-qr-zone.is-dragging, .esim-qr-zone:focus-visible { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--surface)); }
+.esim-qr-zone.is-good small { color: var(--positive); }
+.esim-qr-zone.is-bad small { color: var(--negative); }
 .esim-download-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 14px; }
 .esim-download-grid button { grid-column: span 2; justify-self: end; }
 .profile-panel { margin-top: 20px; }

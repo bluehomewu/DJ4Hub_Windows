@@ -1563,6 +1563,117 @@ window.addEventListener("load", () => {
   if (tab && view !== "overview") tab.click();
 });
 
+// eSIM activation codes use the SGP.22 format
+// LPA:1$<SM-DP+ address>$<matching ID>[$<SM-DP+ OID>[$<confirmation code required>]].
+function parseLPAActivationCode(text) {
+  const match = /^LPA:1\$([^$\s]+)\$([^$\s]*)(?:\$([^$\s]*))?(?:\$([01]))?$/i.exec(String(text || "").trim());
+  if (!match) return null;
+  return { smdp: match[1], matchingId: match[2], oid: match[3] || "", confirmationRequired: match[4] === "1" };
+}
+
+function setQRStatus(message, tone = "") {
+  const zone = $("#esim-qr-zone");
+  zone.classList.toggle("is-good", tone === "good");
+  zone.classList.toggle("is-bad", tone === "bad");
+  $("#esim-qr-status").textContent = message;
+}
+
+function applyActivationCode(text) {
+  const code = parseLPAActivationCode(text);
+  if (!code) {
+    setQRStatus("讀到的內容不是 eSIM 啟用碼（應為 LPA:1$… 格式）", "bad");
+    return false;
+  }
+  $("#esim-download-section").open = true;
+  $("#esim-smdp").value = code.smdp;
+  $("#esim-matching-id").value = code.matchingId;
+  if (code.confirmationRequired) {
+    setQRStatus(`已讀取：${code.smdp}。此 Profile 需要確認碼，請向電信業者取得後填入。`, "good");
+    $("#esim-confirmation-code").focus();
+  } else {
+    setQRStatus(`已讀取：${code.smdp}，請確認欄位後按「開始下載」。`, "good");
+  }
+  return true;
+}
+
+// Decodes a QR code with jsQR. Large photos are retried at smaller sizes,
+// which jsQR handles faster and often more reliably.
+async function decodeQRImage(file) {
+  if (typeof jsQR !== "function") throw new Error("QR Code 解碼元件未載入");
+  const bitmap = await createImageBitmap(file);
+  try {
+    for (const limit of [1600, 1000, 640]) {
+      const scale = Math.min(1, limit / Math.max(bitmap.width, bitmap.height));
+      const width = Math.max(1, Math.round(bitmap.width * scale));
+      const height = Math.max(1, Math.round(bitmap.height * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+      context.drawImage(bitmap, 0, 0, width, height);
+      const result = jsQR(context.getImageData(0, 0, width, height).data, width, height, { inversionAttempts: "attemptBoth" });
+      if (result?.data) return result.data;
+      if (scale === 1) break; // Smaller limits would redraw the same size.
+    }
+  } finally {
+    bitmap.close?.();
+  }
+  return "";
+}
+
+async function importQRFile(file) {
+  if (!file || !file.type.startsWith("image/")) {
+    setQRStatus("請提供圖片檔（PNG、JPG 等）", "bad");
+    return;
+  }
+  setQRStatus("正在辨識 QR Code…");
+  try {
+    const text = await decodeQRImage(file);
+    if (!text) {
+      setQRStatus("圖片中找不到 QR Code，請換一張較清楚或裁切過的圖片", "bad");
+      return;
+    }
+    applyActivationCode(text);
+  } catch (error) {
+    setQRStatus(`無法讀取圖片：${error.message}`, "bad");
+  }
+}
+
+{
+  const zone = $("#esim-qr-zone");
+  $("#esim-qr-pick").addEventListener("click", () => $("#esim-qr-file").click());
+  $("#esim-qr-file").addEventListener("change", (event) => {
+    void importQRFile(event.target.files?.[0]);
+    event.target.value = "";
+  });
+  ["dragenter", "dragover"].forEach((type) => zone.addEventListener(type, (event) => {
+    event.preventDefault();
+    zone.classList.add("is-dragging");
+  }));
+  ["dragleave", "drop"].forEach((type) => zone.addEventListener(type, () => zone.classList.remove("is-dragging")));
+  zone.addEventListener("drop", (event) => {
+    event.preventDefault();
+    void importQRFile(event.dataTransfer?.files?.[0]);
+  });
+  // Paste works anywhere on the eSIM page unless the user is typing in a field.
+  document.addEventListener("paste", (event) => {
+    if (!$("#esim").classList.contains("active") || $("#esim-download-section").hidden) return;
+    const target = event.target;
+    const typing = target instanceof HTMLElement && target !== zone && target.matches("input, textarea, [contenteditable]");
+    const image = [...(event.clipboardData?.items || [])].find((item) => item.type.startsWith("image/"));
+    if (image) {
+      event.preventDefault();
+      void importQRFile(image.getAsFile());
+      return;
+    }
+    const text = event.clipboardData?.getData("text") || "";
+    if (!typing && /^LPA:1\$/i.test(text.trim())) {
+      event.preventDefault();
+      applyActivationCode(text);
+    }
+  });
+}
+
 $("#esim-download-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const confirmed = await showModal({
