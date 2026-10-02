@@ -1539,6 +1539,8 @@ document.querySelectorAll(".tab").forEach((tab) => {
     tab.classList.add("active");
     tab.setAttribute("aria-current", "page");
     $(`#${tab.dataset.view}`).classList.add("active");
+    // Keep the page in the URL so a reload returns to it.
+    history.replaceState(null, "", tab.dataset.view === "overview" ? location.pathname : `#${tab.dataset.view}`);
     setNetworkActivityPolling(tab.dataset.view === "overview");
     if (tab.dataset.view === "esim") loadESIM();
     else setESIMHealthPolling(false);
@@ -1551,6 +1553,14 @@ document.querySelectorAll(".tab").forEach((tab) => {
       });
     }
   });
+});
+
+// Restore the page named in the URL after every script has registered its
+// tab handlers (phone.js loads after this file).
+window.addEventListener("load", () => {
+  const view = decodeURIComponent(location.hash.slice(1));
+  const tab = [...document.querySelectorAll(".tab")].find((item) => item.dataset.view === view);
+  if (tab && view !== "overview") tab.click();
 });
 
 $("#esim-download-form").addEventListener("submit", async (event) => {
