@@ -1,4 +1,4 @@
 package main
 
 // appVersion follows x.y.z: y for features, z for fixes.
-const appVersion = "1.7.0"
+const appVersion = "1.8.0"

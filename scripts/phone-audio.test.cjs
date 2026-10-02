@@ -10,8 +10,8 @@ function harness() {
   const context = {
     moduleAudioBusy: false, callPollBusy: false, phoneActionBusy: false,
     previousCallsPresent: true, callStarted: new Map(), moduleAudioToken: 'session', moduleAudioSupported: true, phoneCallActive: false, updateKeypadMode: () => {}, isCallWindow: false, callWindowHadCall: false, callWindowCloseTimer: null,
-    document: {querySelectorAll: () => []},
-    $: id => { if (!elements.has(id)) elements.set(id, {checked: true, dataset: {}}); return elements.get(id); },
+    document: {querySelectorAll: () => [], documentElement: {dataset: {}}},
+    $: id => { if (!elements.has(id)) elements.set(id, {checked: true, dataset: {}, setAttribute() {}}); return elements.get(id); },
     stopPhoneAudio: () => requests.push('stop-media'),
     ensureModuleAudio: async () => requests.push('ensure'),
     connectPhoneAudio: async () => requests.push('connect'),
@@ -78,6 +78,18 @@ test('call card shows the incoming number', async () => {
   assert.equal(elements.get('#call-card').dataset.state, 'ringing');
   assert.equal(elements.get('#call-card-number').textContent, '0900639025');
   assert.equal(elements.get('#call-card-kicker').textContent, '來電');
+});
+test('call window switches between ringing and connected layouts', async () => {
+  const {context} = harness();
+  context.api = async () => ({calls: [{id: 1, direction: 1, state: 4, number: '0900639025'}]});
+  await context.refreshCalls();
+  assert.equal(context.document.documentElement.dataset.callState, 'ringing');
+  context.api = async () => ({calls: [{id: 1, direction: 1, state: 0, number: '0900639025'}]});
+  await context.refreshCalls();
+  assert.equal(context.document.documentElement.dataset.callState, 'active');
+  context.api = async () => ({calls: []});
+  await context.refreshCalls();
+  assert.equal(context.document.documentElement.dataset.callState, 'idle');
 });
 test('USB preparation suppresses misleading call poll failure', async () => {
   const {context, requests, elements} = harness();

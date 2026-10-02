@@ -46,10 +46,21 @@ async function refreshCalls() {
   } catch (e) { $('#phone-status').textContent = moduleAudioBusy || /NO_DEVICE|NOT_FOUND/i.test(e.message) ? 'USB 正在重新連線，稍後自動恢復…' : `通話狀態不可用：${e.message}`; }
   finally { callPollBusy = false; }
 }
+function callWindowState(call) {
+  if (!call) return 'idle';
+  if (call.state === 4 || call.state === 5) return 'ringing';
+  if (call.state === 2 || call.state === 3) return 'outgoing';
+  return 'active';
+}
 function renderCallCard(calls, states) {
   const card = $('#call-card');
   if (!card) return;
   const call = calls.find(c => c.state === 4 || c.state === 5) || calls[0];
+  const windowState = callWindowState(call);
+  if (document.documentElement.dataset.callState !== windowState) {
+    document.documentElement.dataset.callState = windowState;
+    if (windowState !== 'active') { delete document.documentElement.dataset.keypad; $('#call-keypad-toggle').setAttribute('aria-pressed', 'false'); }
+  }
   if (!call) {
     card.dataset.state = 'idle';
     $('#call-card-kicker').textContent = '電話';
@@ -89,6 +100,20 @@ async function phoneAction(action, extra = {}) {
   finally { phoneActionBusy = false; }
 }
 $('#phone-dial').onclick = () => phoneAction('dial',{number:$('#phone-number').value.trim()});
+// Compact call window controls reuse the regular phone actions.
+$('#call-accept').onclick = () => phoneAction('answer');
+$('#call-decline').onclick = () => phoneAction('hangup');
+$('#call-end').onclick = () => phoneAction('hangup');
+$('#call-dial').onclick = () => phoneAction('dial',{number:$('#phone-number').value.trim()});
+$('#call-mute').onclick = () => $('#audio-mute').click();
+$('#call-keypad-toggle').onclick = () => {
+  const open = document.documentElement.dataset.keypad !== 'open';
+  if (open) document.documentElement.dataset.keypad = 'open'; else delete document.documentElement.dataset.keypad;
+  $('#call-keypad-toggle').setAttribute('aria-pressed', String(open));
+};
+new MutationObserver(() => $('#call-mute').setAttribute('aria-pressed', $('#audio-mute').getAttribute('aria-pressed') || 'false'))
+  .observe($('#audio-mute'), {attributes: true, attributeFilter: ['aria-pressed']});
+document.documentElement.dataset.callState = 'idle';
 $('#phone-answer').onclick = () => phoneAction('answer');
 $('#phone-hangup').onclick = () => phoneAction('hangup');
 for (const digit of '123456789*0#') {

@@ -599,7 +599,47 @@ body.modal-open { overflow: hidden; }
 .phone-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 320px; margin: 24px 0; }
 .phone-keypad .phone-keypad-erase { grid-column: 3; }
 .phone-keypad button { min-height: 54px; font-size: max(var(--font-min), calc(22px * var(--font-scale))); }
-.call-card { display: none; }
+.call-card, .call-actions { display: none; }
+/* The compact window switches layout by call state like a phone UI. */
+html.call-window .call-actions { display: grid; gap: 22px; margin: 6px 0 4px; }
+html.call-window .call-options { display: none; justify-content: center; gap: 36px; }
+html.call-window .call-option, html.call-window .call-round { display: grid; justify-items: center; gap: 6px; border: 0; padding: 0; background: transparent; color: var(--text-default); font-size: max(var(--font-min), calc(9px * var(--font-scale))); }
+html.call-window .call-option svg { width: 58px; height: 58px; box-sizing: border-box; padding: 16px; border-radius: 50%; background: var(--surface); box-shadow: inset 0 0 0 1px var(--hairline); fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+html.call-window .call-option[aria-pressed="true"] svg { background: var(--text); color: var(--surface); }
+html.call-window .call-round-row { display: flex; justify-content: center; gap: 72px; }
+html.call-window .call-round { display: none; }
+html.call-window .call-round svg { width: 68px; height: 68px; box-sizing: border-box; padding: 19px; border-radius: 50%; fill: #fff; stroke: none; }
+html.call-window .call-round-accept svg { background: #1f9d55; }
+html.call-window .call-round-hangup svg { background: #d64545; transform: rotate(135deg); }
+html.call-window .call-round:disabled { opacity: .5; }
+html.call-window .call-round:hover:not(:disabled) svg { filter: brightness(1.08); }
+html.call-window[data-call-state="ringing"] #call-decline,
+html.call-window[data-call-state="ringing"] #call-accept,
+html.call-window[data-call-state="active"] #call-end,
+html.call-window[data-call-state="outgoing"] #call-end,
+html.call-window[data-call-state="idle"] #call-dial { display: grid; }
+html.call-window[data-call-state="active"] .call-options,
+html.call-window[data-call-state="outgoing"] .call-options { display: flex; }
+html.call-window[data-call-state="outgoing"] #call-keypad-toggle { display: none; }
+/* Dial controls only when idle; the keypad returns on demand during a call. */
+html.call-window .control-panel,
+html.call-window .audio-settings { display: none !important; }
+html.call-window[data-call-state="idle"] .control-panel { display: block !important; }
+html.call-window[data-call-state="idle"] #phone-number { width: 100%; max-width: none; box-sizing: border-box; }
+html.call-window:not([data-call-state="idle"]) #phone-keypad-erase { display: none; }
+html.call-window[data-call-state="idle"] #phone-dial,
+html.call-window[data-call-state="idle"] #phone-answer,
+html.call-window[data-call-state="idle"] #phone-hangup { display: none; }
+html.call-window[data-call-state="ringing"] .phone-keypad,
+html.call-window[data-call-state="outgoing"] .phone-keypad,
+html.call-window[data-call-state="active"]:not([data-keypad="open"]) .phone-keypad { display: none; }
+html.call-window[data-call-state="ringing"] .call-card { padding: 44px 16px; }
+/* Fill the window: number at the top, round buttons pinned to the bottom. */
+html.call-window #calls.active { display: flex; flex-direction: column; min-height: calc(100vh - 38px); }
+html.call-window #calls .call-card { order: 0; }
+html.call-window #calls .settings-section { order: 1; }
+html.call-window #calls .call-actions { order: 2; margin-top: auto; padding-bottom: 8px; }
+html.call-window[data-call-state="ringing"] #calls .call-card { flex: 1; align-content: center; }
 .phone-settings-row { gap: 28px; }
 .phone-settings-row .audio-auto-setting { flex: 1 1 0; }
 @media (max-width: 760px) { .phone-settings-row { flex-direction: column; align-items: stretch; } }
